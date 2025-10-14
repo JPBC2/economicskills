@@ -1,16 +1,7 @@
-# economicskills
+# Economic Skills
 
-A new Flutter project.
+An interactive Flutter web application for learning applied economic theory with Google Sheets.
 
-## Getting Started
+This project is in development at the Acatlán School of Higher Studies, BA in International Relations, course: Introduction to Economic Theory.
 
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Available at: https://jpbc2.github.io/economicskills/
