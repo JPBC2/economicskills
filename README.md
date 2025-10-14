@@ -1,4 +1,4 @@
-# Economic Skills
+# Economic skills
 
 An interactive Flutter web application for learning applied economic theory with Google Sheets.
 
