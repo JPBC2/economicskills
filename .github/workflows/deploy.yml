@@ -5,6 +5,11 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
@@ -24,7 +29,7 @@ jobs:
         run: flutter pub get
 
       - name: Build (web)
-        run: flutter build web --release --base-href "/ economicskills/"
+        run: flutter build web --release --base-href "/economicskills/"
 
       - name: Deploy to GitHub Pages (gh-pages branch)
         uses: peaceiris/actions-gh-pages@v4
