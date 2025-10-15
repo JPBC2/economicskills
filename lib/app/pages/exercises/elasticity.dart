@@ -260,7 +260,9 @@ class _ElasticityPageState extends State<ElasticityPage> {
                                         TextSpan(
                                           text: 'https://www.investopedia.com/terms/p/priceelasticity.asp',
                                           style: TextStyle(
-                                            color: Colors.cyan.shade700,
+                                            color: Theme.of(context).brightness == Brightness.dark
+                                                ? Colors.white
+                                                : Colors.lightBlue.shade900, //cyan.shade700,
                                           ),
                                           recognizer: TapGestureRecognizer()
                                             ..onTap = () => _launchUrl('https://www.investopedia.com/terms/p/priceelasticity.asp'),
@@ -275,7 +277,9 @@ class _ElasticityPageState extends State<ElasticityPage> {
                                         TextSpan(
                                           text: 'https://demonstrations.wolfram.com/ConstantPriceElasticityOfDemand/',
                                           style: TextStyle(
-                                            color: Colors.cyan.shade700,
+                                            color: Theme.of(context).brightness == Brightness.dark
+                                                ? Colors.white
+                                                : Colors.lightBlue.shade900,
                                           ),
                                           recognizer: TapGestureRecognizer()
                                             ..onTap = () => _launchUrl('https://demonstrations.wolfram.com/ConstantPriceElasticityOfDemand/'),
@@ -290,7 +294,9 @@ class _ElasticityPageState extends State<ElasticityPage> {
                                         TextSpan(
                                           text: 'https://www.wiley.com/en-it/Marketing+Analytics%3A+Data-Driven+Techniques+with+Microsoft+Excel-p-9781118373439',
                                           style: TextStyle(
-                                            color: Colors.cyan.shade700,
+                                            color: Theme.of(context).brightness == Brightness.dark
+                                                ? Colors.white
+                                                : Colors.lightBlue.shade900,
                                           ),
                                           recognizer: TapGestureRecognizer()
                                             ..onTap = () => _launchUrl('https://www.wiley.com/en-it/Marketing+Analytics%3A+Data-Driven+Techniques+with+Microsoft+Excel-p-9781118373439'),
