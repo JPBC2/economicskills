@@ -26,7 +26,7 @@ class _ElasticityPageState extends State<ElasticityPage> {
     super.initState();
 // Initialize the YouTube player controller with the video ID
     _ytController = YoutubePlayerController.fromVideoId(
-      videoId: '', // For instance: 'iknH-T8brqY' YouTube video ID for [https://youtu.be/iknH-T8brqY](https://youtu.be/iknH-T8brqY)
+      videoId: 'U_ctU4E-BuI', // YouTube video ID for https://youtu.be/U_ctU4E-Bu
       autoPlay: false,
       params: const YoutubePlayerParams(
         showControls: true,
@@ -111,7 +111,7 @@ class _ElasticityPageState extends State<ElasticityPage> {
                                 children: const [
                                   TextSpan(
                                     text:
-                                    'In this lesson we are going to learn how to calculate demand assuming a constant price elasticity.', // within a given price range
+                                    'In this lesson we are going to learn how to model demand assuming a constant price elasticity.', // calculate / within a given price range
                                   ),
                                 ],
                               ),
@@ -139,7 +139,7 @@ class _ElasticityPageState extends State<ElasticityPage> {
                                 ),
                                 children: const [
                                   TextSpan(text: 'Exercise 1\n\n', style: TextStyle(fontSize: 20.0, fontFamily: 'ContrailOne')),
-                                  TextSpan(text: 'Fit a quadratic demand curve ___'),
+                                  TextSpan(text: 'Insert a line chart showing the relationship between price and demand.'),
                                 ],
                               ),
                             ),
