@@ -43,6 +43,7 @@ dependencies:
   webview_flutter: any
   url_launcher: any
   supabase_flutter: ^2.0.0
+  google_sign_in: ^6.1.5
 
 dev_dependencies:
   flutter_test:

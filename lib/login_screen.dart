@@ -52,6 +52,31 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  Future<void> _signInWithGoogle() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      await supabase.auth.signInWithOAuth(
+        OAuthProvider.google,
+        redirectTo: 'https://jpbc2.github.io/economicskills/',
+      );
+    } on AuthException catch (error) {
+      if (mounted) {
+        context.showSnackBar('Google sign-in failed: ${error.message}', isError: true);
+      }
+    } catch (error) {
+      if (mounted) {
+        context.showSnackBar('Google sign-in failed: $error', isError: true);
+      }
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
   @override
   void dispose() {
     _emailController.dispose();
@@ -119,6 +144,25 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: _isLoading
                     ? const CircularProgressIndicator()
                     : const Text('Sign In'),
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Divider(),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: OutlinedButton.icon(
+                onPressed: _isLoading ? null : _signInWithGoogle,
+                icon: Image.network(
+                  'https://developers.google.com/identity/images/g-logo.png',
+                  height: 20,
+                  width: 20,
+                ),
+                label: const Text('Continue with Google'),
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: Colors.grey),
+                ),
               ),
             ),
             const SizedBox(height: 16),
