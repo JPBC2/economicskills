@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'main.dart';
+import 'app/routes/router_delegate.router.dart';
 
 class SignupScreen extends StatefulWidget {
-  const SignupScreen({super.key});
+  final AppRouterDelegate routerDelegate;
+  
+  const SignupScreen({super.key, required this.routerDelegate});
 
   @override
   State<SignupScreen> createState() => _SignupScreenState();
@@ -16,8 +19,8 @@ class _SignupScreenState extends State<SignupScreen> {
   bool _isLoading = false;
 
   Future<void> _signUp() async {
-    if (_emailController.text.isEmpty ||
-        _passwordController.text.isEmpty ||
+    if (_emailController.text.isEmpty || 
+        _passwordController.text.isEmpty || 
         _confirmPasswordController.text.isEmpty) {
       context.showSnackBar('Please fill in all fields', isError: true);
       return;
@@ -45,7 +48,7 @@ class _SignupScreenState extends State<SignupScreen> {
 
       if (response.user != null && mounted) {
         context.showSnackBar('Please check your email to confirm your account');
-        Navigator.pop(context); // Go back to login screen
+        widget.routerDelegate.goToLogin(); // Go back to login screen using router
       }
     } on AuthException catch (error) {
       if (mounted) {
@@ -76,6 +79,10 @@ class _SignupScreenState extends State<SignupScreen> {
       appBar: AppBar(
         title: const Text('Create Account'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => widget.routerDelegate.goToLogin(),
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(24.0),
@@ -139,7 +146,7 @@ class _SignupScreenState extends State<SignupScreen> {
             ),
             const SizedBox(height: 16),
             TextButton(
-              onPressed: () => Navigator.pop(context),
+              onPressed: () => widget.routerDelegate.goToLogin(),
               child: const Text('Already have an account? Sign in'),
             ),
           ],

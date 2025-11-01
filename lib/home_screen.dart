@@ -21,7 +21,7 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final user = supabase.auth.currentUser;
-
+    
     return Scaffold(
       appBar: AppBar(
         title: const Text('Economic Skills'),
@@ -76,9 +76,17 @@ class HomeScreen extends StatelessWidget {
             const SizedBox(height: 16),
             const Text(
               'This is where your Google Sheets exercises will be integrated. '
-                  'Students will be able to work on applied economic theory problems '
-                  'with real-time evaluation.',
+              'Students will be able to work on applied economic theory problems '
+              'with real-time evaluation.',
               style: TextStyle(fontSize: 16),
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: () {
+                // Navigate to elasticity exercise using your existing routing
+                routerDelegate.go('/exercises/elasticity');
+              },
+              child: const Text('Go to Elasticity Exercise'),
             ),
             const SizedBox(height: 24),
             const Card(

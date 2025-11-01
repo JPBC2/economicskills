@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'signup_screen.dart';
 import 'main.dart';
+import 'app/routes/router_delegate.router.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+  final AppRouterDelegate routerDelegate;
+  
+  const LoginScreen({super.key, required this.routerDelegate});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -34,8 +36,8 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       if (response.user != null && mounted) {
-        // Navigation will be handled automatically by AuthGate
         context.showSnackBar('Successfully signed in!');
+        // Navigation will be handled automatically by the router delegate
       }
     } on AuthException catch (error) {
       if (mounted) {
@@ -167,10 +169,7 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
             const SizedBox(height: 16),
             TextButton(
-              onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const SignupScreen()),
-              ),
+              onPressed: () => widget.routerDelegate.goToSignup(),
               child: const Text('Don\'t have an account? Sign up'),
             ),
           ],
