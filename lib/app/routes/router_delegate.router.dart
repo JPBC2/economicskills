@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:economicskills/app/pages/exercises/elasticity.dart';
-import '../login_screen.dart';
-import '../signup_screen.dart';
-import '../home_screen.dart';
+import '../../screens/login_screen.dart';
+import '../../screens/signup_screen.dart';
+import '../../screens/home_screen.dart';
 
 class AppRouterDelegate extends RouterDelegate<Uri>
     with ChangeNotifier, PopNavigatorRouterDelegateMixin<Uri> {
