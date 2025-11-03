@@ -60,9 +60,12 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     try {
+      // For Flutter web, use the current window location for OAuth
       await supabase.auth.signInWithOAuth(
         OAuthProvider.google,
-        redirectTo: 'http://localhost:3000/',
+        // Let Supabase use the current page URL for the callback
+        redirectTo: null,
+        authScreenLaunchMode: LaunchMode.platformDefault,
       );
     } on AuthException catch (error) {
       if (mounted) {
@@ -73,9 +76,11 @@ class _LoginScreenState extends State<LoginScreen> {
         context.showSnackBar('Google sign-in failed: $error', isError: true);
       }
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
