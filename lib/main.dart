@@ -63,6 +63,14 @@ class MyApp extends StatelessWidget {
             themeMode: themeModeVM.themeMode,
             routerDelegate: routerDelegate,
             routeInformationParser: _routeParser,
+            // Add this to ensure URL changes trigger route updates
+            routeInformationProvider: PlatformRouteInformationProvider(
+              initialRouteInformation: RouteInformation(
+                uri: WidgetsBinding.instance.platformDispatcher.defaultRouteName != '/' 
+                  ? Uri.parse(WidgetsBinding.instance.platformDispatcher.defaultRouteName)
+                  : Uri.parse('/'),
+              ),
+            ),
           );
         },
       );
