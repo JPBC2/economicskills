@@ -28,9 +28,25 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
   // Get the current origin URL (works for both localhost and production)
   String _getRedirectUrl() {
     if (kIsWeb) {
-      final origin = html.window.location.origin;
-      print('OAuth redirect URL: $origin'); // Debug log
-      return origin;
+      // Get the current window location and construct clean URL
+      final protocol = html.window.location.protocol;
+      final host = html.window.location.host;
+      final pathname = html.window.location.pathname;
+
+      // Construct base URL
+      String baseUrl = '$protocol//$host';
+
+      // Add pathname if it's not just root
+      if (pathname != null && pathname != '/' && pathname.isNotEmpty) {
+        // Remove trailing slashes and clean up the pathname
+        String cleanPath = pathname.trim().replaceAll(RegExp(r'/+$'), '');
+        if (cleanPath.isNotEmpty) {
+          baseUrl = '$baseUrl$cleanPath';
+        }
+      }
+
+      print('OAuth redirect URL: $baseUrl'); // Debug log
+      return baseUrl.trim(); // Ensure no trailing spaces
     }
     return 'http://localhost:3000';
   }
@@ -65,7 +81,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
 
       if (response.user != null && mounted) {
         context.showSnackBar('Please check your email to confirm your account');
-        widget.routerDelegate.goToLogin(); // Go back to login screen using router
+        widget.routerDelegate.goToLogin();
       }
     } on AuthException catch (error) {
       if (mounted) {
@@ -153,7 +169,6 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                           'Join Economic Skills',
                           style: TextStyle(
                             fontSize: 24,
-                            // fontWeight: FontWeight.bold,
                             fontFamily: 'ContrailOne',
                           ),
                         ),
