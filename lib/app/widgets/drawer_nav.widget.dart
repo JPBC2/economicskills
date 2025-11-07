@@ -119,28 +119,17 @@ class _DrawerNavState extends State<DrawerNav> {
               final themeModeVM = ref.watch(themeModeProvider);
               // itemColor is already defined above and matches the theme
 
-              return Padding(
-                // Adjusted padding for alignment: 16 (standard) - 8 (IconButton internal) = 8
-                padding: const EdgeInsets.only(left: 8.0, right: 16.0, top: 8.0, bottom: 8.0),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: <Widget>[
-                    IconButton(
-                      tooltip: 'Cambiar tema (claro/oscuro)',
-                      onPressed: themeModeVM.toggleThemeMode,
-                      icon: Icon(
-                        themeModeVM.themeMode == ThemeMode.dark
-                            ? Icons.light_mode
-                            : Icons.dark_mode,
-                        color: itemColor,
-                      ),
-                    ),
-                    const SizedBox(width: 0.0), // Reduced width for closer spacing
-                    Text(
-                      'Theme',
-                      style: itemTextStyle, // Use the common itemTextStyle
-                    ),
-                  ],
+              return Tooltip(
+                message: 'Switch theme (dark / light)',
+                child: ListTile(
+                  onTap: themeModeVM.toggleThemeMode,
+                  leading: Icon(
+                    themeModeVM.themeMode == ThemeMode.dark
+                        ? Icons.light_mode
+                        : Icons.dark_mode,
+                    color: itemColor,
+                  ),
+                  title: Text('Theme', style: itemTextStyle),
                 ),
               );
             },

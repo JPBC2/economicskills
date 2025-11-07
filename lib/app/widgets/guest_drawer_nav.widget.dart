@@ -41,27 +41,17 @@ class GuestDrawerNav extends ConsumerWidget {
             padding: const EdgeInsets.all(16.0),
             child: Text("Economic skills", style: headerTextStyle),
           ),
-          Padding(
-            padding: const EdgeInsets.only(left: 8.0, right: 16.0, top: 8.0, bottom: 8.0),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                IconButton(
-                  tooltip: 'Switch theme (dark / light)',
-                  onPressed: themeModeVM.toggleThemeMode,
-                  icon: Icon(
-                    themeModeVM.themeMode == ThemeMode.dark
-                        ? Icons.light_mode
-                        : Icons.dark_mode,
-                    color: itemColor,
-                  ),
-                ),
-                const SizedBox(width: 0.0),
-                Text(
-                  'Theme',
-                  style: itemTextStyle,
-                ),
-              ],
+          Tooltip(
+            message: 'Switch theme (dark / light)',
+            child: ListTile(
+              onTap: themeModeVM.toggleThemeMode,
+              leading: Icon(
+                themeModeVM.themeMode == ThemeMode.dark
+                    ? Icons.light_mode
+                    : Icons.dark_mode,
+                color: itemColor,
+              ),
+              title: Text('Theme', style: itemTextStyle),
             ),
           ),
         ],
