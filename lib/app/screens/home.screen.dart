@@ -80,7 +80,7 @@ class HomeScreen extends StatelessWidget {
                     const SizedBox(height: 24),
                     const Card(
                       child: Padding(
-                        padding: const EdgeInsets.all(16.0),
+                        padding: EdgeInsets.all(16.0),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
