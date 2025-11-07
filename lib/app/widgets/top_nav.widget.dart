@@ -52,18 +52,37 @@ class TopNav extends ConsumerWidget implements PreferredSizeWidget {
             inDevelopment: true,
           ),
         ),
-        // Access button with tooltip and SnackBar
-        Tooltip(
-          message: 'This feature is in development.',
-          child: _navButton(
-            icon: Icons.person,
-            label: 'Access',
-            path: '/access',
-            color: buttonTextColor,
-            context: context,
-            inDevelopment: true,
+        // Account PopupMenuButton
+        PopupMenuButton(
+          offset: const Offset(0, 35.0),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(4.0),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.person, color: buttonTextColor, size: 20),
+                const SizedBox(width: 6),
+                Text('Account', style: TextStyle(color: buttonTextColor)),
+                Icon(Icons.arrow_drop_down, color: buttonTextColor, size: 20),
+              ],
+            ),
           ),
+          itemBuilder: (context) => [
+            PopupMenuItem(
+              child: Row(
+                children: [
+                  const Icon(Icons.logout),
+                  const SizedBox(width: 8),
+                  const Text('Sign Out'),
+                ],
+              ),
+              onTap: () => _signOut(context),
+            ),
+          ],
         ),
+
         // English Popover with tooltip and SnackBar
         Tooltip(
           message: 'This feature is in development.',
@@ -181,4 +200,18 @@ class TopNav extends ConsumerWidget implements PreferredSizeWidget {
       ),
     );
   }
+
+  Future<void> _signOut(BuildContext context) async {
+    try {
+      await supabase.auth.signOut();
+      if (context.mounted) {
+        context.showSnackBar('Successfully signed out!');
+      }
+    } catch (error) {
+      if (context.mounted) {
+        context.showSnackBar('Error signing out', isError: true);
+      }
+    }
+  }
+
 }
