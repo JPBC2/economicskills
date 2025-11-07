@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:universal_html/html.dart' as html;
 import 'package:economicskills/app/res/responsive.res.dart';
 import 'package:economicskills/app/widgets/guest_drawer_nav.widget.dart';
 import 'package:economicskills/app/widgets/guest_top_nav.widget.dart';
@@ -21,6 +22,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
+
+  // Get the current origin URL (works for both localhost and production)
+  String _getRedirectUrl() {
+    if (kIsWeb) {
+      // Get the current window location origin
+      final origin = html.window.location.origin;
+      print('OAuth redirect URL: $origin'); // Debug log
+      return origin;
+    }
+    // Fallback for non-web platforms
+    return 'http://localhost:3000';
+  }
 
   Future<void> _signIn() async {
     if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
@@ -65,11 +78,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     });
 
     try {
-      // For Flutter web, use the current window location for OAuth
+      final redirectUrl = _getRedirectUrl();
+
+      // For Flutter web, use environment-aware redirect URL
       await supabase.auth.signInWithOAuth(
         OAuthProvider.google,
-        // Let Supabase use the current page URL for the callback
-        redirectTo: null,
+        redirectTo: redirectUrl,
         authScreenLaunchMode: LaunchMode.platformDefault,
       );
     } on AuthException catch (error) {
