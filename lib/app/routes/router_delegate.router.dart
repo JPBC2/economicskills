@@ -2,10 +2,11 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:economicskills/app/pages/exercises/elasticity.dart';
-import '../../screens/login_screen.dart';
-import '../../screens/signup_screen.dart';
-import '../../screens/home_screen.dart';
+import 'package:economicskills/app/screens/exercises/elasticity.dart';
+import '../screens/login.screen.dart';
+import '../screens/signup.screen.dart';
+import '../screens/home.screen.dart';
+import '../screens/error_404.screen.dart';
 
 class AppRouterDelegate extends RouterDelegate<Uri>
     with ChangeNotifier, PopNavigatorRouterDelegateMixin<Uri> {
@@ -188,15 +189,10 @@ class AppRouterDelegate extends RouterDelegate<Uri>
         // Let Supabase handle the OAuth token exchange
         final response = await Supabase.instance.client.auth.getSessionFromUrl(uri);
         
-        // Check if we got a valid session
-        if (response.session != null) {
-          print('AppRouterDelegate: OAuth success - session created: ${response.session!.user.email}');
-          _checkAuthState();
-          _path = Uri.parse('/');
-        } else {
-          print('AppRouterDelegate: OAuth failed - no session returned');
-          _path = Uri.parse('/login');
-        }
+        // The session is guaranteed to be non-null on success, so no need to check for null.
+        print('AppRouterDelegate: OAuth success - session created: ${response.session.user.email}');
+        _checkAuthState();
+        _path = Uri.parse('/');
         
         _safeNotifyListeners();
       }
@@ -235,6 +231,7 @@ class AppRouterDelegate extends RouterDelegate<Uri>
   List<Page> _getRoutes(Uri path) {
     print('AppRouterDelegate: _getRoutes called with path: $path, authenticated: $_isAuthenticated');
     final pages = <Page>[];
+    final pathSegments = path.pathSegments;
 
     if (!_isAuthenticated) {
       if (path.path == '/signup') {
@@ -253,24 +250,29 @@ class AppRouterDelegate extends RouterDelegate<Uri>
         ));
       }
     } else {
-      print('AppRouterDelegate: Adding HomeScreen page');
-      pages.add(MaterialPage(
-        child: const HomeScreen(),
-        key: const ValueKey('home'),
-        name: '/',
-      ));
-
-      if (path.pathSegments.isNotEmpty) {
-        if (path.pathSegments.length == 2 &&
-            path.pathSegments[0] == 'exercises' &&
-            path.pathSegments[1] == 'elasticity') {
-          print('AppRouterDelegate: Adding ElasticityPage page');
-          pages.add(MaterialPage(
-            key: const ValueKey('ElasticityPage'),
-            name: '/exercises/elasticity',
-            child: const ElasticityPage(),
-          ));
-        }
+      if (pathSegments.isEmpty || path.path == '/') {
+        print('AppRouterDelegate: Adding HomeScreen page');
+        pages.add(MaterialPage(
+          child: const HomeScreen(),
+          key: const ValueKey('home'),
+          name: '/',
+        ));
+      } else if (pathSegments.length == 2 &&
+                 pathSegments[0] == 'exercises' &&
+                 pathSegments[1] == 'elasticity') {
+        print('AppRouterDelegate: Adding ElasticityPage page');
+        pages.add(MaterialPage(
+          key: const ValueKey('ElasticityPage'),
+          name: '/exercises/elasticity',
+          child: const ElasticityPage(),
+        ));
+      } else {
+        print('AppRouterDelegate: Route not found, adding Error404Screen page');
+        pages.add(MaterialPage(
+          child: Error404Screen(routerDelegate: this),
+          key: const ValueKey('error404'),
+          name: '/404',
+        ));
       }
     }
 
