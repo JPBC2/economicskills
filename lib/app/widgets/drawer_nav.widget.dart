@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-// for routerDelegate.go()
 import 'package:economicskills/app/config/menu_data.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:economicskills/app/view_models/theme_mode.vm.dart';
+import 'package:economicskills/main.dart';
 
 class DrawerNav extends StatefulWidget {
   const DrawerNav({super.key});
@@ -59,18 +59,24 @@ class _DrawerNavState extends State<DrawerNav> {
       child: ListView(
         children: [
           // App name header
-          Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: isDarkTheme
-                    ? [Colors.blue.shade900, Colors.blue.shade700]
-                    : [Colors.lightBlue.shade900, Colors.cyanAccent.shade700],
+          GestureDetector(
+            onTap: () {
+              routerDelegate.go('/');
+              Navigator.pop(context);
+            },
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: isDarkTheme
+                      ? [Colors.blue.shade900, Colors.blue.shade700]
+                      : [Colors.lightBlue.shade900, Colors.cyanAccent.shade700],
+                ),
               ),
+              padding: const EdgeInsets.all(16.0),
+              child: Text("Economic skills", style: headerTextStyle),
             ),
-            padding: const EdgeInsets.all(16.0),
-            child: Text("Economic skills", style: headerTextStyle),
           ),
 
           // Content button
