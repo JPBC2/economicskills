@@ -19,6 +19,8 @@ class _DrawerNavState extends State<DrawerNav> {
   final ExpansibleController _languageController = ExpansibleController();
   // Controller for the new Content ExpansionTile
   final ExpansibleController _contentItemsController = ExpansibleController();
+  // Controller for the Account ExpansionTile
+  final ExpansibleController _accountController = ExpansibleController();
 
   final List<String> _languageItems = ['Español'/*, 'Français', 'Русский', '中文', 'العربية'*/];
   final List<String> _contentItems = ["Scatter plot", "Clustered column chart", "Area chart"];
@@ -29,6 +31,19 @@ class _DrawerNavState extends State<DrawerNav> {
     // Initialize a controller for each menu section to control expansion
     _tileControllers = List.generate(
         popoverConfigurations.length, (_) => ExpansibleController());
+  }
+
+  Future<void> _signOut(BuildContext context) async {
+    try {
+      await supabase.auth.signOut();
+      if (context.mounted) {
+        context.showSnackBar('Successfully signed out!');
+      }
+    } catch (error) {
+      if (context.mounted) {
+        context.showSnackBar('Error signing out', isError: true);
+      }
+    }
   }
 
   @override
@@ -89,14 +104,24 @@ class _DrawerNavState extends State<DrawerNav> {
             },
           ),
 
-          // Access button
-          ListTile(
+          // Account
+          ExpansionTile(
+            controller: _accountController,
             leading: Icon(Icons.person, color: itemColor),
-            title: Text("Access", style: itemTextStyle),
-            onTap: () {
-              print('Access button tapped');
-              Navigator.pop(context); // Close drawer
-            },
+            title: Text('Account', style: itemTextStyle),
+            iconColor: itemColor,
+            collapsedIconColor: itemColor,
+            children: [
+              ListTile(
+                leading: Icon(Icons.logout, color: itemColor),
+                title: Text('Sign Out', style: subItemTextStyle),
+                onTap: () {
+                  _signOut(context);
+                  _accountController.collapse();
+                  Navigator.pop(context);
+                },
+              ),
+            ],
           ),
 
           // Language Popover
