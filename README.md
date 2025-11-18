@@ -1,4 +1,4 @@
-# EconomicSkills
+# Economic Skills
 
 [![Development Status](https://img.shields.io/badge/status-in%20active%20development-blue.svg)](https://github.com/JPBC2/economicskills)
 
@@ -10,7 +10,7 @@
 
 ## Overview
 
-EconomicSkills is a Flutter-based educational platform designed to teach economics through interactive, practical exercises using Google Sheets. Developed for the Introduction to Economic Theory course at Acatlán School of Higher Studies (FES Acatlán), UNAM, BA in International Relations program.
+Economic Skills is a Flutter-based educational platform designed to teach economics through interactive, practical exercises using Google Sheets. Developed for the Introduction to Economic Theory course at Acatlán School of Higher Studies (FES Acatlán), UNAM, BA in International Relations program.
 
 The application combines economic theory with real-world application, enabling students to learn concepts through hands-on spreadsheet exercises and interactive visualizations.
 
