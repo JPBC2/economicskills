@@ -31,7 +31,7 @@ The application combines economic theory with real-world application, enabling s
 
 ## Project Status
 
-🚧 **In Active Development** - This project is currently being developed at FES Acatlán, UNAM.
+🚧 **In Active Development**
 
 <!-- ## Screenshots
 
@@ -46,7 +46,7 @@ The application combines economic theory with real-world application, enabling s
 
 For detailed technical specifications, architecture, and development guidelines, please refer to:
 
-📄 **[Technical Documentation](REQUIREMENTS.md)** - Complete Software Requirements Specification (SRS)
+📄 **[Technical Documentation](docs/REQUIREMENTS.md)** - Complete Software Requirements Specification (SRS)
 
 <!-- 
 Additional documentation:
