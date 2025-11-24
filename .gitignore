@@ -1,45 +1,80 @@
-# Miscellaneous
-*.class
-*.log
-*.pyc
-*.swp
-.DS_Store
-.atom/
-.build/
-.buildlog/
-.history
-.svn/
-.swiftpm/
-migrate_working_dir/
-
-# IntelliJ related
-*.iml
-*.ipr
-*.iws
-.idea/
-
-# The .vscode folder contains launch configuration and tasks you configure in
-# VS Code which you may wish to be included in version control, so this line
-# is commented out by default.
-#.vscode/
-
-# Flutter/Dart/Pub related
-**/doc/api/
-**/ios/Flutter/.last_build_id
+# Dart/Flutter
 .dart_tool/
+.flutter-plugins
 .flutter-plugins-dependencies
-.pub-cache/
-.pub/
-/build/
-/coverage/
+.packages
+*.packages
+build/
+flutter_*.png
+local.properties
+GeneratedPluginRegistrant.java
 
-# Symbolication related
-app.*.symbols
+# Android
+android/app/debug/
+android/app/profile/
+android/app/release/
+android/.gradle/
+android/local.properties
+android/key.jks
+android/key.properties
 
-# Obfuscation related
-app.*.map.json
+# iOS
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+ios/Podfile.lock
+ios/Pods/
 
-# Android Studio will place build artifacts here
-/android/app/debug
-/android/app/profile
-/android/app/release
+# Visual Studio Code
+.vscode/
+*.code-workspace
+
+# Android Studio
+.idea/
+*.iml
+*.apk
+
+# The following line is provided as an example of how to use path ignore patterns
+# .ignore is used to ignore files in git when you want to commit them to git but
+# you don't want git to track them.
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Node.js
+node_modules/
+npm-debug.log
+yarn-error.log
+.npm
+
+# Operating System
+.DS_Store
+Thumbs.db
+
+# IDE
+*.swp
+*.swo
+*~
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+
+# Never commit user data
+supabase/seed_users.sql
+supabase/seed_production.sql
+*.sql.backup
+
+# Supabase
+.supabase/
+supabase/.branches
+supabase/.temp
+
+# Sensitive files
+*.key
+*.pem
+*.p12
+certificate.cer
