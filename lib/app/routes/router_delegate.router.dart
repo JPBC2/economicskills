@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:economicskills/app/screens/exercises/elasticity.dart';
+import 'package:economicskills/app/screens/content/course_catalog.screen.dart';
+import 'package:economicskills/app/screens/content/lesson.screen.dart';
+import 'package:economicskills/app/screens/landing.screen.dart';
 import '../screens/login.screen.dart';
 import '../screens/signup.screen.dart';
 import '../screens/home.screen.dart';
@@ -228,18 +231,46 @@ class AppRouterDelegate extends RouterDelegate<Uri>
     _safeNotifyListeners();
   }
 
+  /// Define which routes are PUBLIC (accessible without login)
+  static const List<String> publicRoutes = [
+    '/',
+    '/courses',
+    '/lessons',
+    '/login',
+    '/signup',
+  ];
+
+  bool _isPublicRoute(String path) {
+    if (path == '/' || path == '/login' || path == '/signup') return true;
+    return publicRoutes.any((route) => route != '/' && path.startsWith(route));
+  }
+
   List<Page> _getRoutes(Uri path) {
     print('AppRouterDelegate: _getRoutes called with path: $path, authenticated: $_isAuthenticated');
     final pages = <Page>[];
     final pathSegments = path.pathSegments;
+    final pathString = path.path;
 
-    if (!_isAuthenticated) {
-      if (path.path == '/signup') {
-        print('AppRouterDelegate: Adding SignupScreen page');
+    // LANDING PAGE - public home
+    if (pathString == '/' || pathSegments.isEmpty) {
+      print('AppRouterDelegate: Adding LandingScreen page (public)');
+      pages.add(const MaterialPage(
+        child: LandingScreen(),
+        key: ValueKey('landing'),
+        name: '/',
+      ));
+      return pages;
+    }
+
+    // LOGIN PAGE - public
+    if (pathString == '/login') {
+      if (_isAuthenticated) {
+        // Already logged in, go to dashboard
+        print('AppRouterDelegate: User logged in, redirecting to dashboard');
         pages.add(MaterialPage(
-          child: SignupScreen(routerDelegate: this),
-          key: const ValueKey('signup'),
-          name: '/signup',
+          child: const HomeScreen(),
+          key: const ValueKey('dashboard'),
+          name: '/dashboard',
         ));
       } else {
         print('AppRouterDelegate: Adding LoginScreen page');
@@ -249,32 +280,114 @@ class AppRouterDelegate extends RouterDelegate<Uri>
           name: '/login',
         ));
       }
-    } else {
-      if (pathSegments.isEmpty || path.path == '/') {
-        print('AppRouterDelegate: Adding HomeScreen page');
+      return pages;
+    }
+
+    // SIGNUP PAGE - public
+    if (pathString == '/signup') {
+      if (_isAuthenticated) {
+        print('AppRouterDelegate: User logged in, redirecting to dashboard');
         pages.add(MaterialPage(
           child: const HomeScreen(),
-          key: const ValueKey('home'),
-          name: '/',
-        ));
-      } else if (pathSegments.length == 2 &&
-                 pathSegments[0] == 'exercises' &&
-                 pathSegments[1] == 'elasticity') {
-        print('AppRouterDelegate: Adding ElasticityPage page');
-        pages.add(MaterialPage(
-          key: const ValueKey('ElasticityPage'),
-          name: '/exercises/elasticity',
-          child: const ElasticityPage(),
+          key: const ValueKey('dashboard'),
+          name: '/dashboard',
         ));
       } else {
-        print('AppRouterDelegate: Route not found, adding Error404Screen page');
+        print('AppRouterDelegate: Adding SignupScreen page');
         pages.add(MaterialPage(
-          child: Error404Screen(routerDelegate: this),
-          key: const ValueKey('error404'),
-          name: '/404',
+          child: SignupScreen(routerDelegate: this),
+          key: const ValueKey('signup'),
+          name: '/signup',
         ));
       }
+      return pages;
     }
+
+    // COURSES - public
+    if (pathString == '/courses' || pathString.startsWith('/courses/')) {
+      if (pathSegments.length == 1) {
+        print('AppRouterDelegate: Adding CourseCatalogScreen page (public)');
+        pages.add(const MaterialPage(
+          child: CourseCatalogScreen(),
+          key: ValueKey('courses'),
+          name: '/courses',
+        ));
+      } else if (pathSegments.length == 2) {
+        print('AppRouterDelegate: Course detail page for ${pathSegments[1]}');
+        pages.add(const MaterialPage(
+          child: CourseCatalogScreen(),
+          key: ValueKey('course-detail'),
+          name: '/courses/detail',
+        ));
+      }
+      return pages;
+    }
+
+    // LESSONS - public
+    if (pathString.startsWith('/lessons/') && pathSegments.length == 2) {
+      final lessonId = pathSegments[1];
+      print('AppRouterDelegate: Adding LessonScreen page (public) for lesson: $lessonId');
+      pages.add(MaterialPage(
+        child: LessonScreen(lessonId: lessonId),
+        key: ValueKey('lesson-$lessonId'),
+        name: '/lessons/$lessonId',
+      ));
+      return pages;
+    }
+
+    // CONTENT redirect - PUBLIC (before auth check)
+    if (pathString == '/content') {
+      print('AppRouterDelegate: Redirecting /content to /courses');
+      pages.add(const MaterialPage(
+        child: CourseCatalogScreen(),
+        key: ValueKey('courses'),
+        name: '/courses',
+      ));
+      return pages;
+    }
+
+    // PROTECTED ROUTES - require authentication
+    if (!_isAuthenticated) {
+      print('AppRouterDelegate: Protected route, redirecting to login');
+      pages.add(MaterialPage(
+        child: LoginScreen(routerDelegate: this),
+        key: const ValueKey('login'),
+        name: '/login',
+      ));
+      return pages;
+    }
+
+    // DASHBOARD - authenticated home
+    if (pathString == '/dashboard') {
+      print('AppRouterDelegate: Adding HomeScreen (dashboard) page');
+      pages.add(MaterialPage(
+        child: const HomeScreen(),
+        key: const ValueKey('dashboard'),
+        name: '/dashboard',
+      ));
+      return pages;
+    }
+
+    // EXERCISES - authenticated
+    if (pathSegments.length == 2 &&
+        pathSegments[0] == 'exercises' &&
+        pathSegments[1] == 'elasticity') {
+      print('AppRouterDelegate: Adding ElasticityPage page');
+      pages.add(MaterialPage(
+        key: const ValueKey('ElasticityPage'),
+        name: '/exercises/elasticity',
+        child: const ElasticityPage(),
+      ));
+      return pages;
+    }
+
+    // 404 - Not found
+    print('AppRouterDelegate: Route not found, adding Error404Screen page');
+    pages.add(MaterialPage(
+      child: Error404Screen(routerDelegate: this),
+      key: const ValueKey('error404'),
+      name: '/404',
+    ));
 
     print('AppRouterDelegate: Generated ${pages.length} pages: ${pages.map((p) => p.name).join(', ')}');
     return pages;
