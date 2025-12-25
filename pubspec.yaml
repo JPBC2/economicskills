@@ -50,6 +50,10 @@ dependencies:
   intl: ^0.20.2
   google_fonts: ^6.3.3
   animate_do: ^4.2.0
+  
+  # Shared package (models, services)
+  shared:
+    path: ./packages/shared
 
 dev_dependencies:
   flutter_test:
