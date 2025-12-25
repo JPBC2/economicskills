@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html>
-<head>
   <!--
     Base href for LOCAL DEVELOPMENT
     For production GitHub Pages, this should be "/economicskills/"
@@ -9,7 +8,24 @@
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="A Flutter web application for learning applied economic theory with interactive Google Sheets exercises.">
+  
+  <!-- SEO & Social Meta Tags -->
+  <meta name="description" content="Master applied economic theory with interactive Google Sheets exercises. Learn economics through practice.">
+  <meta name="keywords" content="economics, google sheets, learning, education, applied theory">
+  <meta name="author" content="Economicskills">
+  
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://economicskills.com/">
+  <meta property="og:title" content="Economic Skills - Applied Economic Theory">
+  <meta property="og:description" content="Master applied economic theory with interactive Google Sheets exercises.">
+  <meta property="og:image" content="icons/Icon-192.png">
+
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:title" content="Economic Skills - Applied Economic Theory">
+  <meta property="twitter:description" content="Master applied economic theory with interactive Google Sheets exercises.">
+  <meta property="twitter:image" content="icons/Icon-192.png">
 
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
@@ -20,9 +36,14 @@
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
 
-  <title>Economic skills</title>
+  <title>Economic Skills | Learn Applied Economics</title>
   <link rel="manifest" href="manifest.json">
-</head>
+  
+  <!-- Renderer for SEO extraction -->
+  <script>
+    // This script helps the seo_renderer package to identify when the page is fully rendered
+    window.flutterWebRenderer = "html";
+  </script>
 <body>
   <script src="flutter_bootstrap.js" async></script>
 </body>

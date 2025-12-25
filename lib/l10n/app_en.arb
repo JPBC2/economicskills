@@ -1,0 +1,32 @@
+{
+    "@@locale": "en",
+    "appTitle": "Economic Skills",
+    "@appTitle": {
+        "description": "The title of the application"
+    },
+    "homeWelcome": "Welcome to Economic Skills",
+    "@homeWelcome": {
+        "description": "Welcome message on home screen"
+    },
+    "changeLanguage": "Change Language",
+    "@changeLanguage": {
+        "description": "Button text to change language"
+    },
+    "sheetsExercisesTitle": "Interactive Google Sheets Exercises",
+    "sheetsExercisesDesc": "This is where your Google Sheets exercises will be integrated. Students will be able to work on applied economic theory problems with real-time evaluation.",
+    "elasticityExerciseBtn": "Go to Elasticity Exercise",
+    "comingSoonTitle": "Coming Soon:",
+    "comingSoonSheets": "Interactive Google Sheets integration",
+    "comingSoonEvaluation": "Real-time input evaluation",
+    "comingSoonProgress": "Progress tracking",
+    "comingSoonCourse": "Course management",
+    "navContent": "Content",
+    "navAccount": "Account",
+    "navSignOut": "Sign Out",
+    "navTheme": "Theme",
+    "navLanguage": "Language",
+    "featureInDevelopment": "This feature is in development.",
+    "signOutSuccess": "Successfully signed out!",
+    "signOutError": "Error signing out",
+    "switchThemeTooltip": "Switch theme (dark / light)"
+}

@@ -1,0 +1,23 @@
+{
+    "@@locale": "es",
+    "appTitle": "Habilidades Económicas",
+    "homeWelcome": "Bienvenido a Habilidades Económicas",
+    "changeLanguage": "Cambiar Idioma",
+    "sheetsExercisesTitle": "Ejercicios Interactivos de Google Sheets",
+    "sheetsExercisesDesc": "Aquí es donde se integrarán sus ejercicios de Google Sheets. Los estudiantes podrán trabajar en problemas de teoría económica aplicada con evaluación en tiempo real.",
+    "elasticityExerciseBtn": "Ir al Ejercicio de Elasticidad",
+    "comingSoonTitle": "Próximamente:",
+    "comingSoonSheets": "Integración interactiva de Google Sheets",
+    "comingSoonEvaluation": "Evaluación de entrada en tiempo real",
+    "comingSoonProgress": "Seguimiento del progreso",
+    "comingSoonCourse": "Gestión del curso",
+    "navContent": "Contenido",
+    "navAccount": "Cuenta",
+    "navSignOut": "Cerrar Sesión",
+    "navTheme": "Tema",
+    "navLanguage": "Idioma",
+    "featureInDevelopment": "Esta función está en desarrollo.",
+    "signOutSuccess": "¡Sesión cerrada exitosamente!",
+    "signOutError": "Error al cerrar sesión",
+    "switchThemeTooltip": "Cambiar tema (claro / oscuro)"
+}

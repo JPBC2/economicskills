@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:economicskills/app/view_models/theme_mode.vm.dart';
+import 'package:economicskills/app/view_models/locale.vm.dart';
 import 'app/routes/app_route_parser.router.dart';
 import 'app/routes/router_delegate.router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:economicskills/l10n/app_localizations.dart';
+import 'app/config/theme.dart';
 
 // import 'package:firebase_core/firebase_core.dart';
 // import 'firebase_options.dart';
@@ -41,29 +45,36 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer(builder: (context, ref, child) {
       final themeModeVM = ref.watch(themeModeProvider);
+      final localeVM = ref.watch(localeProvider);
 
       return AnimatedBuilder(
-        animation: themeModeVM,
+        animation: Listenable.merge([themeModeVM, localeVM]),
         builder: (context, child) {
           return MaterialApp.router(
-            title: 'Economic skills',
+            title: 'Economic Skills',
             debugShowCheckedModeBanner: false,
-            theme: ThemeData(
-              colorScheme: ColorScheme.fromSeed(
-                seedColor: Colors.blue,
-                brightness: Brightness.light,
-                surface: Colors.white,
-              ),
-              scaffoldBackgroundColor: Colors.white,
-              useMaterial3: true,
-            ),
-            darkTheme: ThemeData.dark().copyWith(
-              primaryColor: Colors.blue,
-            ),
+            
+            // Theme Configuration
+            theme: AppTheme.lightTheme,
+            darkTheme: AppTheme.darkTheme,
             themeMode: themeModeVM.themeMode,
+
+            // Localization
+            locale: localeVM.locale,
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: const [
+              Locale('en'), // English
+              Locale('es'), // Spanish
+            ],
+
+            // Routing & SEO
             routerDelegate: routerDelegate,
             routeInformationParser: _routeParser,
-            // Add this to ensure URL changes trigger route updates
             routeInformationProvider: PlatformRouteInformationProvider(
               initialRouteInformation: RouteInformation(
                 uri: WidgetsBinding.instance.platformDispatcher.defaultRouteName != '/' 
@@ -77,6 +88,7 @@ class MyApp extends StatelessWidget {
     });
   }
 }
+
 
 // Extension for showing snackbars (useful for authentication feedback)
 extension ContextExtension on BuildContext {

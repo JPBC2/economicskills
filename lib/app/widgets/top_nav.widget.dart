@@ -2,8 +2,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:economicskills/app/res/responsive.res.dart';
 import 'package:economicskills/app/view_models/theme_mode.vm.dart';
+import 'package:economicskills/app/view_models/locale.vm.dart';
 import 'package:economicskills/main.dart'; // contains routerDelegate
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:economicskills/l10n/app_localizations.dart';
 
 class TopNav extends ConsumerWidget implements PreferredSizeWidget {
   const TopNav({super.key});
@@ -15,13 +17,17 @@ class TopNav extends ConsumerWidget implements PreferredSizeWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final bool isWide = MediaQuery.of(context).size.width > ScreenSizes.md;
     final ThemeModeVM themeModeVM = ref.watch(themeModeProvider);
+    final LocaleVM localeVM = ref.watch(localeProvider);
+    final l10n = AppLocalizations.of(context)!;
+    
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
     final Color buttonTextColor = isDark ? Colors.white : Colors.black;
     final Color appBarColor = isDark ? Colors.grey.shade900 : Colors.white70;
 
-    // Language items for the popover
-    final List<String> languageItems = [
-      'Español' /*, 'Français', 'Русский', '中文', 'العربية' */
+    // Language items
+    final List<Map<String, dynamic>> languages = [
+      {'code': 'en', 'label': 'English'},
+      {'code': 'es', 'label': 'Español'},
     ];
 
     return AppBar(
@@ -29,7 +35,7 @@ class TopNav extends ConsumerWidget implements PreferredSizeWidget {
       title: GestureDetector(
         onTap: () => routerDelegate.go('/'),
         child: Text(
-          'Economic skills',
+          l10n.appTitle, // 'Economic skills'
           style: TextStyle(
             fontFamily: 'ContrailOne',
             color: buttonTextColor,
@@ -41,16 +47,14 @@ class TopNav extends ConsumerWidget implements PreferredSizeWidget {
       actions: isWide
           ? [
         // Content button
-        Tooltip(
-          message: 'This feature is in development.',
-          child: _navButton(
-            icon: Icons.menu_book,
-            label: 'Content',
-            path: '/content',
-            color: buttonTextColor,
-            context: context,
-            inDevelopment: true,
-          ),
+        _navButton(
+          icon: Icons.menu_book,
+          label: l10n.navContent,
+          path: '/content',
+          color: buttonTextColor,
+          context: context,
+          l10n: l10n,
+          // inDevelopment: true, // Removed assumption, treating as nav
         ),
         // Account PopupMenuButton
         PopupMenuButton(
@@ -64,7 +68,7 @@ class TopNav extends ConsumerWidget implements PreferredSizeWidget {
               children: [
                 Icon(Icons.person, color: buttonTextColor, size: 20),
                 const SizedBox(width: 6),
-                Text('Account', style: TextStyle(color: buttonTextColor)),
+                Text(l10n.navAccount, style: TextStyle(color: buttonTextColor)),
                 Icon(Icons.arrow_drop_down, color: buttonTextColor, size: 20),
               ],
             ),
@@ -75,68 +79,50 @@ class TopNav extends ConsumerWidget implements PreferredSizeWidget {
                 children: [
                   const Icon(Icons.logout),
                   const SizedBox(width: 8),
-                  const Text('Sign Out'),
+                  Text(l10n.navSignOut),
                 ],
               ),
-              onTap: () => _signOut(context),
+              onTap: () => _signOut(context, l10n),
             ),
           ],
         ),
 
-        // English Popover with tooltip and SnackBar
-        Tooltip(
-          message: 'This feature is in development.',
-          child: PopupMenuButton(
-            offset: const Offset(0, 35.0), // Adjusted offset for tighter spacing
-            onOpened: () {
-              // Show SnackBar when dropdown is opened
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('This feature is in development.'),
-                  duration: Duration(seconds: 2),
-                ),
-              );
-            },
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0), // Match _navButton padding
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(4.0),
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.language_sharp, color: buttonTextColor, size: 20),
-                  const SizedBox(width: 6),
-                  Text('English', style: TextStyle(color: buttonTextColor)),
-                  Icon(Icons.arrow_drop_down, color: buttonTextColor, size: 20),
-                ],
-              ),
+        // Language Popover
+        PopupMenuButton<String>(
+          offset: const Offset(0, 35.0),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(4.0),
             ),
-            onSelected: (String language) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('This feature is in development.'),
-                  duration: Duration(seconds: 2),
+            child: Row(
+              children: [
+                Icon(Icons.language_sharp, color: buttonTextColor, size: 20),
+                const SizedBox(width: 6),
+                Text(
+                  localeVM.locale.languageCode == 'es' ? 'Español' : 'English', 
+                  style: TextStyle(color: buttonTextColor)
                 ),
-              );
-              print('Selected language: $language');
-              // Placeholder: Implement language change logic
-            },
-            itemBuilder: (BuildContext context) {
-              return languageItems.map((String language) {
-                return PopupMenuItem(
-                  value: language,
-                  child: Tooltip(
-                    message: 'This feature is in development.',
-                    child: Text(language),
-                  ),
-                );
-              }).toList();
-            },
+                Icon(Icons.arrow_drop_down, color: buttonTextColor, size: 20),
+              ],
+            ),
           ),
+          onSelected: (String languageCode) {
+            localeVM.setLocale(Locale(languageCode));
+          },
+          itemBuilder: (BuildContext context) {
+            return languages.map((lang) {
+              return PopupMenuItem<String>(
+                value: lang['code'],
+                child: Text(lang['label']),
+              );
+            }).toList();
+          },
         ),
+        
         // Theme Toggle
         Tooltip(
-          message: 'Switch theme (dark / light)', //Cambiar tema (claro/oscuro)
+          message: l10n.switchThemeTooltip,
           child: TextButton(
             style: TextButton.styleFrom(
                 foregroundColor: buttonTextColor,
@@ -153,7 +139,7 @@ class TopNav extends ConsumerWidget implements PreferredSizeWidget {
                   color: buttonTextColor,
                 ),
                 const SizedBox(width: 6),
-                Text('Theme', style: TextStyle(color: buttonTextColor)),
+                Text(l10n.navTheme, style: TextStyle(color: buttonTextColor)),
               ],
             ),
           ),
@@ -163,12 +149,13 @@ class TopNav extends ConsumerWidget implements PreferredSizeWidget {
     );
   }
 
-  // _navButton helper modified to support SnackBar for "Access" button
+  // _navButton helper
   Widget _navButton({
     required String label,
     required String path,
     required Color color,
     required BuildContext context,
+    required AppLocalizations l10n,
     IconData? icon,
     bool inDevelopment = false,
   }) {
@@ -180,13 +167,14 @@ class TopNav extends ConsumerWidget implements PreferredSizeWidget {
       onPressed: () {
         if (inDevelopment) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('This feature is in development.'),
-              duration: Duration(seconds: 2),
+            SnackBar(
+              content: Text(l10n.featureInDevelopment),
+              duration: const Duration(seconds: 2),
             ),
           );
+        } else {
+          routerDelegate.go(path);
         }
-        routerDelegate.go(path);
       },
       child: icon == null
           ? Text(label)
@@ -201,15 +189,15 @@ class TopNav extends ConsumerWidget implements PreferredSizeWidget {
     );
   }
 
-  Future<void> _signOut(BuildContext context) async {
+  Future<void> _signOut(BuildContext context, AppLocalizations l10n) async {
     try {
       await supabase.auth.signOut();
       if (context.mounted) {
-        context.showSnackBar('Successfully signed out!');
+        context.showSnackBar(l10n.signOutSuccess);
       }
     } catch (error) {
       if (context.mounted) {
-        context.showSnackBar('Error signing out', isError: true);
+        context.showSnackBar(l10n.signOutError, isError: true);
       }
     }
   }

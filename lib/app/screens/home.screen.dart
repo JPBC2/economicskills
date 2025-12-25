@@ -3,6 +3,7 @@ import 'package:economicskills/app/res/responsive.res.dart';
 import 'package:economicskills/app/widgets/drawer_nav.widget.dart';
 import 'package:economicskills/app/widgets/top_nav.widget.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:economicskills/l10n/app_localizations.dart';
 import '../../main.dart';
 
 
@@ -12,6 +13,9 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final user = supabase.auth.currentUser;
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     
     return Scaffold(
       body: ListView(
@@ -28,74 +32,94 @@ class HomeScreen extends StatelessWidget {
                   children: [
                     const SizedBox(width: 1140),
                     Card(
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        side: BorderSide(color: colorScheme.outlineVariant),
+                      ),
                       child: Padding(
-                        padding: const EdgeInsets.all(16.0),
+                        padding: const EdgeInsets.all(24.0),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
-                              'Welcome!',
-                              style: TextStyle(
-                                fontSize: 24,
+                            Text(
+                              l10n.homeWelcome,
+                              style: theme.textTheme.headlineMedium?.copyWith(
                                 fontWeight: FontWeight.bold,
+                                color: colorScheme.primary,
                               ),
                             ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Email: ${user?.email ?? 'Unknown'}'
-                            ),
-                            Text(
-                              'User ID: ${user?.id ?? 'Unknown'}'
-                            ),
+                            const SizedBox(height: 12),
+                            if (user != null) ...[
+                              Text(
+                                'Email: ${user.email}',
+                                style: theme.textTheme.bodyMedium,
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'User ID: ${user.id}',
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  fontFamily: 'monospace',
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                            ] else 
+                              Text(
+                                'Not logged in',
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: colorScheme.error,
+                                ),
+                              ),
                           ],
                         ),
                       ),
                     ),
-                    const SizedBox(height: 32),
-                    const Text(
-                      'Interactive Google Sheets Exercises',
-                      style: TextStyle(
-                        fontSize: 20,
+                    const SizedBox(height: 48),
+                    Text(
+                      l10n.sheetsExercisesTitle,
+                      style: theme.textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     const SizedBox(height: 16),
                     ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 550),
-                      child: const Text(
-                        'This is where your Google Sheets exercises will be integrated. '
-                        'Students will be able to work on applied economic theory problems '
-                        'with real-time evaluation.',
-                        style: TextStyle(fontSize: 16),
+                      constraints: const BoxConstraints(maxWidth: 700),
+                      child: Text(
+                        l10n.sheetsExercisesDesc,
+                        style: theme.textTheme.bodyLarge?.copyWith(
+                          height: 1.6,
+                          color: colorScheme.onSurface.withOpacity(0.8),
+                        ),
                       ),
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 32),
                     ElevatedButton(
                       onPressed: () {
-                        // Navigate to elasticity exercise using your existing routing
                         routerDelegate.go('/exercises/elasticity');
                       },
-                      child: const Text('Go to Elasticity Exercise'),
+                      child: Text(l10n.elasticityExerciseBtn),
                     ),
-                    const SizedBox(height: 24),
-                    const Card(
+                    const SizedBox(height: 48),
+                    Card(
+                      elevation: 0,
+                      color: colorScheme.secondaryContainer.withOpacity(0.3),
                       child: Padding(
-                        padding: EdgeInsets.all(16.0),
+                        padding: const EdgeInsets.all(24.0),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Coming Soon:',
-                              style: TextStyle(
-                                fontSize: 18,
+                              l10n.comingSoonTitle,
+                              style: theme.textTheme.titleLarge?.copyWith(
+                                color: colorScheme.secondary,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                            SizedBox(height: 8),
-                            Text('• Interactive Google Sheets integration'),
-                            Text('• Real-time input evaluation'),
-                            Text('• Progress tracking'),
-                            Text('• Course management'),
+                            const SizedBox(height: 16),
+                            _buildFeatureItem(l10n.comingSoonSheets, theme),
+                            _buildFeatureItem(l10n.comingSoonEvaluation, theme),
+                            _buildFeatureItem(l10n.comingSoonProgress, theme),
+                            _buildFeatureItem(l10n.comingSoonCourse, theme),
                           ],
                         ),
                       ),
@@ -112,4 +136,18 @@ class HomeScreen extends StatelessWidget {
           : const DrawerNav(),
     );
   }
+
+  Widget _buildFeatureItem(String text, ThemeData theme) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        children: [
+          Icon(Icons.check_circle_outline, size: 20, color: theme.colorScheme.secondary),
+          const SizedBox(width: 8),
+          Text(text, style: theme.textTheme.bodyMedium),
+        ],
+      ),
+    );
+  }
 }
+

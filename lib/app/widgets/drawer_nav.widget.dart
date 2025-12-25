@@ -2,46 +2,37 @@ import 'package:flutter/material.dart';
 import 'package:economicskills/app/config/menu_data.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:economicskills/app/view_models/theme_mode.vm.dart';
+import 'package:economicskills/app/view_models/locale.vm.dart';
 import 'package:economicskills/main.dart';
+import 'package:economicskills/l10n/app_localizations.dart';
 
-class DrawerNav extends StatefulWidget {
+class DrawerNav extends ConsumerStatefulWidget {
   const DrawerNav({super.key});
 
   @override
-  State<DrawerNav> createState() => _DrawerNavState();
+  ConsumerState<DrawerNav> createState() => _DrawerNavState();
 }
 
-class _DrawerNavState extends State<DrawerNav> {
-  final int _expandedIndex = -1; // Keep for existing accordion if uncommented
-  late List<ExpansibleController> _tileControllers; // Keep for existing accordion
-
+class _DrawerNavState extends ConsumerState<DrawerNav> {
   // Controller for the language ExpansionTile
   final ExpansibleController _languageController = ExpansibleController();
-  // Controller for the new Content ExpansionTile
-  final ExpansibleController _contentItemsController = ExpansibleController();
   // Controller for the Account ExpansionTile
   final ExpansibleController _accountController = ExpansibleController();
 
-  final List<String> _languageItems = ['Español'/*, 'Français', 'Русский', '中文', 'العربية'*/];
-  final List<String> _contentItems = ["Scatter plot", "Clustered column chart", "Area chart"];
+  final List<Map<String, dynamic>> _languages = [
+    {'code': 'en', 'label': 'English'},
+    {'code': 'es', 'label': 'Español'},
+  ];
 
-  @override
-  void initState() {
-    super.initState();
-    // Initialize a controller for each menu section to control expansion
-    _tileControllers = List.generate(
-        popoverConfigurations.length, (_) => ExpansibleController());
-  }
-
-  Future<void> _signOut(BuildContext context) async {
+  Future<void> _signOut(BuildContext context, AppLocalizations l10n) async {
     try {
       await supabase.auth.signOut();
       if (context.mounted) {
-        context.showSnackBar('Successfully signed out!');
+        context.showSnackBar(l10n.signOutSuccess);
       }
     } catch (error) {
       if (context.mounted) {
-        context.showSnackBar('Error signing out', isError: true);
+        context.showSnackBar(l10n.signOutError, isError: true);
       }
     }
   }
@@ -50,6 +41,8 @@ class _DrawerNavState extends State<DrawerNav> {
   Widget build(BuildContext context) {
     final bool isDarkTheme = Theme.of(context).brightness == Brightness.dark;
     final textTheme = Theme.of(context).textTheme;
+    final l10n = AppLocalizations.of(context)!;
+    final localeVM = ref.watch(localeProvider);
     
     // Style for the Drawer Header
     TextStyle? baseTitleLargeStyle = textTheme.titleLarge;
@@ -85,22 +78,22 @@ class _DrawerNavState extends State<DrawerNav> {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: isDarkTheme
-                      ? [Colors.blue.shade900, Colors.blue.shade700]
-                      : [Colors.lightBlue.shade900, Colors.cyanAccent.shade700],
+                      ? [const Color(0xFF0F172A), const Color(0xFF1E293B)]
+                      : [const Color(0xFF1E293B), const Color(0xFF334155)], // Darker slate for premium feel
                 ),
               ),
               padding: const EdgeInsets.all(16.0),
-              child: Text("Economic skills", style: headerTextStyle),
+              child: Text(l10n.appTitle, style: headerTextStyle),
             ),
           ),
 
           // Content button
           ListTile(
             leading: Icon(Icons.menu_book, color: itemColor),
-            title: Text("Content", style: itemTextStyle),
+            title: Text(l10n.navContent, style: itemTextStyle),
             onTap: () {
-              print('Content button tapped');
-              Navigator.pop(context); // Close drawer
+              routerDelegate.go('/content');
+              Navigator.pop(context);
             },
           ),
 
@@ -108,15 +101,15 @@ class _DrawerNavState extends State<DrawerNav> {
           ExpansionTile(
             controller: _accountController,
             leading: Icon(Icons.person, color: itemColor),
-            title: Text('Account', style: itemTextStyle),
+            title: Text(l10n.navAccount, style: itemTextStyle),
             iconColor: itemColor,
             collapsedIconColor: itemColor,
             children: [
               ListTile(
                 leading: Icon(Icons.logout, color: itemColor),
-                title: Text('Sign Out', style: subItemTextStyle),
+                title: Text(l10n.navSignOut, style: subItemTextStyle),
                 onTap: () {
-                  _signOut(context);
+                  _signOut(context, l10n);
                   _accountController.collapse();
                   Navigator.pop(context);
                 },
@@ -128,15 +121,18 @@ class _DrawerNavState extends State<DrawerNav> {
           ExpansionTile(
             controller: _languageController,
             leading: Icon(Icons.language_sharp, color: itemColor),
-            title: Text('English', style: itemTextStyle),
+            title: Text(
+              localeVM.locale.languageCode == 'es' ? 'Español' : 'English',
+              style: itemTextStyle
+            ),
             iconColor: itemColor,
             collapsedIconColor: itemColor,
-            children: _languageItems.map((String item) {
+            children: _languages.map((lang) {
               return ListTile(
                 contentPadding: const EdgeInsets.only(left: 53.0),
-                title: Text(item, style: subItemTextStyle),
+                title: Text(lang['label'], style: subItemTextStyle),
                 onTap: () {
-                  print('Selected language: $item');
+                  localeVM.setLocale(Locale(lang['code']));
                   _languageController.collapse(); 
                   Navigator.pop(context); 
                 },
@@ -151,7 +147,7 @@ class _DrawerNavState extends State<DrawerNav> {
               // itemColor is already defined above and matches the theme
 
               return Tooltip(
-                message: 'Switch theme (dark / light)',
+                message: l10n.switchThemeTooltip,
                 child: ListTile(
                   onTap: themeModeVM.toggleThemeMode,
                   leading: Icon(
@@ -160,7 +156,7 @@ class _DrawerNavState extends State<DrawerNav> {
                         : Icons.dark_mode,
                     color: itemColor,
                   ),
-                  title: Text('Theme', style: itemTextStyle),
+                  title: Text(l10n.navTheme, style: itemTextStyle),
                 ),
               );
             },
