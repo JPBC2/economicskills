@@ -7,13 +7,11 @@ import 'package:economicskills/app/res/responsive.res.dart';
 import 'package:economicskills/app/view_models/theme_mode.vm.dart';
 import 'package:economicskills/app/widgets/guest_drawer_nav.widget.dart';
 import 'package:economicskills/app/widgets/guest_top_nav.widget.dart';
+import 'package:go_router/go_router.dart';
 import '../../main.dart';
-import '../routes/router_delegate.router.dart';
 
 class SignupScreen extends ConsumerStatefulWidget {
-  final AppRouterDelegate routerDelegate;
-
-  const SignupScreen({super.key, required this.routerDelegate});
+  const SignupScreen({super.key});
 
   @override
   ConsumerState<SignupScreen> createState() => _SignupScreenState();
@@ -81,7 +79,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
 
       if (response.user != null && mounted) {
         context.showSnackBar('Please check your email to confirm your account');
-        widget.routerDelegate.goToLogin();
+        context.go('/login');
       }
     } on AuthException catch (error) {
       if (mounted) {
@@ -254,7 +252,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                         ),
                         const SizedBox(height: 16),
                         TextButton(
-                          onPressed: () => widget.routerDelegate.goToLogin(),
+                          onPressed: () => context.go('/login'),
                           child: const Text('Already have an account? Sign in'),
                         ),
                       ],

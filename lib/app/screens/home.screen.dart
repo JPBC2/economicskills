@@ -4,6 +4,7 @@ import 'package:economicskills/app/widgets/drawer_nav.widget.dart';
 import 'package:economicskills/app/widgets/top_nav.widget.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:economicskills/l10n/app_localizations.dart';
+import 'package:go_router/go_router.dart';
 import '../../main.dart';
 
 
@@ -95,7 +96,7 @@ class HomeScreen extends StatelessWidget {
                     const SizedBox(height: 32),
                     ElevatedButton(
                       onPressed: () {
-                        routerDelegate.go('/exercises/elasticity');
+                        context.go('/exercises/elasticity');
                       },
                       child: Text(l10n.elasticityExerciseBtn),
                     ),

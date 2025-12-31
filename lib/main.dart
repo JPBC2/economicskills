@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:economicskills/app/view_models/theme_mode.vm.dart';
 import 'package:economicskills/app/view_models/locale.vm.dart';
-import 'app/routes/app_route_parser.router.dart';
-import 'app/routes/router_delegate.router.dart';
+import 'app/routes/app_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -34,12 +33,8 @@ void main() async {
 // Global Supabase client instance
 final supabase = Supabase.instance.client;
 
-final routerDelegate = AppRouterDelegate();
-
 class MyApp extends StatelessWidget {
-  final _routeParser = AppRouteInformationParser();
-
-  MyApp({super.key});
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -72,16 +67,8 @@ class MyApp extends StatelessWidget {
               Locale('es'), // Spanish
             ],
 
-            // Routing & SEO
-            routerDelegate: routerDelegate,
-            routeInformationParser: _routeParser,
-            routeInformationProvider: PlatformRouteInformationProvider(
-              initialRouteInformation: RouteInformation(
-                uri: WidgetsBinding.instance.platformDispatcher.defaultRouteName != '/' 
-                  ? Uri.parse(WidgetsBinding.instance.platformDispatcher.defaultRouteName)
-                  : Uri.parse('/'),
-              ),
-            ),
+            // Routing with go_router
+            routerConfig: appRouter,
           );
         },
       );

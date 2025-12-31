@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:economicskills/app/res/responsive.res.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:economicskills/main.dart';
+import 'package:go_router/go_router.dart';
 
 class CallToAction extends ConsumerWidget {
   const CallToAction({super.key});
@@ -54,8 +54,8 @@ class CallToAction extends ConsumerWidget {
                       : const Size(120, 56),
                 ),
                 onPressed: () {
-                  // Use your routerDelegate instance to navigate
-                  routerDelegate.go('/exercises/elasticity');
+                  // Navigate using go_router
+                  context.go('/exercises/elasticity');
                 },
                 child: Text(
                   "Start",

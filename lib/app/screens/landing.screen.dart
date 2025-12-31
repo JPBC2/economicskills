@@ -6,7 +6,7 @@ import 'package:economicskills/app/widgets/top_nav.widget.dart';
 import 'package:economicskills/app/widgets/drawer_nav.widget.dart';
 import 'package:economicskills/app/res/responsive.res.dart';
 import 'package:economicskills/l10n/app_localizations.dart';
-import 'package:economicskills/main.dart';
+import 'package:go_router/go_router.dart';
 
 /// Landing Page - PUBLIC (no auth required)
 /// This is the main entry point of the application
@@ -73,7 +73,7 @@ class LandingScreen extends StatelessWidget {
                       alignment: WrapAlignment.center,
                       children: [
                         FilledButton.icon(
-                          onPressed: () => routerDelegate.go('/courses'),
+                          onPressed: () => context.go('/courses'),
                           icon: const Icon(Icons.school),
                           label: const Text('Explore Courses'),
                           style: FilledButton.styleFrom(
@@ -83,7 +83,7 @@ class LandingScreen extends StatelessWidget {
                         ),
                         if (!isAuthenticated)
                           OutlinedButton.icon(
-                            onPressed: () => routerDelegate.go('/login'),
+                            onPressed: () => context.go('/login'),
                             icon: const Icon(Icons.login),
                             label: const Text('Sign In'),
                             style: OutlinedButton.styleFrom(
@@ -93,7 +93,7 @@ class LandingScreen extends StatelessWidget {
                           )
                         else
                           OutlinedButton.icon(
-                            onPressed: () => routerDelegate.go('/dashboard'),
+                            onPressed: () => context.go('/dashboard'),
                             icon: const Icon(Icons.dashboard),
                             label: const Text('My Dashboard'),
                             style: OutlinedButton.styleFrom(
@@ -170,7 +170,7 @@ class LandingScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   FilledButton.icon(
-                    onPressed: () => routerDelegate.go('/courses'),
+                    onPressed: () => context.go('/courses'),
                     icon: const Icon(Icons.arrow_forward),
                     label: const Text('Browse Courses'),
                     style: FilledButton.styleFrom(

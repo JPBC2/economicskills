@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:economicskills/app/config/menu_data.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:economicskills/app/view_models/theme_mode.vm.dart';
 import 'package:economicskills/app/view_models/locale.vm.dart';
 import 'package:economicskills/main.dart';
 import 'package:economicskills/l10n/app_localizations.dart';
+import 'package:go_router/go_router.dart';
 
 class DrawerNav extends ConsumerStatefulWidget {
   const DrawerNav({super.key});
@@ -69,7 +69,7 @@ class _DrawerNavState extends ConsumerState<DrawerNav> {
           // App name header
           GestureDetector(
             onTap: () {
-              routerDelegate.go('/');
+              context.go('/');
               Navigator.pop(context);
             },
             child: Container(
@@ -92,7 +92,7 @@ class _DrawerNavState extends ConsumerState<DrawerNav> {
             leading: Icon(Icons.menu_book, color: itemColor),
             title: Text(l10n.navContent, style: itemTextStyle),
             onTap: () {
-              routerDelegate.go('/content');
+              context.go('/content');
               Navigator.pop(context);
             },
           ),

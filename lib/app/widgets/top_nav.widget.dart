@@ -3,9 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:economicskills/app/res/responsive.res.dart';
 import 'package:economicskills/app/view_models/theme_mode.vm.dart';
 import 'package:economicskills/app/view_models/locale.vm.dart';
-import 'package:economicskills/main.dart'; // contains routerDelegate
+import 'package:economicskills/main.dart'; // contains supabase
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:economicskills/l10n/app_localizations.dart';
+import 'package:go_router/go_router.dart';
 
 class TopNav extends ConsumerWidget implements PreferredSizeWidget {
   const TopNav({super.key});
@@ -33,11 +34,13 @@ class TopNav extends ConsumerWidget implements PreferredSizeWidget {
     return AppBar(
       backgroundColor: appBarColor,
       title: GestureDetector(
-        onTap: () => routerDelegate.go('/'),
+        onTap: () => context.go('/'),
         child: Text(
           l10n.appTitle, // 'Economic skills'
           style: TextStyle(
             fontFamily: 'ContrailOne',
+            fontSize: 22,
+            fontWeight: FontWeight.normal,
             color: buttonTextColor,
           ),
         ),
@@ -173,7 +176,7 @@ class TopNav extends ConsumerWidget implements PreferredSizeWidget {
             ),
           );
         } else {
-          routerDelegate.go(path);
+          context.go(path);
         }
       },
       child: icon == null

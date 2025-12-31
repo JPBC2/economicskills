@@ -6,13 +6,11 @@ import 'package:universal_html/html.dart' as html;
 import 'package:economicskills/app/res/responsive.res.dart';
 import 'package:economicskills/app/widgets/guest_drawer_nav.widget.dart';
 import 'package:economicskills/app/widgets/guest_top_nav.widget.dart';
+import 'package:go_router/go_router.dart';
 import '../../main.dart';
-import '../routes/router_delegate.router.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
-  final AppRouterDelegate routerDelegate;
-
-  const LoginScreen({super.key, required this.routerDelegate});
+  const LoginScreen({super.key});
 
   @override
   ConsumerState<LoginScreen> createState() => _LoginScreenState();
@@ -232,7 +230,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         ),
                         const SizedBox(height: 16),
                         TextButton(
-                          onPressed: () => widget.routerDelegate.goToSignup(),
+                          onPressed: () => context.go('/signup'),
                           child: const Text('Don\'t have an account? Sign up'),
                         ),
                       ],

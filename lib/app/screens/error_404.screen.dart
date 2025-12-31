@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
-import '../routes/router_delegate.router.dart';
+import 'package:go_router/go_router.dart';
 
 class Error404Screen extends StatelessWidget {
-  final AppRouterDelegate routerDelegate;
-
-  const Error404Screen({super.key, required this.routerDelegate});
+  const Error404Screen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -13,7 +11,7 @@ class Error404Screen extends StatelessWidget {
         title: const Text('Page Not Found'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => routerDelegate.goToHome(),
+          onPressed: () => context.go('/'),
         ),
       ),
       body: Center(
@@ -49,7 +47,7 @@ class Error404Screen extends StatelessWidget {
               ),
               const SizedBox(height: 32),
               ElevatedButton.icon(
-                onPressed: () => routerDelegate.goToHome(),
+                onPressed: () => context.go('/'),
                 icon: const Icon(Icons.home),
                 label: const Text('Go to Home'),
                 style: ElevatedButton.styleFrom(

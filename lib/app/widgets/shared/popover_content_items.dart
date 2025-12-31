@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:economicskills/main.dart'; // Assuming routerDelegate is here
+import 'package:go_router/go_router.dart';
 
 class PopoverContentItems extends StatelessWidget {
   final String baseLabel; // e.g., "Introducción", "Vocales"
@@ -35,7 +35,7 @@ class PopoverContentItems extends StatelessWidget {
                 ),
                 onPressed: () {
                   Navigator.pop(context); // Close the popover
-                  routerDelegate.go(path); // Navigate to the generated path
+                  context.go(path); // Navigate to the generated path
                   // You'll need to define these routes in your router
                 },
                 child: Text(

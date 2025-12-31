@@ -8,7 +8,7 @@ import 'package:economicskills/app/widgets/top_nav.widget.dart';
 import 'package:economicskills/app/widgets/drawer_nav.widget.dart';
 import 'package:economicskills/app/res/responsive.res.dart';
 import 'package:economicskills/l10n/app_localizations.dart';
-import 'package:economicskills/main.dart';
+import 'package:go_router/go_router.dart';
 
 /// Lesson Screen - PUBLIC content (text/video), PROTECTED exercises
 /// 
@@ -282,7 +282,7 @@ class _LessonScreenState extends State<LessonScreen> {
               ElevatedButton.icon(
                 onPressed: () {
                   // Navigate to exercise with spreadsheet
-                  routerDelegate.go('/exercises/${exercise.id}');
+                  context.go('/exercises/${exercise.id}');
                 },
                 icon: const Icon(Icons.play_arrow),
                 label: const Text('Start Exercise'),
@@ -290,7 +290,7 @@ class _LessonScreenState extends State<LessonScreen> {
             else
               OutlinedButton.icon(
                 onPressed: () {
-                  routerDelegate.go('/login');
+                  context.go('/login');
                 },
                 icon: const Icon(Icons.login),
                 label: const Text('Sign in to Start Exercise'),

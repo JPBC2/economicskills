@@ -6,7 +6,7 @@ import 'package:economicskills/app/widgets/top_nav.widget.dart';
 import 'package:economicskills/app/widgets/drawer_nav.widget.dart';
 import 'package:economicskills/app/res/responsive.res.dart';
 import 'package:economicskills/l10n/app_localizations.dart';
-import 'package:economicskills/main.dart';
+import 'package:go_router/go_router.dart';
 
 /// Course Catalog Screen - PUBLIC (no auth required)
 /// Displays all available courses for browsing
@@ -139,7 +139,7 @@ class _CourseCatalogScreenState extends State<CourseCatalogScreen> {
         elevation: 2,
         child: InkWell(
           onTap: () {
-            routerDelegate.go('/courses/${course.id}');
+            context.go('/courses/${course.id}');
           },
           borderRadius: BorderRadius.circular(12),
           child: Padding(
