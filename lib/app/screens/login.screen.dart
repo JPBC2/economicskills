@@ -151,13 +151,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           color: Colors.blue,
                         ),
                         const SizedBox(height: 32),
-                        const Text(
-                          'Welcome to Economic Skills',
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontFamily: 'ContrailOne',
+                        GestureDetector(
+                          onTap: () => context.go('/'),
+                          child: const Text(
+                            'Welcome to Economic Skills',
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontFamily: 'ContrailOne',
+                            ),
+                            textAlign: TextAlign.center,
                           ),
-                          textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: 8),
                         const Text(

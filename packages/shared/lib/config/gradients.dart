@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:economicskills/app/config/theme.dart';
+import 'package:shared/config/theme.dart';
 
 /// Centralized gradient definitions for consistent visual effects across the app.
 class AppGradients {

@@ -14,3 +14,7 @@ export 'services/google_sheets.service.dart';
 
 // Config
 export 'config/supabase_config.dart';
+export 'config/theme.dart';
+export 'config/text_styles.dart';
+export 'config/gradients.dart';
+

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:economicskills/app/config/theme.dart';
-import 'package:economicskills/app/config/gradients.dart';
+import 'package:shared/shared.dart';
 import 'package:economicskills/app/config/spacing.dart';
-import 'package:economicskills/app/config/text_styles.dart';
 import 'package:economicskills/app/view_models/theme_mode.vm.dart';
+
+import 'package:go_router/go_router.dart';
 
 class GuestDrawerNav extends ConsumerWidget {
   const GuestDrawerNav({super.key});
@@ -22,12 +22,18 @@ class GuestDrawerNav extends ConsumerWidget {
     return Drawer(
       child: ListView(
         children: [
-          Container(
-            decoration: BoxDecoration(
-              gradient: AppGradients.callToAction(isDark: isDark),
+          GestureDetector(
+            onTap: () {
+              context.go('/');
+              Navigator.pop(context);
+            },
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: AppGradients.callToAction(isDark: isDark),
+              ),
+              padding: AppSpacing.drawerHeaderPadding,
+              child: Text("Economic skills", style: headerTextStyle),
             ),
-            padding: AppSpacing.drawerHeaderPadding,
-            child: Text("Economic skills", style: headerTextStyle),
           ),
           Tooltip(
             message: 'Switch theme (dark / light)',

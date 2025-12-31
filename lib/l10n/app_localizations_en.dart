@@ -49,6 +49,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navAccount => 'Account';
 
   @override
+  String get navSignIn => 'Sign In';
+
+  @override
   String get navSignOut => 'Sign Out';
 
   @override

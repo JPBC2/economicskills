@@ -185,18 +185,18 @@ class LandingScreen extends StatelessWidget {
           ),
 
           // Footer
-          Container(
-            padding: const EdgeInsets.all(24),
-            color: colorScheme.surfaceContainerHighest,
-            child: Center(
-              child: Text(
-                '© 2025 Economic Skills. All rights reserved.',
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ),
-          ),
+          // Container(
+          //   padding: const EdgeInsets.all(24),
+          //   color: colorScheme.surfaceContainerHighest,
+          //   child: Center(
+          //     child: Text(
+          //       '© 2025 Economic Skills. All rights reserved.',
+          //       style: theme.textTheme.bodySmall?.copyWith(
+          //         color: colorScheme.onSurfaceVariant,
+          //       ),
+          //     ),
+          //   ),
+          // ),
       ],
     );
   }

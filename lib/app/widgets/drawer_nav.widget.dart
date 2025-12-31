@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:economicskills/app/config/theme.dart';
-import 'package:economicskills/app/config/gradients.dart';
+import 'package:shared/shared.dart';
 import 'package:economicskills/app/config/spacing.dart';
-import 'package:economicskills/app/config/text_styles.dart';
 import 'package:economicskills/app/view_models/theme_mode.vm.dart';
 import 'package:economicskills/app/view_models/locale.vm.dart';
 import 'package:economicskills/main.dart';
@@ -83,24 +81,54 @@ class _DrawerNavState extends ConsumerState<DrawerNav> {
             },
           ),
 
-          // Account
-          ExpansionTile(
-            controller: _accountController,
-            leading: Icon(Icons.person, color: itemColor),
-            title: Text(l10n.navAccount, style: itemTextStyle),
-            iconColor: itemColor,
-            collapsedIconColor: itemColor,
-            children: [
-              ListTile(
-                leading: Icon(Icons.logout, color: itemColor),
-                title: Text(l10n.navSignOut, style: subItemTextStyle),
-                onTap: () {
-                  _signOut(context, l10n);
-                  _accountController.collapse();
-                  Navigator.pop(context);
-                },
-              ),
-            ],
+          // Account / Sign In (auth-aware)
+          Builder(
+            builder: (context) {
+              final user = supabase.auth.currentUser;
+              final bool isAuthenticated = user != null;
+              
+              if (isAuthenticated) {
+                // Authenticated: Show Account ExpansionTile with Sign Out
+                return ExpansionTile(
+                  controller: _accountController,
+                  leading: Icon(Icons.person, color: itemColor),
+                  title: Text(l10n.navAccount, style: itemTextStyle),
+                  subtitle: Text(
+                    user.email ?? '',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: isDarkTheme 
+                          ? Colors.grey[400] 
+                          : Colors.grey[600],
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  iconColor: itemColor,
+                  collapsedIconColor: itemColor,
+                  children: [
+                    ListTile(
+                      leading: Icon(Icons.logout, color: itemColor),
+                      title: Text(l10n.navSignOut, style: subItemTextStyle),
+                      onTap: () {
+                        _signOut(context, l10n);
+                        _accountController.collapse();
+                        Navigator.pop(context);
+                      },
+                    ),
+                  ],
+                );
+              } else {
+                // Guest: Show Sign In ListTile
+                return ListTile(
+                  leading: Icon(Icons.login, color: itemColor),
+                  title: Text(l10n.navSignIn, style: itemTextStyle),
+                  onTap: () {
+                    context.go('/login');
+                    Navigator.pop(context);
+                  },
+                );
+              }
+            },
           ),
 
           // Language Popover

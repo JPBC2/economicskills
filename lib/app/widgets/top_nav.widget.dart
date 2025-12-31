@@ -1,8 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:economicskills/app/config/theme.dart';
+import 'package:shared/shared.dart';
 import 'package:economicskills/app/config/spacing.dart';
-import 'package:economicskills/app/config/text_styles.dart';
 import 'package:economicskills/app/res/responsive.res.dart';
 import 'package:economicskills/app/view_models/theme_mode.vm.dart';
 import 'package:economicskills/app/view_models/locale.vm.dart';
@@ -58,35 +57,84 @@ class TopNav extends ConsumerWidget implements PreferredSizeWidget {
           l10n: l10n,
           // inDevelopment: true, // Removed assumption, treating as nav
         ),
-        // Account PopupMenuButton
-        PopupMenuButton(
-          offset: const Offset(0, 35.0),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(4.0),
-            ),
-            child: Row(
-              children: [
-                Icon(Icons.person, color: buttonTextColor, size: 20),
-                const SizedBox(width: 6),
-                Text(l10n.navAccount, style: TextStyle(color: buttonTextColor)),
-                Icon(Icons.arrow_drop_down, color: buttonTextColor, size: 20),
-              ],
-            ),
-          ),
-          itemBuilder: (context) => [
-            PopupMenuItem(
-              child: Row(
-                children: [
-                  const Icon(Icons.logout),
-                  const SizedBox(width: 8),
-                  Text(l10n.navSignOut),
+        // Account / Sign In button (auth-aware)
+        Builder(
+          builder: (context) {
+            final user = supabase.auth.currentUser;
+            final bool isAuthenticated = user != null;
+            
+            if (isAuthenticated) {
+              // Authenticated: Show Account dropdown with Sign Out
+              return PopupMenuButton(
+                offset: const Offset(0, 35.0),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(4.0),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.person, color: buttonTextColor, size: 20),
+                      const SizedBox(width: 6),
+                      Text(l10n.navAccount, style: TextStyle(color: buttonTextColor)),
+                      Icon(Icons.arrow_drop_down, color: buttonTextColor, size: 20),
+                    ],
+                  ),
+                ),
+                itemBuilder: (context) => <PopupMenuEntry<dynamic>>[
+                  // Display user email (non-interactive)
+                  PopupMenuItem(
+                    enabled: false,
+                    child: Row(
+                      children: [
+                        const Icon(Icons.email_outlined, size: 18),
+                        const SizedBox(width: 8),
+                        Flexible(
+                          child: Text(
+                            user.email ?? 'User',
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.onSurfaceVariant,
+                              fontSize: 13,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const PopupMenuDivider(),
+                  // Sign Out option
+                  PopupMenuItem(
+                    child: Row(
+                      children: [
+                        const Icon(Icons.logout),
+                        const SizedBox(width: 8),
+                        Text(l10n.navSignOut),
+                      ],
+                    ),
+                    onTap: () => _signOut(context, l10n),
+                  ),
                 ],
-              ),
-              onTap: () => _signOut(context, l10n),
-            ),
-          ],
+              );
+            } else {
+              // Guest: Show Sign In button
+              return TextButton(
+                style: TextButton.styleFrom(
+                  foregroundColor: buttonTextColor,
+                  padding: AppSpacing.buttonPadding,
+                ),
+                onPressed: () => context.go('/login'),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.login, size: 20, color: buttonTextColor),
+                    const SizedBox(width: 6),
+                    Text(l10n.navSignIn, style: TextStyle(color: buttonTextColor)),
+                  ],
+                ),
+              );
+            }
+          },
         ),
 
         // Language Popover

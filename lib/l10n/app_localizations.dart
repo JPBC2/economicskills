@@ -176,6 +176,12 @@ abstract class AppLocalizations {
   /// **'Account'**
   String get navAccount;
 
+  /// No description provided for @navSignIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign In'**
+  String get navSignIn;
+
   /// No description provided for @navSignOut.
   ///
   /// In en, this message translates to:

@@ -1,10 +1,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:economicskills/app/config/theme.dart';
+import 'package:shared/shared.dart';
 import 'package:economicskills/app/config/spacing.dart';
-import 'package:economicskills/app/config/text_styles.dart';
 import 'package:economicskills/app/view_models/theme_mode.vm.dart';
+import 'package:go_router/go_router.dart';
 
 class GuestTopNav extends ConsumerWidget implements PreferredSizeWidget {
   const GuestTopNav({super.key});
@@ -20,9 +20,12 @@ class GuestTopNav extends ConsumerWidget implements PreferredSizeWidget {
 
     return AppBar(
       backgroundColor: appBarColor,
-      title: Text(
-        'Economic skills ',
-        style: AppTextStyles.appBarTitle(color: buttonTextColor),
+      title: GestureDetector(
+        onTap: () => context.go('/'),
+        child: Text(
+          'Economic skills ',
+          style: AppTextStyles.appBarTitle(color: buttonTextColor),
+        ),
       ),
       elevation: kIsWeb ? 0 : null,
       centerTitle: kIsWeb ? false : null,

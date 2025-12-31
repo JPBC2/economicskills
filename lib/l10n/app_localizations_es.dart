@@ -49,6 +49,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get navAccount => 'Cuenta';
 
   @override
+  String get navSignIn => 'Iniciar Sesión';
+
+  @override
   String get navSignOut => 'Cerrar Sesión';
 
   @override
