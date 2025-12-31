@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:economicskills/app/res/responsive.res.dart';
 import 'package:economicskills/app/widgets/drawer_nav.widget.dart';
+import 'package:economicskills/app/widgets/hiding_scaffold.widget.dart';
 import 'package:economicskills/app/widgets/top_nav.widget.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:economicskills/l10n/app_localizations.dart';
@@ -18,10 +19,12 @@ class HomeScreen extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     
-    return Scaffold(
-      body: ListView(
-        children: <Widget>[
-          const TopNav(),
+    return HidingScaffold(
+      appBar: const TopNav(),
+      drawer: MediaQuery.of(context).size.width > ScreenSizes.md
+          ? null
+          : const DrawerNav(),
+      body: [
           Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 1140),
@@ -131,10 +134,6 @@ class HomeScreen extends StatelessWidget {
             ),
           ),
         ],
-      ),
-      drawer: MediaQuery.of(context).size.width > ScreenSizes.md
-          ? null
-          : const DrawerNav(),
     );
   }
 

@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:economicskills/app/services/course.service.dart';
 import 'package:economicskills/app/models/course.model.dart';
 import 'package:economicskills/app/widgets/top_nav.widget.dart';
+import 'package:economicskills/app/widgets/hiding_scaffold.widget.dart';
 import 'package:economicskills/app/widgets/drawer_nav.widget.dart';
 import 'package:economicskills/app/res/responsive.res.dart';
 import 'package:economicskills/l10n/app_localizations.dart';
@@ -49,10 +50,12 @@ class _CourseCatalogScreenState extends State<CourseCatalogScreen> {
     final colorScheme = theme.colorScheme;
     final l10n = AppLocalizations.of(context)!;
 
-    return Scaffold(
-      body: ListView(
-        children: [
-          const TopNav(),
+    return HidingScaffold(
+      appBar: const TopNav(),
+      drawer: MediaQuery.of(context).size.width > ScreenSizes.md
+          ? null
+          : const DrawerNav(),
+      body: [
           Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 1140),
@@ -87,11 +90,7 @@ class _CourseCatalogScreenState extends State<CourseCatalogScreen> {
               ),
             ),
           ),
-        ],
-      ),
-      drawer: MediaQuery.of(context).size.width > ScreenSizes.md
-          ? null
-          : const DrawerNav(),
+      ],
     );
   }
 

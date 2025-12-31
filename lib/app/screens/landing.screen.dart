@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:economicskills/app/services/course.service.dart';
 import 'package:economicskills/app/models/course.model.dart';
 import 'package:economicskills/app/widgets/top_nav.widget.dart';
+import 'package:economicskills/app/widgets/hiding_scaffold.widget.dart';
 import 'package:economicskills/app/widgets/drawer_nav.widget.dart';
 import 'package:economicskills/app/res/responsive.res.dart';
 import 'package:economicskills/l10n/app_localizations.dart';
@@ -19,11 +20,12 @@ class LandingScreen extends StatelessWidget {
     final colorScheme = theme.colorScheme;
     final isAuthenticated = Supabase.instance.client.auth.currentUser != null;
 
-    return Scaffold(
-      body: ListView(
-        children: [
-          const TopNav(),
-          // Hero Section
+    return HidingScaffold(
+      appBar: const TopNav(),
+      drawer: MediaQuery.of(context).size.width > ScreenSizes.md
+          ? null
+          : const DrawerNav(),
+      body: [
           Container(
             padding: const EdgeInsets.symmetric(vertical: 80, horizontal: 24),
             decoration: BoxDecoration(
@@ -195,11 +197,7 @@ class LandingScreen extends StatelessWidget {
               ),
             ),
           ),
-        ],
-      ),
-      drawer: MediaQuery.of(context).size.width > ScreenSizes.md
-          ? null
-          : const DrawerNav(),
+      ],
     );
   }
 

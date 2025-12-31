@@ -5,6 +5,7 @@ import 'package:economicskills/app/services/course.service.dart';
 import 'package:economicskills/app/services/user.service.dart';
 import 'package:economicskills/app/models/course.model.dart';
 import 'package:economicskills/app/widgets/top_nav.widget.dart';
+import 'package:economicskills/app/widgets/hiding_scaffold.widget.dart';
 import 'package:economicskills/app/widgets/drawer_nav.widget.dart';
 import 'package:economicskills/app/res/responsive.res.dart';
 import 'package:economicskills/l10n/app_localizations.dart';
@@ -76,10 +77,12 @@ class _LessonScreenState extends State<LessonScreen> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return Scaffold(
-      body: ListView(
-        children: [
-          const TopNav(),
+    return HidingScaffold(
+      appBar: const TopNav(),
+      drawer: MediaQuery.of(context).size.width > ScreenSizes.md
+          ? null
+          : const DrawerNav(),
+      body: [
           if (_isLoading)
             const Center(
               child: Padding(
@@ -91,11 +94,7 @@ class _LessonScreenState extends State<LessonScreen> {
             _buildNotFound(theme)
           else
             _buildLessonContent(theme),
-        ],
-      ),
-      drawer: MediaQuery.of(context).size.width > ScreenSizes.md
-          ? null
-          : const DrawerNav(),
+      ],
     );
   }
 
