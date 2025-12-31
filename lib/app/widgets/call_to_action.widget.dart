@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:economicskills/app/config/theme.dart';
+import 'package:economicskills/app/config/gradients.dart';
+import 'package:economicskills/app/config/spacing.dart';
+import 'package:economicskills/app/config/text_styles.dart';
 import 'package:economicskills/app/res/responsive.res.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -8,20 +12,15 @@ class CallToAction extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Using design tokens for consistent styling
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
-    final Color callToActionTextColor = Colors.white; // Simplified as it's always white in your code
-    final Color buttonTextColor = isDark ? Colors.white : Colors.lightBlue.shade900; // Modified for light theme
+    final Color callToActionTextColor = AppColors.textOnDark; // Always white on CTA
+    final Color buttonTextColor = isDark ? AppColors.textOnDark : Colors.lightBlue.shade900;
 
     return Container(
-      margin: const EdgeInsets.only(top: 40.0),
+      margin: EdgeInsets.only(top: AppSpacing.xxl),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: isDark
-              ? [Colors.blue.shade900, Colors.blue.shade700]
-              : [Colors.lightBlue.shade900, Colors.cyanAccent.shade700],
-        ),
+        gradient: AppGradients.callToAction(isDark: isDark),
       ),
       constraints: const BoxConstraints(minHeight: 400.0), // Modified height to minHeight
       alignment: Alignment.center,
@@ -44,7 +43,7 @@ class CallToAction extends ConsumerWidget {
                 ),
               ),
             ),
-            const SizedBox(height: 40.0), // Added spacing
+            const SizedBox(height: AppSpacing.xxl), // Added spacing using design tokens
             Flexible(
               flex: 1, // Consider adjusting flex or using SizedBox for better height control if needed
               child: ElevatedButton(
@@ -59,10 +58,7 @@ class CallToAction extends ConsumerWidget {
                 },
                 child: Text(
                   "Start",
-                  style: TextStyle(
-                      color: buttonTextColor,
-                      fontSize: 19,
-                      fontFamily: 'ContrailOne'),
+                  style: AppTextStyles.ctaButton(color: buttonTextColor),
                 ),
               ),
             ),

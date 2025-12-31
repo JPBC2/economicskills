@@ -1,5 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:economicskills/app/config/theme.dart';
+import 'package:economicskills/app/config/spacing.dart';
+import 'package:economicskills/app/config/text_styles.dart';
 import 'package:economicskills/app/res/responsive.res.dart';
 import 'package:economicskills/app/view_models/theme_mode.vm.dart';
 import 'package:economicskills/app/view_models/locale.vm.dart';
@@ -21,9 +24,10 @@ class TopNav extends ConsumerWidget implements PreferredSizeWidget {
     final LocaleVM localeVM = ref.watch(localeProvider);
     final l10n = AppLocalizations.of(context)!;
     
+    // Using design tokens for consistent styling
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
-    final Color buttonTextColor = isDark ? Colors.white : Colors.black;
-    final Color appBarColor = isDark ? Colors.grey.shade900 : Colors.white70;
+    final Color buttonTextColor = isDark ? AppColors.textOnDark : AppColors.textOnLight;
+    final Color appBarColor = isDark ? AppColors.appBarDark : AppColors.appBarLight;
 
     // Language items
     final List<Map<String, dynamic>> languages = [
@@ -36,13 +40,8 @@ class TopNav extends ConsumerWidget implements PreferredSizeWidget {
       title: GestureDetector(
         onTap: () => context.go('/'),
         child: Text(
-          l10n.appTitle, // 'Economic skills'
-          style: TextStyle(
-            fontFamily: 'ContrailOne',
-            fontSize: 22,
-            fontWeight: FontWeight.normal,
-            color: buttonTextColor,
-          ),
+          'Economic skills', // App name - never translated
+          style: AppTextStyles.appBarTitle(color: buttonTextColor),
         ),
       ),
       elevation: kIsWeb ? 0 : null,
@@ -129,7 +128,7 @@ class TopNav extends ConsumerWidget implements PreferredSizeWidget {
           child: TextButton(
             style: TextButton.styleFrom(
                 foregroundColor: buttonTextColor,
-                padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0)),
+                padding: AppSpacing.buttonPadding),
             onPressed: themeModeVM.toggleThemeMode,
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -165,7 +164,7 @@ class TopNav extends ConsumerWidget implements PreferredSizeWidget {
     return TextButton(
       style: TextButton.styleFrom(
         foregroundColor: color,
-        padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+        padding: AppSpacing.buttonPadding,
       ),
       onPressed: () {
         if (inDevelopment) {

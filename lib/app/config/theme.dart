@@ -1,10 +1,38 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+/// Centralized color palette for the app.
+/// Use these instead of hardcoded Color values.
+class AppColors {
+  // Primary palette
+  static const Color primaryDark = Color(0xFF1E293B);   // Deep Slate
+  static const Color accentBlue = Color(0xFF38BDF8);    // Vibrant Sky Blue
+  static const Color accentGold = Color(0xFFF59E0B);    // Gold for highlights
+
+  // Surface colors (for backgrounds, cards, etc.)
+  static const Color surfaceDark = Color(0xFF0F172A);   // Darker Slate
+  static const Color surfaceLight = Color(0xFF334155);  // Lighter Slate
+  
+  // Semantic text colors
+  static const Color textOnDark = Colors.white;
+  static const Color textOnLight = Colors.black;
+  
+  // App bar colors
+  static Color appBarLight = Colors.white70;
+  static Color appBarDark = Colors.grey.shade900;
+  
+  // CTA gradient colors (blue tones)
+  static Color ctaDarkStart = Colors.blue.shade900;
+  static Color ctaDarkEnd = Colors.blue.shade700;
+  static Color ctaLightStart = Colors.lightBlue.shade900;
+  static Color ctaLightEnd = Colors.cyanAccent.shade700;
+}
+
 class AppTheme {
-  static const Color primaryColor = Color(0xFF1E293B); // Deep Slate
-  static const Color accentColor = Color(0xFF38BDF8); // Vibrant Sky Blue
-  static const Color accentGold = Color(0xFFF59E0B); // Gold for highlights
+  // Legacy colors (kept for backward compatibility, use AppColors instead)
+  static const Color primaryColor = AppColors.primaryDark;
+  static const Color accentColor = AppColors.accentBlue;
+  static const Color accentGold = AppColors.accentGold;
 
   static ThemeData get lightTheme {
     return ThemeData(
@@ -14,8 +42,7 @@ class AppTheme {
         primary: primaryColor,
         secondary: accentColor,
         tertiary: accentGold,
-        surface: Colors.white,
-        background: Colors.grey[50],
+        surface: Colors.grey[50]!,
       ),
       scaffoldBackgroundColor: Colors.grey[50],
       textTheme: GoogleFonts.interTextTheme(),

@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:economicskills/app/config/theme.dart';
+import 'package:economicskills/app/config/gradients.dart';
+import 'package:economicskills/app/config/spacing.dart';
+import 'package:economicskills/app/config/text_styles.dart';
 import 'package:economicskills/app/view_models/theme_mode.vm.dart';
 import 'package:economicskills/app/view_models/locale.vm.dart';
 import 'package:economicskills/main.dart';
@@ -40,28 +44,16 @@ class _DrawerNavState extends ConsumerState<DrawerNav> {
   @override
   Widget build(BuildContext context) {
     final bool isDarkTheme = Theme.of(context).brightness == Brightness.dark;
-    final textTheme = Theme.of(context).textTheme;
     final l10n = AppLocalizations.of(context)!;
     final localeVM = ref.watch(localeProvider);
     
-    // Style for the Drawer Header
-    TextStyle? baseTitleLargeStyle = textTheme.titleLarge;
-    TextStyle headerTextStyle = baseTitleLargeStyle?.copyWith(
-      color: Colors.white,
-      fontFamily: 'ContrailOne',
-    ) ??
-        const TextStyle(
-          color: Colors.white,
-          fontFamily: 'ContrailOne',
-          fontSize: 22,
-        );
+    // Style for the Drawer Header (using design tokens)
+    final TextStyle headerTextStyle = AppTextStyles.drawerHeader();
 
-    // Common color and text style for drawer items
-    final Color itemColor = isDarkTheme ? Colors.white : Colors.black;
-    final TextStyle? baseItemTextStyle = textTheme.titleMedium;
-    final TextStyle itemTextStyle = baseItemTextStyle?.copyWith(color: itemColor) ?? 
-                                   TextStyle(color: itemColor, fontSize: 16, fontWeight: FontWeight.w500);
-    final TextStyle subItemTextStyle = itemTextStyle.copyWith(fontWeight: FontWeight.normal);
+    // Common color and text style for drawer items (using design tokens)
+    final Color itemColor = isDarkTheme ? AppColors.textOnDark : AppColors.textOnLight;
+    final TextStyle itemTextStyle = AppTextStyles.navItem(color: itemColor);
+    final TextStyle subItemTextStyle = AppTextStyles.navSubItem(color: itemColor);
 
     return Drawer(
       child: ListView(
@@ -74,16 +66,10 @@ class _DrawerNavState extends ConsumerState<DrawerNav> {
             },
             child: Container(
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: isDarkTheme
-                      ? [const Color(0xFF0F172A), const Color(0xFF1E293B)]
-                      : [const Color(0xFF1E293B), const Color(0xFF334155)], // Darker slate for premium feel
-                ),
+                gradient: AppGradients.drawerHeader(isDark: isDarkTheme),
               ),
-              padding: const EdgeInsets.all(16.0),
-              child: Text(l10n.appTitle, style: headerTextStyle),
+              padding: AppSpacing.drawerHeaderPadding,
+              child: Text('Economic skills', style: headerTextStyle), // App name - never translated
             ),
           ),
 
@@ -129,7 +115,7 @@ class _DrawerNavState extends ConsumerState<DrawerNav> {
             collapsedIconColor: itemColor,
             children: _languages.map((lang) {
               return ListTile(
-                contentPadding: const EdgeInsets.only(left: 53.0),
+                contentPadding: AppSpacing.navItemPadding,
                 title: Text(lang['label'], style: subItemTextStyle),
                 onTap: () {
                   localeVM.setLocale(Locale(lang['code']));

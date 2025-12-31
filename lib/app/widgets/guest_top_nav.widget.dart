@@ -1,6 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:economicskills/app/config/theme.dart';
+import 'package:economicskills/app/config/spacing.dart';
+import 'package:economicskills/app/config/text_styles.dart';
 import 'package:economicskills/app/view_models/theme_mode.vm.dart';
 
 class GuestTopNav extends ConsumerWidget implements PreferredSizeWidget {
@@ -9,19 +12,17 @@ class GuestTopNav extends ConsumerWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final themeModeVM = ref.watch(themeModeProvider);
+    // Using design tokens for consistent styling
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final buttonTextColor = isDark ? Colors.white : Colors.black;
-    final appBarColor = isDark ? Colors.grey.shade900 : Colors.white70;
+    final buttonTextColor = isDark ? AppColors.textOnDark : AppColors.textOnLight;
+    final appBarColor = isDark ? AppColors.appBarDark : AppColors.appBarLight;
     final isWide = MediaQuery.of(context).size.width > 600; // Example breakpoint
 
     return AppBar(
       backgroundColor: appBarColor,
       title: Text(
         'Economic skills ',
-        style: TextStyle(
-          fontFamily: 'ContrailOne',
-          color: buttonTextColor,
-        ),
+        style: AppTextStyles.appBarTitle(color: buttonTextColor),
       ),
       elevation: kIsWeb ? 0 : null,
       centerTitle: kIsWeb ? false : null,
@@ -32,7 +33,7 @@ class GuestTopNav extends ConsumerWidget implements PreferredSizeWidget {
                 child: TextButton(
                   style: TextButton.styleFrom(
                     foregroundColor: buttonTextColor,
-                    padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+                    padding: AppSpacing.buttonPadding,
                   ),
                   onPressed: themeModeVM.toggleThemeMode,
                   child: Row(
