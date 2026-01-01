@@ -24,6 +24,10 @@ class _DrawerNavState extends ConsumerState<DrawerNav> {
   final List<Map<String, dynamic>> _languages = [
     {'code': 'en', 'label': 'English'},
     {'code': 'es', 'label': 'Español'},
+    {'code': 'fr', 'label': 'Français'},
+    {'code': 'zh', 'label': '中文'},
+    {'code': 'ru', 'label': 'Русский'},
+    {'code': 'pt', 'label': 'Português'},
   ];
 
   Future<void> _signOut(BuildContext context, AppLocalizations l10n) async {
@@ -136,7 +140,7 @@ class _DrawerNavState extends ConsumerState<DrawerNav> {
             controller: _languageController,
             leading: Icon(Icons.language_sharp, color: itemColor),
             title: Text(
-              localeVM.locale.languageCode == 'es' ? 'Español' : 'English',
+              _languages.firstWhere((l) => l['code'] == localeVM.locale.languageCode, orElse: () => _languages.first)['label'],
               style: itemTextStyle
             ),
             iconColor: itemColor,

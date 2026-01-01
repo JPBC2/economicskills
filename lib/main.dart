@@ -65,6 +65,10 @@ class MyApp extends StatelessWidget {
             supportedLocales: const [
               Locale('en'), // English
               Locale('es'), // Spanish
+              Locale('fr'), // French
+              Locale('zh'), // Chinese
+              Locale('ru'), // Russian
+              Locale('pt'), // Portuguese
             ],
 
             // Routing with go_router

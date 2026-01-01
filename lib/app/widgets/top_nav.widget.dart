@@ -32,6 +32,10 @@ class TopNav extends ConsumerWidget implements PreferredSizeWidget {
     final List<Map<String, dynamic>> languages = [
       {'code': 'en', 'label': 'English'},
       {'code': 'es', 'label': 'Español'},
+      {'code': 'fr', 'label': 'Français'},
+      {'code': 'zh', 'label': '中文'},
+      {'code': 'ru', 'label': 'Русский'},
+      {'code': 'pt', 'label': 'Português'},
     ];
 
     return AppBar(
@@ -150,7 +154,7 @@ class TopNav extends ConsumerWidget implements PreferredSizeWidget {
                 Icon(Icons.language_sharp, color: buttonTextColor, size: 20),
                 const SizedBox(width: 6),
                 Text(
-                  localeVM.locale.languageCode == 'es' ? 'Español' : 'English', 
+                  languages.firstWhere((l) => l['code'] == localeVM.locale.languageCode, orElse: () => languages.first)['label'], 
                   style: TextStyle(color: buttonTextColor)
                 ),
                 Icon(Icons.arrow_drop_down, color: buttonTextColor, size: 20),

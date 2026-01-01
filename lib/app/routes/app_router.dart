@@ -3,7 +3,6 @@ import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:economicskills/app/screens/landing.screen.dart';
 import 'package:economicskills/app/screens/login.screen.dart';
-import 'package:economicskills/app/screens/signup.screen.dart';
 import 'package:economicskills/app/screens/home.screen.dart';
 import 'package:economicskills/app/screens/error_404.screen.dart';
 import 'package:economicskills/app/screens/content/course_catalog.screen.dart';
@@ -58,11 +57,11 @@ final appRouter = GoRouter(
       builder: (context, state) => const LoginScreen(),
     ),
 
-    // Signup
+    // Signup redirect (Google-only auth)
     GoRoute(
       path: '/signup',
       name: 'signup',
-      builder: (context, state) => const SignupScreen(),
+      redirect: (context, state) => '/login',
     ),
 
     // Course catalog
@@ -123,7 +122,6 @@ bool _isPublicRoute(String path) {
   const publicRoutes = [
     '/',
     '/login',
-    '/signup',
     '/courses',
     '/lessons',
     '/content',
