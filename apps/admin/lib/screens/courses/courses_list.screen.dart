@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared/shared.dart';
 import '../../main.dart';
 import 'course_editor.screen.dart';

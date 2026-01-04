@@ -81,7 +81,7 @@ class Unit {
       description: json['description'] as String?,
       displayOrder: json['display_order'] as int? ?? 0,
       isPremium: json['is_premium'] as bool? ?? false,
-      unlockCost: json['unlock_cost'] as int? ?? 150,
+      unlockCost: json['unlock_cost_xp'] as int? ?? 150,
       isActive: json['is_active'] as bool? ?? true,
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
@@ -98,7 +98,7 @@ class Unit {
         'description': description,
         'display_order': displayOrder,
         'is_premium': isPremium,
-        'unlock_cost': unlockCost,
+        'unlock_cost_xp': unlockCost,
         'is_active': isActive,
       };
 }

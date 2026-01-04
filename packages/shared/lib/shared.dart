@@ -6,11 +6,13 @@ library shared;
 // Models
 export 'models/course.model.dart';
 export 'models/user.model.dart';
+export 'models/translation.model.dart';
 
 // Services
 export 'services/course.service.dart';
 export 'services/user.service.dart';
 export 'services/google_sheets.service.dart';
+export 'services/translation.service.dart';
 
 // Config
 export 'config/supabase_config.dart';
