@@ -69,7 +69,7 @@ class ContentTranslation {
 /// Supported languages configuration
 class SupportedLanguages {
   /// Language codes in display order
-  static const List<String> codes = ['en', 'es', 'fr', 'zh', 'ru', 'pt'];
+  static const List<String> codes = ['en', 'zh', 'ru', 'es', 'fr', 'pt'];
 
   /// Language names in their native form
   static const Map<String, String> names = {

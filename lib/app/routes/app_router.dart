@@ -6,6 +6,8 @@ import 'package:economicskills/app/screens/login.screen.dart';
 import 'package:economicskills/app/screens/home.screen.dart';
 import 'package:economicskills/app/screens/error_404.screen.dart';
 import 'package:economicskills/app/screens/content/course_catalog.screen.dart';
+import 'package:economicskills/app/screens/content/course_detail.screen.dart';
+import 'package:economicskills/app/screens/content/section.screen.dart';
 import 'package:economicskills/app/screens/content/lesson.screen.dart';
 import 'package:economicskills/app/screens/exercises/elasticity.dart';
 
@@ -70,16 +72,26 @@ final appRouter = GoRouter(
       name: 'courses',
       builder: (context, state) => const CourseCatalogScreen(),
       routes: [
-        // Course detail (nested route)
+        // Course detail (nested route) - accepts slug or ID
         GoRoute(
-          path: ':courseId',
+          path: ':courseSlug',
           name: 'course-detail',
           builder: (context, state) {
-            final courseId = state.pathParameters['courseId'] ?? '';
-            return const CourseCatalogScreen();
+            final courseSlug = state.pathParameters['courseSlug'] ?? '';
+            return CourseDetailScreen(courseSlug: courseSlug);
           },
         ),
       ],
+    ),
+
+    // Sections (exercise screens) - accepts slug or ID
+    GoRoute(
+      path: '/sections/:sectionSlug',
+      name: 'section',
+      builder: (context, state) {
+        final sectionSlug = state.pathParameters['sectionSlug'] ?? '';
+        return SectionScreen(sectionSlug: sectionSlug);
+      },
     ),
 
     // Lessons
@@ -124,6 +136,7 @@ bool _isPublicRoute(String path) {
     '/login',
     '/courses',
     '/lessons',
+    '/sections',
     '/content',
   ];
 
@@ -133,6 +146,7 @@ bool _isPublicRoute(String path) {
   // Prefix match for dynamic routes
   if (path.startsWith('/courses/')) return true;
   if (path.startsWith('/lessons/')) return true;
+  if (path.startsWith('/sections/')) return true;
 
   return false;
 }

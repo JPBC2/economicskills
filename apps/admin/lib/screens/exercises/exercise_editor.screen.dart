@@ -174,7 +174,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
                                   TranslationTabs(
                                     fields: const [
                                       TranslationField(key: 'title', label: 'Title', isRequired: true, hint: 'e.g., Calculating the economic profit of investments'),
-                                      TranslationField(key: 'instructions', label: 'Instructions', maxLines: 10, isRequired: true),
+                                      TranslationField(key: 'instructions', label: 'Overview', maxLines: 10, isRequired: true, hint: 'Brief explanation of what this exercise covers'),
                                     ],
                                     translations: _translations,
                                     onChanged: (t) => setState(() => _translations = t),

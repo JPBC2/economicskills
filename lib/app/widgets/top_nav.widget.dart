@@ -32,9 +32,9 @@ class TopNav extends ConsumerWidget implements PreferredSizeWidget {
     final List<Map<String, dynamic>> languages = [
       {'code': 'en', 'label': 'English'},
       {'code': 'es', 'label': 'Español'},
-      {'code': 'fr', 'label': 'Français'},
       {'code': 'zh', 'label': '中文'},
       {'code': 'ru', 'label': 'Русский'},
+      {'code': 'fr', 'label': 'Français'},
       {'code': 'pt', 'label': 'Português'},
     ];
 

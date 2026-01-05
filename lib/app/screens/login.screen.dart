@@ -22,25 +22,31 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   // Get the current origin URL (works for both localhost and production)
   String _getRedirectUrl() {
     if (kIsWeb) {
-      // Get the current window location and construct clean URL
-      final protocol = html.window.location.protocol;
       final host = html.window.location.host;
+      
+      // For localhost development, use simple localhost URL
+      if (host.contains('localhost') || host.contains('127.0.0.1')) {
+        // Extract the port
+        final port = host.split(':').length > 1 ? host.split(':')[1] : '3000';
+        return 'http://localhost:$port';
+      }
+      
+      // For production (GitHub Pages, etc.)
+      final protocol = html.window.location.protocol;
       final pathname = html.window.location.pathname;
 
-      // Construct base URL
       String baseUrl = '$protocol//$host';
 
-      // Add pathname if it's not just root
+      // Add pathname for subpath deployments (e.g., github pages /economicskills)
       if (pathname != null && pathname != '/' && pathname.isNotEmpty) {
-        // Remove trailing slashes and clean up the pathname
         String cleanPath = pathname.trim().replaceAll(RegExp(r'/+$'), '');
         if (cleanPath.isNotEmpty) {
           baseUrl = '$baseUrl$cleanPath';
         }
       }
 
-      print('OAuth redirect URL: $baseUrl'); // Debug log
-      return baseUrl.trim(); // Ensure no trailing spaces
+      print('OAuth redirect URL: $baseUrl');
+      return baseUrl.trim();
     }
     // Fallback for non-web platforms
     return 'http://localhost:3000';
@@ -53,6 +59,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     try {
       final redirectUrl = _getRedirectUrl();
+      print('=== OAUTH DEBUG ===');
+      print('Host: ${html.window.location.host}');
+      print('Redirect URL being used: $redirectUrl');
+      print('===================');
 
       // For Flutter web, use environment-aware redirect URL
       await supabase.auth.signInWithOAuth(

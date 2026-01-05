@@ -138,7 +138,9 @@ class _CourseCatalogScreenState extends State<CourseCatalogScreen> {
         elevation: 2,
         child: InkWell(
           onTap: () {
-            context.go('/courses/${course.id}');
+            // Navigate using slug (title converted to URL-friendly format)
+            final slug = course.title.toLowerCase().replaceAll(' ', '-').replaceAll(RegExp(r'[^a-z0-9-]'), '');
+            context.go('/courses/$slug');
           },
           borderRadius: BorderRadius.circular(12),
           child: Padding(

@@ -74,6 +74,14 @@ class Unit {
   });
 
   factory Unit.fromJson(Map<String, dynamic> json) {
+    List<Lesson>? parsedLessons;
+    if (json['lessons'] != null) {
+      final lessonsData = json['lessons'];
+      if (lessonsData is List) {
+        parsedLessons = lessonsData.map((l) => Lesson.fromJson(l as Map<String, dynamic>)).toList();
+      }
+    }
+    
     return Unit(
       id: json['id'] as String,
       courseId: json['course_id'] as String,
@@ -85,9 +93,7 @@ class Unit {
       isActive: json['is_active'] as bool? ?? true,
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
-      lessons: json['lessons'] != null
-          ? (json['lessons'] as List).map((l) => Lesson.fromJson(l)).toList()
-          : null,
+      lessons: parsedLessons,
     );
   }
 
@@ -114,7 +120,7 @@ class Lesson {
   final bool isActive;
   final DateTime createdAt;
   final DateTime updatedAt;
-  final Exercise? exercise;
+  final List<Exercise>? exercises;
 
   Lesson({
     required this.id,
@@ -127,24 +133,33 @@ class Lesson {
     this.isActive = true,
     required this.createdAt,
     required this.updatedAt,
-    this.exercise,
+    this.exercises,
   });
 
   factory Lesson.fromJson(Map<String, dynamic> json) {
+    List<Exercise>? parsedExercises;
+    if (json['exercises'] != null) {
+      final exercisesData = json['exercises'];
+      if (exercisesData is List) {
+        parsedExercises = exercisesData.map((e) => Exercise.fromJson(e as Map<String, dynamic>)).toList();
+      } else if (exercisesData is Map<String, dynamic>) {
+        // Single exercise returned as object (1:1 relationship)
+        parsedExercises = [Exercise.fromJson(exercisesData)];
+      }
+    }
+    
     return Lesson(
       id: json['id'] as String,
       unitId: json['unit_id'] as String,
       title: json['title'] as String,
-      explanationText: json['explanation_text'] as String,
+      explanationText: json['explanation_text'] as String? ?? '',
       sourceReferences: json['source_references'] as String?,
       youtubeVideoUrl: json['youtube_video_url'] as String?,
       displayOrder: json['display_order'] as int? ?? 0,
       isActive: json['is_active'] as bool? ?? true,
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
-      exercise: json['exercises'] != null && (json['exercises'] as List).isNotEmpty
-          ? Exercise.fromJson((json['exercises'] as List).first)
-          : null,
+      exercises: parsedExercises,
     );
   }
 
@@ -199,16 +214,22 @@ class Exercise {
   });
 
   factory Exercise.fromJson(Map<String, dynamic> json) {
+    List<Section>? parsedSections;
+    if (json['sections'] != null) {
+      final sectionsData = json['sections'];
+      if (sectionsData is List) {
+        parsedSections = sectionsData.map((s) => Section.fromJson(s as Map<String, dynamic>)).toList();
+      }
+    }
+    
     return Exercise(
       id: json['id'] as String,
       lessonId: json['lesson_id'] as String,
       title: json['title'] as String,
-      instructions: json['instructions'] as String,
+      instructions: json['instructions'] as String? ?? '',
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
-      sections: json['sections'] != null
-          ? (json['sections'] as List).map((s) => Section.fromJson(s)).toList()
-          : null,
+      sections: parsedSections,
     );
   }
 
@@ -224,8 +245,9 @@ class Section {
   final String id;
   final String exerciseId;
   final String title;
+  final String? instructions;
   final int displayOrder;
-  final String templateSpreadsheetId;
+  final String? templateSpreadsheetId;
   final int xpReward;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -234,8 +256,9 @@ class Section {
     required this.id,
     required this.exerciseId,
     required this.title,
+    this.instructions,
     required this.displayOrder,
-    required this.templateSpreadsheetId,
+    this.templateSpreadsheetId,
     this.xpReward = 10,
     required this.createdAt,
     required this.updatedAt,
@@ -246,8 +269,9 @@ class Section {
       id: json['id'] as String,
       exerciseId: json['exercise_id'] as String,
       title: json['title'] as String,
+      instructions: json['instructions'] as String?,
       displayOrder: json['display_order'] as int? ?? 0,
-      templateSpreadsheetId: json['template_spreadsheet_id'] as String,
+      templateSpreadsheetId: json['template_spreadsheet_id'] as String?,
       xpReward: json['xp_reward'] as int? ?? 10,
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
@@ -258,6 +282,7 @@ class Section {
         'id': id,
         'exercise_id': exerciseId,
         'title': title,
+        'instructions': instructions,
         'display_order': displayOrder,
         'template_spreadsheet_id': templateSpreadsheetId,
         'xp_reward': xpReward,

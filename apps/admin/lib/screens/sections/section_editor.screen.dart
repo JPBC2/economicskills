@@ -44,10 +44,39 @@ class _SectionEditorScreenState extends State<SectionEditorScreen> {
       _templateUrlController.text = 'https://docs.google.com/spreadsheets/d/${widget.section!.templateSpreadsheetId}/edit';
       _extractedTemplateId = widget.section!.templateSpreadsheetId;
       _loadTranslations();
+      _loadValidationRule(); // Load existing validation rule
     } else {
       _loadNextDisplayOrder();
-      _translations = {'en': {'title': ''}};
+      _translations = {'en': {'title': '', 'instructions': ''}};
       _isLoading = false;
+    }
+  }
+
+  Future<void> _loadValidationRule() async {
+    try {
+      final rule = await supabase
+          .from('validation_rules')
+          .select()
+          .eq('section_id', widget.section!.id)
+          .maybeSingle();
+      
+      if (rule != null && mounted) {
+        final config = rule['rule_config'] as Map<String, dynamic>?;
+        if (config != null) {
+          final solutionId = config['solution_spreadsheet_id'] as String?;
+          final range = config['range'] as String?;
+          if (solutionId != null) {
+            _solutionUrlController.text = 'https://docs.google.com/spreadsheets/d/$solutionId/edit';
+            _extractedSolutionId = solutionId;
+          }
+          if (range != null) {
+            _validationRangeController.text = range;
+          }
+          setState(() {});
+        }
+      }
+    } catch (e) {
+      // Ignore errors loading validation rule
     }
   }
 
@@ -72,7 +101,10 @@ class _SectionEditorScreenState extends State<SectionEditorScreen> {
     );
     
     if (translations.isEmpty || translations['en'] == null) {
-      translations['en'] = {'title': widget.section!.title};
+      translations['en'] = {
+        'title': widget.section!.title,
+        'instructions': widget.section!.instructions ?? '',
+      };
     }
     
     setState(() {
@@ -127,9 +159,12 @@ class _SectionEditorScreenState extends State<SectionEditorScreen> {
     setState(() => _isSaving = true);
 
     try {
+      final englishInstructions = _translations['en']?['instructions']?.trim() ?? '';
+      
       final data = {
         'exercise_id': widget.exercise.id,
         'title': englishTitle,
+        'instructions': englishInstructions.isEmpty ? null : englishInstructions,
         'display_order': int.tryParse(_displayOrderController.text) ?? 1,
         'template_spreadsheet_id': _extractedTemplateId,
         'xp_reward': int.tryParse(_xpRewardController.text) ?? 10,
@@ -256,6 +291,7 @@ class _SectionEditorScreenState extends State<SectionEditorScreen> {
                                   TranslationTabs(
                                     fields: const [
                                       TranslationField(key: 'title', label: 'Title', isRequired: true, hint: 'e.g., Cashflows'),
+                                      TranslationField(key: 'instructions', label: 'Instructions', maxLines: 6, hint: 'Step-by-step instructions for students to follow'),
                                     ],
                                     translations: _translations,
                                     onChanged: (t) => setState(() => _translations = t),

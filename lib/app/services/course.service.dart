@@ -14,7 +14,7 @@ class CourseService {
         .from('courses')
         .select()
         .eq('is_active', true)
-        .order('display_order');
+        .order('display_order', ascending: true);
 
     return (response as List).map((c) => Course.fromJson(c)).toList();
   }

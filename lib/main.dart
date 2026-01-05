@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:economicskills/app/view_models/theme_mode.vm.dart';
 import 'package:economicskills/app/view_models/locale.vm.dart';
@@ -8,6 +9,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:economicskills/l10n/app_localizations.dart';
 import 'package:shared/shared.dart';
+import 'package:universal_html/html.dart' as html;
 
 // import 'package:firebase_core/firebase_core.dart';
 // import 'firebase_options.dart';
@@ -26,6 +28,17 @@ void main() async {
   );
 
   await Hive.initFlutter();
+
+  // Handle OAuth callback - check if URL has auth code
+  if (kIsWeb) {
+    final uri = Uri.parse(html.window.location.href);
+    if (uri.queryParameters.containsKey('code')) {
+      print('OAuth code detected in URL, session should be established');
+      // Clear the code from URL to avoid issues on refresh
+      final cleanUrl = uri.removeFragment().replace(queryParameters: {});
+      html.window.history.replaceState(null, '', cleanUrl.toString());
+    }
+  }
 
   runApp(ProviderScope(child: MyApp()));
 }
