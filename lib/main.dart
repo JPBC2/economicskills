@@ -34,6 +34,16 @@ void main() async {
     final uri = Uri.parse(html.window.location.href);
     if (uri.queryParameters.containsKey('code')) {
       print('OAuth code detected in URL, session should be established');
+      
+      // Check for returnTo in localStorage and redirect
+      final returnTo = html.window.localStorage['returnTo'];
+      if (returnTo != null && returnTo.isNotEmpty) {
+        html.window.localStorage.remove('returnTo');
+        // Use hash-based routing redirect
+        html.window.location.href = '${uri.origin}/#$returnTo';
+        return; // Stop execution, page will reload
+      }
+      
       // Clear the code from URL to avoid issues on refresh
       final cleanUrl = uri.removeFragment().replace(queryParameters: {});
       html.window.history.replaceState(null, '', cleanUrl.toString());
@@ -59,7 +69,7 @@ class MyApp extends StatelessWidget {
         animation: Listenable.merge([themeModeVM, localeVM]),
         builder: (context, child) {
           return MaterialApp.router(
-            title: 'Economic Skills',
+            title: 'Economic skills',
             debugShowCheckedModeBanner: false,
             
             // Theme Configuration

@@ -42,6 +42,7 @@ class SpreadsheetService {
   Future<ValidationResult> validateSpreadsheet({
     required String spreadsheetId,
     required String sectionId,
+    bool hintUsed = false,
   }) async {
     final user = _supabase.auth.currentUser;
     if (user == null) throw Exception('User not authenticated');
@@ -52,6 +53,7 @@ class SpreadsheetService {
         'user_spreadsheet_id': spreadsheetId,
         'section_id': sectionId,
         'user_id': user.id,
+        'hint_used': hintUsed,
       },
     );
 

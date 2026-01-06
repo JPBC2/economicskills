@@ -9,6 +9,7 @@ import 'package:economicskills/main.dart'; // contains supabase
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:economicskills/l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
+import 'package:pointer_interceptor/pointer_interceptor.dart';
 
 class TopNav extends ConsumerWidget implements PreferredSizeWidget {
   const TopNav({super.key});
@@ -71,6 +72,9 @@ class TopNav extends ConsumerWidget implements PreferredSizeWidget {
               // Authenticated: Show Account dropdown with Sign Out
               return PopupMenuButton(
                 offset: const Offset(0, 35.0),
+                elevation: 8,
+                color: Theme.of(context).colorScheme.surface,
+                surfaceTintColor: Theme.of(context).colorScheme.surfaceTint,
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
                   decoration: BoxDecoration(
@@ -89,32 +93,36 @@ class TopNav extends ConsumerWidget implements PreferredSizeWidget {
                   // Display user email (non-interactive)
                   PopupMenuItem(
                     enabled: false,
-                    child: Row(
-                      children: [
-                        const Icon(Icons.email_outlined, size: 18),
-                        const SizedBox(width: 8),
-                        Flexible(
-                          child: Text(
-                            user.email ?? 'User',
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.onSurfaceVariant,
-                              fontSize: 13,
+                    child: PointerInterceptor(
+                      child: Row(
+                        children: [
+                          const Icon(Icons.email_outlined, size: 18),
+                          const SizedBox(width: 8),
+                          Flexible(
+                            child: Text(
+                              user.email ?? 'User',
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                fontSize: 13,
+                              ),
+                              overflow: TextOverflow.ellipsis,
                             ),
-                            overflow: TextOverflow.ellipsis,
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                   const PopupMenuDivider(),
                   // Sign Out option
                   PopupMenuItem(
-                    child: Row(
-                      children: [
-                        const Icon(Icons.logout),
-                        const SizedBox(width: 8),
-                        Text(l10n.navSignOut),
-                      ],
+                    child: PointerInterceptor(
+                      child: Row(
+                        children: [
+                          const Icon(Icons.logout),
+                          const SizedBox(width: 8),
+                          Text(l10n.navSignOut),
+                        ],
+                      ),
                     ),
                     onTap: () => _signOut(context, l10n),
                   ),
@@ -127,7 +135,10 @@ class TopNav extends ConsumerWidget implements PreferredSizeWidget {
                   foregroundColor: buttonTextColor,
                   padding: AppSpacing.buttonPadding,
                 ),
-                onPressed: () => context.go('/login'),
+                onPressed: () {
+                  final currentPath = GoRouterState.of(context).uri.toString();
+                  context.go('/login?returnTo=${Uri.encodeComponent(currentPath)}');
+                },
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -248,6 +259,7 @@ class TopNav extends ConsumerWidget implements PreferredSizeWidget {
       await supabase.auth.signOut();
       if (context.mounted) {
         context.showSnackBar(l10n.signOutSuccess);
+        context.go('/'); // Navigate to home to refresh UI
       }
     } catch (error) {
       if (context.mounted) {

@@ -144,7 +144,8 @@ class _TranslationTabsState extends State<TranslationTabs> {
                 alignLabelWithHint: field.maxLines > 1,
                 hintText: field.hint,
               ),
-              maxLines: field.maxLines,
+              minLines: field.isResizable ? field.maxLines : null,
+              maxLines: field.isResizable ? null : field.maxLines,
               onChanged: (_) => _onFieldChanged(),
               validator: field.isRequired && _selectedLanguage == 'en'
                   ? (value) =>
@@ -166,7 +167,7 @@ class TranslationField {
   /// Display label
   final String label;
 
-  /// Number of lines for the text field
+  /// Number of lines for the text field (or min lines if resizable)
   final int maxLines;
 
   /// Whether this field is required (checked for English)
@@ -175,12 +176,16 @@ class TranslationField {
   /// Hint text
   final String? hint;
 
+  /// Whether the field can be resized (expanded beyond maxLines)
+  final bool isResizable;
+
   const TranslationField({
     required this.key,
     required this.label,
     this.maxLines = 1,
     this.isRequired = false,
     this.hint,
+    this.isResizable = false,
   });
 }
 

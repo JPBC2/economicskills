@@ -357,8 +357,8 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Chip(
-            label: Text('${section.xpReward} XP', style: const TextStyle(fontSize: 11)),
-            backgroundColor: Colors.amber.shade50,
+            label: Text('${section.xpReward} XP', style: TextStyle(fontSize: 11, color: colorScheme.onSurface)),
+            backgroundColor: colorScheme.surfaceContainerHighest,
             padding: EdgeInsets.zero,
             labelPadding: const EdgeInsets.symmetric(horizontal: 8),
             visualDensity: VisualDensity.compact,

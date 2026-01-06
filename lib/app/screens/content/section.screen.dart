@@ -33,8 +33,19 @@ class _SectionScreenState extends State<SectionScreen> {
   bool _isLoading = true;
   bool _isSaving = false;
   bool _isValidating = false;
+  bool _isResetting = false;
   String? _error;
   ValidationResult? _lastValidation;
+  
+  // Panel layout state
+  double _leftPanelWidth = 0.35;
+  bool _isLeftPanelCollapsed = false;
+  bool _showHint = false;
+  bool _exerciseExpanded = true;
+  bool _instructionsExpanded = true;
+  
+  // Scroll controller for mobile spreadsheet
+  final ScrollController _spreadsheetScrollController = ScrollController();
 
   @override
   void initState() {
@@ -46,6 +57,7 @@ class _SectionScreenState extends State<SectionScreen> {
   @override
   void dispose() {
     _spreadsheetIdController.dispose();
+    _spreadsheetScrollController.dispose();
     super.dispose();
   }
 
@@ -90,18 +102,10 @@ class _SectionScreenState extends State<SectionScreen> {
         _exercise = exercise;
       });
 
-      // Load user's spreadsheet and progress if authenticated
-      if (supabase.auth.currentUser != null) {
-        final spreadsheet = await _spreadsheetService.getUserSpreadsheet(_section!.id);
-        final progress = await _spreadsheetService.getUserProgress(_section!.id);
-        
-        setState(() {
-          _userSpreadsheet = spreadsheet;
-          _progress = progress;
-          if (spreadsheet != null) {
-            _spreadsheetIdController.text = spreadsheet.spreadsheetId;
-          }
-        });
+      // Auto-create spreadsheet copy if authenticated
+      final user = supabase.auth.currentUser;
+      if (user != null && section.templateSpreadsheetId != null) {
+        await _autoCreateSpreadsheet(user.id, section);
       }
 
       setState(() => _isLoading = false);
@@ -110,6 +114,126 @@ class _SectionScreenState extends State<SectionScreen> {
         _error = e.toString();
         _isLoading = false;
       });
+    }
+  }
+
+  /// Auto-create a fresh spreadsheet copy using Edge Function
+  Future<void> _autoCreateSpreadsheet(String userId, Section section) async {
+    try {
+      final supabase = Supabase.instance.client;
+      
+      // Get user's Google OAuth access token from session
+      final session = supabase.auth.currentSession;
+      final userAccessToken = session?.providerToken;
+      
+      if (userAccessToken == null) {
+        debugPrint('No provider token available - user needs to re-login with Google');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Please sign out and sign in again with Google to enable spreadsheet features'),
+            backgroundColor: Colors.orange,
+            action: SnackBarAction(label: 'Sign Out', onPressed: () => supabase.auth.signOut()),
+          ),
+        );
+        return;
+      }
+      
+      // Call the Edge Function to create/get spreadsheet using user's token
+      final response = await supabase.functions.invoke(
+        'copy-spreadsheet',
+        body: {
+          'template_id': section.templateSpreadsheetId,
+          'section_id': section.id,
+          'user_id': userId,
+          'new_name': 'Exercise: ${section.title}',
+          'user_access_token': userAccessToken,
+          'fresh': true, // Always create fresh copy
+        },
+      );
+
+      if (response.status == 200 && response.data != null) {
+        final data = response.data as Map<String, dynamic>;
+        final spreadsheetId = data['spreadsheet_id'] as String?;
+        final spreadsheetUrl = data['spreadsheet_url'] as String?;
+
+        if (spreadsheetId != null) {
+          setState(() {
+            _userSpreadsheet = SectionSpreadsheet(
+              id: '',
+              spreadsheetId: spreadsheetId,
+              spreadsheetUrl: spreadsheetUrl ?? '',
+            );
+            _spreadsheetIdController.text = spreadsheetId;
+          });
+        }
+      }
+
+      // Also load progress
+      final progress = await _spreadsheetService.getUserProgress(section.id);
+      if (mounted) {
+        setState(() {
+          _progress = progress;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error auto-creating spreadsheet: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to create spreadsheet: ${e.toString().replaceAll('Exception:', '')}'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 10),
+            action: SnackBarAction(label: 'Retry', onPressed: () => _autoCreateSpreadsheet(userId, section)),
+          ),
+        );
+      }
+    }
+  }
+
+  /// Reset spreadsheet to original template (fresh copy)
+  Future<void> _resetSpreadsheet() async {
+    final shouldReset = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Reset Spreadsheet?'),
+        content: const Text('This will replace your current work with a fresh copy of the template. This action cannot be undone.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: FilledButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Reset'),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldReset != true || _section == null) return;
+
+    final user = Supabase.instance.client.auth.currentUser;
+    if (user == null) return;
+
+    setState(() => _isResetting = true);
+
+    try {
+      // Call auto-create with fresh: true to delete old and create new
+      await _autoCreateSpreadsheet(user.id, _section!);
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Spreadsheet reset to original'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isResetting = false);
+      }
     }
   }
 
@@ -204,6 +328,7 @@ class _SectionScreenState extends State<SectionScreen> {
       final result = await _spreadsheetService.validateSpreadsheet(
         spreadsheetId: _userSpreadsheet!.spreadsheetId,
         sectionId: _section!.id,
+        hintUsed: _showHint,
       );
 
       setState(() {
@@ -277,31 +402,185 @@ class _SectionScreenState extends State<SectionScreen> {
 
     // Split-screen layout for wide screens, stacked for narrow
     if (isWideScreen) {
+      final screenWidth = MediaQuery.of(context).size.width;
+      final leftWidth = _isLeftPanelCollapsed ? 0.0 : screenWidth * _leftPanelWidth;
+      
       return Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Left panel - Instructions (35%)
-          SizedBox(
-            width: MediaQuery.of(context).size.width * 0.35,
-            child: _buildInstructionsPanel(theme, colorScheme),
-          ),
-          // Divider
-          Container(width: 1, color: colorScheme.outlineVariant),
-          // Right panel - Spreadsheet (65%)
+          // Collapsed expand button
+          if (_isLeftPanelCollapsed)
+            GestureDetector(
+              onTap: () => setState(() => _isLeftPanelCollapsed = false),
+              child: Container(
+                width: 24,
+                color: colorScheme.surfaceContainerHighest,
+                child: Center(
+                  child: Icon(Icons.chevron_right, size: 20, color: colorScheme.onSurface),
+                ),
+              ),
+            ),
+          // Left panel - Instructions
+          if (!_isLeftPanelCollapsed)
+            SizedBox(
+              width: leftWidth,
+              child: Stack(
+                children: [
+                  _buildInstructionsPanel(theme, colorScheme),
+                  // Collapse button
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: IconButton(
+                      onPressed: () => setState(() => _isLeftPanelCollapsed = true),
+                      icon: const Icon(Icons.chevron_left, size: 20),
+                      tooltip: 'Collapse panel',
+                      style: IconButton.styleFrom(
+                        backgroundColor: colorScheme.surfaceContainerHighest,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          // Resizable divider
+          if (!_isLeftPanelCollapsed)
+            GestureDetector(
+              onHorizontalDragUpdate: (details) {
+                setState(() {
+                  final newWidth = (_leftPanelWidth * screenWidth + details.delta.dx) / screenWidth;
+                  _leftPanelWidth = newWidth.clamp(0.2, 0.5);
+                });
+              },
+              child: MouseRegion(
+                cursor: SystemMouseCursors.resizeColumn,
+                child: Container(
+                  width: 6,
+                  color: colorScheme.outlineVariant,
+                  child: Center(
+                    child: Container(
+                      width: 2,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: colorScheme.outline,
+                        borderRadius: BorderRadius.circular(1),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          // Right panel - Spreadsheet
           Expanded(
             child: _buildSpreadsheetPanel(theme, colorScheme),
           ),
         ],
       );
     } else {
-      // Stacked layout for mobile
+      // Stacked layout for mobile - show instructions then spreadsheet
+      final isAuthenticated = Supabase.instance.client.auth.currentUser != null;
+      final isCompleted = _progress?.isCompleted ?? false;
+      
       return SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildInstructionsCard(theme, colorScheme),
+            // Back button
+            TextButton.icon(
+              onPressed: () => context.pop(),
+              icon: const Icon(Icons.arrow_back, size: 18),
+              label: const Text('Back'),
+            ),
             const SizedBox(height: 16),
+
+            // Completed status
+            if (isCompleted)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                margin: const EdgeInsets.only(bottom: 16),
+                decoration: BoxDecoration(
+                  color: Colors.green.shade100,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.check_circle, color: Colors.green.shade700, size: 18),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Completed! +${_progress!.xpEarned} XP',
+                      style: TextStyle(color: Colors.green.shade700, fontWeight: FontWeight.w600),
+                    ),
+                  ],
+                ),
+              ),
+
+            // Exercise section (collapsible)
+            _buildCollapsibleSection(
+              title: 'Exercise',
+              isExpanded: _exerciseExpanded,
+              onToggle: () => setState(() => _exerciseExpanded = !_exerciseExpanded),
+              theme: theme,
+              colorScheme: colorScheme,
+              trailing: null,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    _section!.title,
+                    style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+                  ),
+                  if (_section!.explanation != null && _section!.explanation!.isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    Text(
+                      _section!.explanation!,
+                      style: theme.textTheme.bodyMedium?.copyWith(height: 1.6, color: colorScheme.onSurfaceVariant),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // Instructions section (collapsible)
+            if (_section!.instructions != null && _section!.instructions!.isNotEmpty)
+              _buildCollapsibleSection(
+                title: 'Instructions',
+                isExpanded: _instructionsExpanded,
+                onToggle: () => setState(() => _instructionsExpanded = !_instructionsExpanded),
+                theme: theme,
+                colorScheme: colorScheme,
+                trailing: _section!.xpReward > 0
+                    ? Chip(
+                        avatar: Icon(Icons.star, size: 14, color: Colors.amber.shade600),
+                        label: Text(
+                          _showHint 
+                            ? '${(_section!.xpReward * 0.7).floor()} XP'
+                            : '${_section!.xpReward} XP',
+                          style: TextStyle(fontSize: 12, color: colorScheme.onSurface),
+                        ),
+                        backgroundColor: colorScheme.surfaceContainerHighest,
+                        padding: EdgeInsets.zero,
+                        labelPadding: const EdgeInsets.symmetric(horizontal: 6),
+                        visualDensity: VisualDensity.compact,
+                      )
+                    : null,
+                child: Text(
+                  _section!.instructions!,
+                  style: theme.textTheme.bodyMedium?.copyWith(height: 1.6, color: colorScheme.onSurface),
+                ),
+              ),
+
+            // Take a hint button
+            if (_section!.hint != null && _section!.hint!.isNotEmpty && isAuthenticated) ...[
+              const SizedBox(height: 24),
+              _buildHintSection(theme, colorScheme),
+            ],
+
+            const SizedBox(height: 24),
+            
+            // Spreadsheet
             _buildSpreadsheetCard(theme, colorScheme),
           ],
         ),
@@ -328,67 +607,88 @@ class _SectionScreenState extends State<SectionScreen> {
             ),
             const SizedBox(height: 16),
 
-            // Section title with status
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: isCompleted ? Colors.green.shade100 : colorScheme.primaryContainer,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Icon(
-                    isCompleted ? Icons.check_circle : Icons.table_chart,
-                    size: 24,
-                    color: isCompleted ? Colors.green : colorScheme.primary,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        _section!.title,
-                        style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-                      ),
-                      if (isCompleted)
-                        Text(
-                          'Completed! +${_progress!.xpEarned} XP',
-                          style: TextStyle(color: Colors.green.shade700, fontWeight: FontWeight.w600),
-                        ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
-
-            // XP Reward chip
-            if (_section!.xpReward > 0)
-              Chip(
-                avatar: const Icon(Icons.star, size: 16, color: Colors.amber),
-                label: Text('${_section!.xpReward} XP'),
-                backgroundColor: Colors.amber.shade50,
-              ),
-            const SizedBox(height: 24),
-
-            // Section instructions
-            if (_section!.instructions != null && _section!.instructions!.isNotEmpty) ...[
-              Text('Instructions', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-              const SizedBox(height: 12),
+            // Completed status
+            if (isCompleted)
               Container(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                margin: const EdgeInsets.only(bottom: 16),
                 decoration: BoxDecoration(
-                  color: Colors.blue.shade50,
+                  color: Colors.green.shade100,
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.blue.shade200),
                 ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.check_circle, color: Colors.green.shade700, size: 18),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Completed! +${_progress!.xpEarned} XP',
+                      style: TextStyle(color: Colors.green.shade700, fontWeight: FontWeight.w600),
+                    ),
+                  ],
+                ),
+              ),
+
+            // Exercise section (collapsible)
+            _buildCollapsibleSection(
+              title: 'Exercise',
+              isExpanded: _exerciseExpanded,
+              onToggle: () => setState(() => _exerciseExpanded = !_exerciseExpanded),
+              theme: theme,
+              colorScheme: colorScheme,
+              trailing: null,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    _section!.title,
+                    style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+                  ),
+                  if (_section!.explanation != null && _section!.explanation!.isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    Text(
+                      _section!.explanation!,
+                      style: theme.textTheme.bodyMedium?.copyWith(height: 1.6, color: colorScheme.onSurfaceVariant),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // Instructions section (collapsible)
+            if (_section!.instructions != null && _section!.instructions!.isNotEmpty)
+              _buildCollapsibleSection(
+                title: 'Instructions',
+                isExpanded: _instructionsExpanded,
+                onToggle: () => setState(() => _instructionsExpanded = !_instructionsExpanded),
+                theme: theme,
+                colorScheme: colorScheme,
+                trailing: _section!.xpReward > 0
+                    ? Chip(
+                        avatar: Icon(Icons.star, size: 14, color: Colors.amber.shade600),
+                        label: Text(
+                          _showHint 
+                            ? '${(_section!.xpReward * 0.7).floor()} XP'
+                            : '${_section!.xpReward} XP',
+                          style: TextStyle(fontSize: 12, color: colorScheme.onSurface),
+                        ),
+                        backgroundColor: colorScheme.surfaceContainerHighest,
+                        padding: EdgeInsets.zero,
+                        labelPadding: const EdgeInsets.symmetric(horizontal: 6),
+                        visualDensity: VisualDensity.compact,
+                      )
+                    : null,
                 child: Text(
                   _section!.instructions!,
-                  style: theme.textTheme.bodyMedium?.copyWith(height: 1.6),
+                  style: theme.textTheme.bodyMedium?.copyWith(height: 1.6, color: colorScheme.onSurface),
                 ),
               ),
+
+            // Take a hint button
+            if (_section!.hint != null && _section!.hint!.isNotEmpty && isAuthenticated) ...[
+              const SizedBox(height: 24),
+              _buildHintSection(theme, colorScheme),
             ],
 
             // Authentication required message
@@ -436,45 +736,7 @@ class _SectionScreenState extends State<SectionScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Toolbar
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              color: colorScheme.surface,
-              border: Border(bottom: BorderSide(color: colorScheme.outlineVariant)),
-            ),
-            child: Row(
-              children: [
-                Icon(Icons.table_chart, color: Colors.green.shade600),
-                const SizedBox(width: 8),
-                Text('Spreadsheet', style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600)),
-                const Spacer(),
-                // Copy button
-                OutlinedButton.icon(
-                  onPressed: _openCopyLink,
-                  icon: const Icon(Icons.copy, size: 18),
-                  label: const Text('Make a Copy'),
-                ),
-                const SizedBox(width: 8),
-                // Open in new tab
-                IconButton(
-                  onPressed: () async {
-                    final id = _userSpreadsheet?.spreadsheetId ?? _section?.templateSpreadsheetId;
-                    if (id != null) {
-                      final uri = Uri.parse('https://docs.google.com/spreadsheets/d/$id/edit');
-                      if (await canLaunchUrl(uri)) {
-                        await launchUrl(uri, mode: LaunchMode.externalApplication);
-                      }
-                    }
-                  },
-                  icon: const Icon(Icons.open_in_new),
-                  tooltip: 'Open in new tab',
-                ),
-              ],
-            ),
-          ),
-
-          // Embedded spreadsheet
+          // Embedded spreadsheet (no header - more space)
           Expanded(
             child: kIsWeb && _section?.templateSpreadsheetId != null
                 ? EmbeddedSpreadsheet(
@@ -496,52 +758,60 @@ class _SectionScreenState extends State<SectionScreen> {
           // Bottom action bar
           if (isAuthenticated)
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
                 color: colorScheme.surface,
                 border: Border(top: BorderSide(color: colorScheme.outlineVariant)),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
+              child: Row(
                 children: [
-                  // Spreadsheet ID input
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: _spreadsheetIdController,
-                          decoration: InputDecoration(
-                            labelText: 'Your Spreadsheet URL',
-                            hintText: 'Paste the URL from your copied spreadsheet',
-                            prefixIcon: const Icon(Icons.link),
-                            border: const OutlineInputBorder(),
-                            helperText: _userSpreadsheet != null ? 'Connected' : 'Copy the spreadsheet first, then paste your URL here',
-                            helperStyle: TextStyle(
-                              color: _userSpreadsheet != null ? Colors.green : null,
-                            ),
-                          ),
-                        ),
+                  // Loading indicator when spreadsheet is being prepared
+                  if (_userSpreadsheet == null)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 12),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)),
+                          const SizedBox(width: 8),
+                          Text('Preparing...', style: TextStyle(color: colorScheme.onSurfaceVariant)),
+                        ],
                       ),
-                      const SizedBox(width: 12),
-                      FilledButton.tonal(
-                        onPressed: _isSaving ? null : _saveSpreadsheetId,
-                        child: _isSaving
-                            ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                            : const Text('Save'),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  // Submit button
-                  SizedBox(
-                    height: 48,
-                    child: FilledButton.icon(
-                      onPressed: _userSpreadsheet != null && !_isValidating ? _validateSpreadsheet : null,
-                      icon: _isValidating
-                          ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                          : const Icon(Icons.check_circle),
-                      label: const Text('Submit for Validation'),
                     ),
+                  // Reset button
+                  IconButton(
+                    onPressed: _userSpreadsheet != null && !_isResetting ? _resetSpreadsheet : null,
+                    icon: _isResetting
+                        ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                        : const Icon(Icons.refresh),
+                    tooltip: 'Reset to original',
+                    style: IconButton.styleFrom(
+                      foregroundColor: colorScheme.error,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  // Open in new tab button
+                  OutlinedButton.icon(
+                    onPressed: () async {
+                      final id = _userSpreadsheet?.spreadsheetId ?? _section?.templateSpreadsheetId;
+                      if (id != null) {
+                        final uri = Uri.parse('https://docs.google.com/spreadsheets/d/$id/edit');
+                        if (await canLaunchUrl(uri)) {
+                          await launchUrl(uri, mode: LaunchMode.externalApplication);
+                        }
+                      }
+                    },
+                    icon: const Icon(Icons.open_in_new, size: 18),
+                    label: const Text('Open in new tab'),
+                  ),
+                  const Spacer(),
+                  // Submit button
+                  FilledButton.icon(
+                    onPressed: _userSpreadsheet != null && !_isValidating ? _validateSpreadsheet : null,
+                    icon: _isValidating
+                        ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                        : const Icon(Icons.check_circle),
+                    label: const Text('Submit answer'),
                   ),
                 ],
               ),
@@ -570,26 +840,124 @@ class _SectionScreenState extends State<SectionScreen> {
   }
 
   Widget _buildSpreadsheetCard(ThemeData theme, ColorScheme colorScheme) {
+    final isAuthenticated = Supabase.instance.client.auth.currentUser != null;
+    
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('Spreadsheet', style: theme.textTheme.titleMedium),
-            const SizedBox(height: 12),
-            SizedBox(
-              height: 400,
-              child: _section?.templateSpreadsheetId != null
-                  ? EmbeddedSpreadsheet(spreadsheetId: _section!.templateSpreadsheetId!)
-                  : const Center(child: Text('No spreadsheet available')),
+            // Horizontally scrollable container with minimum width to force desktop view
+            SingleChildScrollView(
+              controller: _spreadsheetScrollController,
+              scrollDirection: Axis.horizontal,
+              child: SizedBox(
+                width: 900, // Minimum width to force Google Sheets desktop view
+                height: 600,
+                child: _section?.templateSpreadsheetId != null
+                    ? EmbeddedSpreadsheet(
+                        spreadsheetId: _userSpreadsheet?.spreadsheetId ?? _section!.templateSpreadsheetId!,
+                        isEditable: _userSpreadsheet != null,
+                      )
+                    : const Center(child: Text('No spreadsheet available')),
+              ),
+            ),
+            const SizedBox(height: 8),
+            // Scroll buttons row
+            Row(
+              children: [
+                // Scroll left button - full width responsive
+                Expanded(
+                  child: FilledButton(
+                    onPressed: () {
+                      _spreadsheetScrollController.animateTo(
+                        (_spreadsheetScrollController.offset - 200).clamp(0, _spreadsheetScrollController.position.maxScrollExtent),
+                        duration: const Duration(milliseconds: 200),
+                        curve: Curves.easeOut,
+                      );
+                    },
+                    style: FilledButton.styleFrom(
+                      backgroundColor: colorScheme.surface,
+                      foregroundColor: colorScheme.onSurface,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                    ).copyWith(
+                      overlayColor: WidgetStateProperty.resolveWith((states) {
+                        if (states.contains(WidgetState.pressed)) return colorScheme.onSurface.withOpacity(0.12);
+                        if (states.contains(WidgetState.hovered)) return colorScheme.onSurface.withOpacity(0.08);
+                        return null;
+                      }),
+                    ),
+                    child: const Icon(Icons.chevron_left, size: 32),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                // Scroll right button - full width responsive
+                Expanded(
+                  child: FilledButton(
+                    onPressed: () {
+                      _spreadsheetScrollController.animateTo(
+                        (_spreadsheetScrollController.offset + 200).clamp(0, _spreadsheetScrollController.position.maxScrollExtent),
+                        duration: const Duration(milliseconds: 200),
+                        curve: Curves.easeOut,
+                      );
+                    },
+                    style: FilledButton.styleFrom(
+                      backgroundColor: colorScheme.surface,
+                      foregroundColor: colorScheme.onSurface,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                    ).copyWith(
+                      overlayColor: WidgetStateProperty.resolveWith((states) {
+                        if (states.contains(WidgetState.pressed)) return colorScheme.onSurface.withOpacity(0.12);
+                        if (states.contains(WidgetState.hovered)) return colorScheme.onSurface.withOpacity(0.08);
+                        return null;
+                      }),
+                    ),
+                    child: const Icon(Icons.chevron_right, size: 32),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 12),
-            FilledButton.icon(
-              onPressed: _openCopyLink,
-              icon: const Icon(Icons.copy),
-              label: const Text('Make a Copy'),
-            ),
+            // Action buttons row
+            if (isAuthenticated)
+              Row(
+                children: [
+                  // Reset button
+                  IconButton(
+                    onPressed: _userSpreadsheet != null && !_isResetting ? _resetSpreadsheet : null,
+                    icon: _isResetting
+                        ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                        : const Icon(Icons.refresh),
+                    tooltip: 'Reset to original',
+                    style: IconButton.styleFrom(foregroundColor: colorScheme.error),
+                  ),
+                  const SizedBox(width: 8),
+                  // Open in new tab
+                  OutlinedButton.icon(
+                    onPressed: () async {
+                      final id = _userSpreadsheet?.spreadsheetId ?? _section?.templateSpreadsheetId;
+                      if (id != null) {
+                        final uri = Uri.parse('https://docs.google.com/spreadsheets/d/$id/edit');
+                        if (await canLaunchUrl(uri)) {
+                          await launchUrl(uri, mode: LaunchMode.externalApplication);
+                        }
+                      }
+                    },
+                    icon: const Icon(Icons.open_in_new, size: 18),
+                    label: const Text('Open in new tab'),
+                  ),
+                  const Spacer(),
+                  // Submit button
+                  FilledButton.icon(
+                    onPressed: _userSpreadsheet != null && !_isValidating ? _validateSpreadsheet : null,
+                    icon: _isValidating
+                        ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                        : const Icon(Icons.check_circle),
+                    label: const Text('Submit answer'),
+                  ),
+                ],
+              ),
           ],
         ),
       ),
@@ -635,6 +1003,129 @@ class _SectionScreenState extends State<SectionScreen> {
           ),
           const SizedBox(height: 8),
           Text('${result.correctCells}/${result.totalCells} correct (${result.score}%)'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHintSection(ThemeData theme, ColorScheme colorScheme) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Hint button
+        OutlinedButton.icon(
+          onPressed: () => setState(() => _showHint = !_showHint),
+          icon: Icon(_showHint ? Icons.lightbulb : Icons.lightbulb_outline, 
+                     color: Colors.amber.shade700),
+          label: Text('Take a hint (-30% XP)', style: TextStyle(color: colorScheme.onSurface)),
+          style: OutlinedButton.styleFrom(
+            side: BorderSide(color: colorScheme.outline),
+          ),
+        ),
+        // Hint content (collapsible)
+        AnimatedCrossFade(
+          firstChild: const SizedBox.shrink(),
+          secondChild: Container(
+            margin: const EdgeInsets.only(top: 12),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.amber.shade50,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.amber.shade300),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // XP penalty warning (commented out - info now in button)
+                // Row(
+                //   children: [
+                //     Icon(Icons.warning_amber, size: 18, color: Colors.orange.shade700),
+                //     const SizedBox(width: 8),
+                //     Text(
+                //       'Using hints reduces XP by 30%',
+                //       style: TextStyle(
+                //         color: Colors.orange.shade800,
+                //         fontWeight: FontWeight.w600,
+                //         fontSize: 13,
+                //       ),
+                //     ),
+                //   ],
+                // ),
+                // const SizedBox(height: 12),
+                // const Divider(height: 1),
+                // const SizedBox(height: 12),
+                // Hint text
+                Text(
+                  _section!.hint!,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    height: 1.6,
+                    color: Colors.amber.shade900,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          crossFadeState: _showHint ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+          duration: const Duration(milliseconds: 200),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCollapsibleSection({
+    required String title,
+    required bool isExpanded,
+    required VoidCallback onToggle,
+    required ThemeData theme,
+    required ColorScheme colorScheme,
+    required Widget child,
+    Widget? trailing,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHighest.withOpacity(0.5),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: colorScheme.outlineVariant),
+      ),
+      child: Column(
+        children: [
+          // Header
+          InkWell(
+            onTap: onToggle,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Row(
+                children: [
+                  Text(
+                    title,
+                    style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+                  ),
+                  const Spacer(),
+                  if (trailing != null) ...[
+                    trailing,
+                    const SizedBox(width: 8),
+                  ],
+                  Icon(
+                    isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                    size: 20,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          // Content
+          AnimatedCrossFade(
+            firstChild: const SizedBox.shrink(),
+            secondChild: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              child: child,
+            ),
+            crossFadeState: isExpanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+            duration: const Duration(milliseconds: 200),
+          ),
         ],
       ),
     );

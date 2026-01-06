@@ -102,6 +102,7 @@ async function getAccessToken(): Promise<string> {
 
 /**
  * Copy a spreadsheet using Google Drive API
+ * Copies are stored in a shared folder to avoid service account storage limits
  */
 export async function copySpreadsheet(
   templateId: string,
@@ -109,7 +110,10 @@ export async function copySpreadsheet(
 ): Promise<{ spreadsheetId: string; spreadsheetUrl: string }> {
   const accessToken = await getAccessToken();
 
-  // Copy the file
+  // Shared folder ID for storing copies (owned by user, shared with service account)
+  const COPIES_FOLDER_ID = "13IcsEazqRtcaddtQkkJ7c6g0BadRVOP0";
+
+  // Copy the file into the shared folder
   const copyResponse = await fetch(`${GOOGLE_DRIVE_API}/${templateId}/copy`, {
     method: "POST",
     headers: {
@@ -118,6 +122,7 @@ export async function copySpreadsheet(
     },
     body: JSON.stringify({
       name: newName,
+      parents: [COPIES_FOLDER_ID], // Store in shared folder
     }),
   });
 

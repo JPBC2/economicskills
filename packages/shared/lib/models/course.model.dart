@@ -245,7 +245,9 @@ class Section {
   final String id;
   final String exerciseId;
   final String title;
+  final String? explanation;
   final String? instructions;
+  final String? hint;
   final int displayOrder;
   final String? templateSpreadsheetId;
   final int xpReward;
@@ -256,7 +258,9 @@ class Section {
     required this.id,
     required this.exerciseId,
     required this.title,
+    this.explanation,
     this.instructions,
+    this.hint,
     required this.displayOrder,
     this.templateSpreadsheetId,
     this.xpReward = 10,
@@ -269,7 +273,9 @@ class Section {
       id: json['id'] as String,
       exerciseId: json['exercise_id'] as String,
       title: json['title'] as String,
+      explanation: json['explanation'] as String?,
       instructions: json['instructions'] as String?,
+      hint: json['hint'] as String?,
       displayOrder: json['display_order'] as int? ?? 0,
       templateSpreadsheetId: json['template_spreadsheet_id'] as String?,
       xpReward: json['xp_reward'] as int? ?? 10,
@@ -282,7 +288,9 @@ class Section {
         'id': id,
         'exercise_id': exerciseId,
         'title': title,
+        'explanation': explanation,
         'instructions': instructions,
+        'hint': hint,
         'display_order': displayOrder,
         'template_spreadsheet_id': templateSpreadsheetId,
         'xp_reward': xpReward,

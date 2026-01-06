@@ -15,6 +15,7 @@ interface ValidateRequest {
     user_spreadsheet_id: string;
     section_id: string;
     user_id: string;
+    hint_used?: boolean;
 }
 
 interface ValidationResult {
@@ -35,7 +36,7 @@ Deno.serve(async (req) => {
     try {
         // Parse request body
         const body: ValidateRequest = await req.json();
-        const { user_spreadsheet_id, section_id, user_id } = body;
+        const { user_spreadsheet_id, section_id, user_id, hint_used = false } = body;
 
         // Validate required fields
         if (!user_spreadsheet_id || !section_id || !user_id) {
@@ -128,7 +129,9 @@ Deno.serve(async (req) => {
 
         if (isValid && !alreadyCompleted) {
             // Award XP on first successful completion
-            xpEarned = section.xp_reward || 10;
+            // Apply 30% penalty if hint was used
+            const baseXP = section.xp_reward || 10;
+            xpEarned = hint_used ? Math.floor(baseXP * 0.7) : baseXP;
 
             // Update progress
             await supabaseAdmin
@@ -139,6 +142,7 @@ Deno.serve(async (req) => {
                     is_completed: true,
                     attempt_count: currentAttempts + 1,
                     xp_earned: xpEarned,
+                    hint_used: hint_used,
                     completed_at: new Date().toISOString(),
                 }, { onConflict: "user_id,section_id" });
 
@@ -183,7 +187,9 @@ Deno.serve(async (req) => {
             message: isValid
                 ? alreadyCompleted
                     ? "All answers correct! (Already completed)"
-                    : `Congratulations! All answers correct! +${xpEarned} XP`
+                    : hint_used
+                        ? `Congratulations! All answers correct! +${xpEarned} XP (hint penalty applied)`
+                        : `Congratulations! All answers correct! +${xpEarned} XP`
                 : `${correctCells}/${totalCells} correct (${score}%). Please review your answers.`,
         };
 

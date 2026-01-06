@@ -47,7 +47,7 @@ class _SectionEditorScreenState extends State<SectionEditorScreen> {
       _loadValidationRule(); // Load existing validation rule
     } else {
       _loadNextDisplayOrder();
-      _translations = {'en': {'title': '', 'instructions': ''}};
+      _translations = {'en': {'title': '', 'explanation': '', 'instructions': '', 'hint': ''}};
       _isLoading = false;
     }
   }
@@ -103,7 +103,9 @@ class _SectionEditorScreenState extends State<SectionEditorScreen> {
     if (translations.isEmpty || translations['en'] == null) {
       translations['en'] = {
         'title': widget.section!.title,
+        'explanation': widget.section!.explanation ?? '',
         'instructions': widget.section!.instructions ?? '',
+        'hint': widget.section!.hint ?? '',
       };
     }
     
@@ -160,11 +162,15 @@ class _SectionEditorScreenState extends State<SectionEditorScreen> {
 
     try {
       final englishInstructions = _translations['en']?['instructions']?.trim() ?? '';
+      final englishExplanation = _translations['en']?['explanation']?.trim() ?? '';
+      final englishHint = _translations['en']?['hint']?.trim() ?? '';
       
       final data = {
         'exercise_id': widget.exercise.id,
         'title': englishTitle,
+        'explanation': englishExplanation.isEmpty ? null : englishExplanation,
         'instructions': englishInstructions.isEmpty ? null : englishInstructions,
+        'hint': englishHint.isEmpty ? null : englishHint,
         'display_order': int.tryParse(_displayOrderController.text) ?? 1,
         'template_spreadsheet_id': _extractedTemplateId,
         'xp_reward': int.tryParse(_xpRewardController.text) ?? 10,
@@ -291,7 +297,9 @@ class _SectionEditorScreenState extends State<SectionEditorScreen> {
                                   TranslationTabs(
                                     fields: const [
                                       TranslationField(key: 'title', label: 'Title', isRequired: true, hint: 'e.g., Cashflows'),
-                                      TranslationField(key: 'instructions', label: 'Instructions', maxLines: 6, hint: 'Step-by-step instructions for students to follow'),
+                                      TranslationField(key: 'explanation', label: 'Explanation', maxLines: 4, isResizable: true, hint: 'Brief explanation of the topic (e.g., "Companies pay dividends throughout the year")'),
+                                      TranslationField(key: 'instructions', label: 'Instructions', maxLines: 6, isResizable: true, hint: 'Step-by-step instructions for students to follow'),
+                                      TranslationField(key: 'hint', label: 'Hint', maxLines: 4, isResizable: true, hint: 'Help text shown when student clicks "Take a hint" (reduces XP by 30%)'),
                                     ],
                                     translations: _translations,
                                     onChanged: (t) => setState(() => _translations = t),

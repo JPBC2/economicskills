@@ -10,7 +10,9 @@ import 'package:go_router/go_router.dart';
 import '../../main.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
-  const LoginScreen({super.key});
+  final String? returnTo;
+  
+  const LoginScreen({super.key, this.returnTo});
 
   @override
   ConsumerState<LoginScreen> createState() => _LoginScreenState();
@@ -18,6 +20,15 @@ class LoginScreen extends ConsumerStatefulWidget {
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
   bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Store returnTo in localStorage for post-OAuth redirect
+    if (kIsWeb && widget.returnTo != null && widget.returnTo!.isNotEmpty) {
+      html.window.localStorage['returnTo'] = widget.returnTo!;
+    }
+  }
 
   // Get the current origin URL (works for both localhost and production)
   String _getRedirectUrl() {
@@ -65,10 +76,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       print('===================');
 
       // For Flutter web, use environment-aware redirect URL
+      // Request Drive scope for spreadsheet copy functionality
       await supabase.auth.signInWithOAuth(
         OAuthProvider.google,
         redirectTo: redirectUrl,
         authScreenLaunchMode: LaunchMode.platformDefault,
+        scopes: 'https://www.googleapis.com/auth/drive',
       );
     } on AuthException catch (error) {
       if (mounted) {

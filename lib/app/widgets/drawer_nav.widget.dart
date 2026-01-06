@@ -127,7 +127,8 @@ class _DrawerNavState extends ConsumerState<DrawerNav> {
                   leading: Icon(Icons.login, color: itemColor),
                   title: Text(l10n.navSignIn, style: itemTextStyle),
                   onTap: () {
-                    context.go('/login');
+                    final currentPath = GoRouterState.of(context).uri.toString();
+                    context.go('/login?returnTo=${Uri.encodeComponent(currentPath)}');
                     Navigator.pop(context);
                   },
                 );

@@ -56,9 +56,9 @@ class _EmbeddedSpreadsheetState extends State<EmbeddedSpreadsheet> {
 
     setState(() => _isLoading = true);
 
-    // Build the embed URL
+    // Build the embed URL - full Google Sheets interface
     final editMode = widget.isEditable ? 'edit' : 'preview';
-    final embedUrl = 'https://docs.google.com/spreadsheets/d/${widget.spreadsheetId}/$editMode?embedded=true&rm=minimal';
+    final embedUrl = 'https://docs.google.com/spreadsheets/d/${widget.spreadsheetId}/$editMode';
 
     // Register the iframe view factory
     ui_web.platformViewRegistry.registerViewFactory(
@@ -68,7 +68,9 @@ class _EmbeddedSpreadsheetState extends State<EmbeddedSpreadsheet> {
           ..src = embedUrl
           ..style.border = 'none'
           ..style.width = '100%'
-          ..style.height = '100%';
+          ..style.height = '100%'
+          ..style.position = 'relative'
+          ..style.zIndex = '0'; // Lower z-index to allow Flutter overlays above
         
         iframe.onLoad.listen((_) {
           if (mounted) {

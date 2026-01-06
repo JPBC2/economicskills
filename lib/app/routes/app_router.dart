@@ -56,7 +56,10 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/login',
       name: 'login',
-      builder: (context, state) => const LoginScreen(),
+      builder: (context, state) {
+        final returnTo = state.uri.queryParameters['returnTo'];
+        return LoginScreen(returnTo: returnTo);
+      },
     ),
 
     // Signup redirect (Google-only auth)
