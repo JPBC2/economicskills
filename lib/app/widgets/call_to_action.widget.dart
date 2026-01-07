@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:economicskills/app/config/theme.dart';
-import 'package:economicskills/app/config/gradients.dart';
-import 'package:economicskills/app/config/spacing.dart';
-import 'package:economicskills/app/config/text_styles.dart';
+import 'package:shared/shared.dart';
 import 'package:economicskills/app/res/responsive.res.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -18,7 +15,7 @@ class CallToAction extends ConsumerWidget {
     final Color buttonTextColor = isDark ? AppColors.textOnDark : Colors.lightBlue.shade900;
 
     return Container(
-      margin: EdgeInsets.only(top: AppSpacing.xxl),
+      margin: const EdgeInsets.only(top: 48.0),
       decoration: BoxDecoration(
         gradient: AppGradients.callToAction(isDark: isDark),
       ),
@@ -43,7 +40,7 @@ class CallToAction extends ConsumerWidget {
                 ),
               ),
             ),
-            const SizedBox(height: AppSpacing.xxl), // Added spacing using design tokens
+            const SizedBox(height: 48.0),
             Flexible(
               flex: 1, // Consider adjusting flex or using SizedBox for better height control if needed
               child: ElevatedButton(

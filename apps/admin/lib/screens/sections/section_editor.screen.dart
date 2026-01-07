@@ -28,6 +28,26 @@ class _SectionEditorScreenState extends State<SectionEditorScreen> {
   String? _extractedTemplateId;
   String? _extractedSolutionId;
   
+  // Supported languages for template URLs
+  static const _languages = [
+    {'code': 'en', 'label': 'English'},
+    {'code': 'es', 'label': 'Español'},
+    {'code': 'zh', 'label': '中文'},
+    {'code': 'ru', 'label': 'Русский'},
+    {'code': 'fr', 'label': 'Français'},
+    {'code': 'pt', 'label': 'Português'},
+    {'code': 'it', 'label': 'Italiano'},
+    {'code': 'ca', 'label': 'Català'},
+    {'code': 'ro', 'label': 'Română'},
+    {'code': 'de', 'label': 'Deutsch'},
+    {'code': 'nl', 'label': 'Nederlands'},
+  ];
+  
+  // Language-specific template and solution URLs  
+  Map<String, TextEditingController> _templateControllers = {};
+  Map<String, TextEditingController> _solutionControllers = {};
+  String _selectedSpreadsheetLang = 'en';
+  
   Map<String, Map<String, String>> _translations = {};
   late final TranslationService _translationService;
 
@@ -38,11 +58,36 @@ class _SectionEditorScreenState extends State<SectionEditorScreen> {
     super.initState();
     _translationService = TranslationService(supabase);
     
+    // Initialize controllers for each language
+    for (final lang in _languages) {
+      final code = lang['code'] as String;
+      _templateControllers[code] = TextEditingController();
+      _solutionControllers[code] = TextEditingController();
+    }
+    
     if (widget.section != null) {
       _displayOrderController.text = widget.section!.displayOrder.toString();
       _xpRewardController.text = widget.section!.xpReward.toString();
-      _templateUrlController.text = 'https://docs.google.com/spreadsheets/d/${widget.section!.templateSpreadsheetId}/edit';
-      _extractedTemplateId = widget.section!.templateSpreadsheetId;
+      
+      // Load legacy template URL (backward compatibility)
+      if (widget.section!.templateSpreadsheetId != null) {
+        _templateUrlController.text = 'https://docs.google.com/spreadsheets/d/${widget.section!.templateSpreadsheetId}/edit';
+        _extractedTemplateId = widget.section!.templateSpreadsheetId;
+      }
+      
+      // Load language-specific templates
+      for (final lang in _languages) {
+        final code = lang['code'] as String;
+        final templateId = widget.section!.templateSpreadsheets[code];
+        final solutionId = widget.section!.solutionSpreadsheets[code];
+        if (templateId != null && templateId.isNotEmpty) {
+          _templateControllers[code]!.text = 'https://docs.google.com/spreadsheets/d/$templateId/edit';
+        }
+        if (solutionId != null && solutionId.isNotEmpty) {
+          _solutionControllers[code]!.text = 'https://docs.google.com/spreadsheets/d/$solutionId/edit';
+        }
+      }
+      
       _loadTranslations();
       _loadValidationRule(); // Load existing validation rule
     } else {
@@ -122,6 +167,12 @@ class _SectionEditorScreenState extends State<SectionEditorScreen> {
     _templateUrlController.dispose();
     _solutionUrlController.dispose();
     _validationRangeController.dispose();
+    for (final controller in _templateControllers.values) {
+      controller.dispose();
+    }
+    for (final controller in _solutionControllers.values) {
+      controller.dispose();
+    }
     super.dispose();
   }
 
@@ -151,9 +202,12 @@ class _SectionEditorScreenState extends State<SectionEditorScreen> {
       return;
     }
     
-    if (_extractedTemplateId == null) {
+    // Check if at least one template is provided (either legacy or language-specific)
+    final hasAnyTemplate = _extractedTemplateId != null || 
+        _templateControllers.values.any((c) => _extractSpreadsheetId(c.text) != null);
+    if (!hasAnyTemplate) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a valid Google Sheets URL'), backgroundColor: Colors.red),
+        const SnackBar(content: Text('Please enter at least one template spreadsheet URL'), backgroundColor: Colors.red),
       );
       return;
     }
@@ -165,7 +219,7 @@ class _SectionEditorScreenState extends State<SectionEditorScreen> {
       final englishExplanation = _translations['en']?['explanation']?.trim() ?? '';
       final englishHint = _translations['en']?['hint']?.trim() ?? '';
       
-      final data = {
+      final data = <String, dynamic>{
         'exercise_id': widget.exercise.id,
         'title': englishTitle,
         'explanation': englishExplanation.isEmpty ? null : englishExplanation,
@@ -175,6 +229,15 @@ class _SectionEditorScreenState extends State<SectionEditorScreen> {
         'template_spreadsheet_id': _extractedTemplateId,
         'xp_reward': int.tryParse(_xpRewardController.text) ?? 10,
       };
+      
+      // Add language-specific template and solution IDs
+      for (final lang in _languages) {
+        final code = lang['code'] as String;
+        final templateId = _extractSpreadsheetId(_templateControllers[code]?.text ?? '');
+        final solutionId = _extractSpreadsheetId(_solutionControllers[code]?.text ?? '');
+        data['template_spreadsheet_$code'] = templateId;
+        data['solution_spreadsheet_$code'] = solutionId;
+      }
 
       String sectionId;
       
@@ -319,38 +382,131 @@ class _SectionEditorScreenState extends State<SectionEditorScreen> {
                                     children: [
                                       Icon(Icons.table_chart, color: Colors.green.shade700),
                                       const SizedBox(width: 8),
-                                      Text('Template Spreadsheet', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                                      Text('Template & Solution Spreadsheets', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
                                     ],
                                   ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'Configure spreadsheet templates for each language. Students will see the template matching their selected language.',
+                                    style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
+                                  ),
                                   const SizedBox(height: 16),
+                                  // Language selector
+                                  Wrap(
+                                    spacing: 8,
+                                    runSpacing: 8,
+                                    children: _languages.map((lang) {
+                                      final code = lang['code'] as String;
+                                      final label = lang['label'] as String;
+                                      final hasTemplate = _extractSpreadsheetId(_templateControllers[code]?.text ?? '') != null;
+                                      return ChoiceChip(
+                                        label: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Text(label),
+                                            if (hasTemplate) ...[
+                                              const SizedBox(width: 4),
+                                              Icon(Icons.check, size: 14, color: Colors.green.shade700),
+                                            ],
+                                          ],
+                                        ),
+                                        selected: _selectedSpreadsheetLang == code,
+                                        onSelected: (_) => setState(() => _selectedSpreadsheetLang = code),
+                                      );
+                                    }).toList(),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  // Template URL for selected language
                                   TextFormField(
-                                    controller: _templateUrlController,
-                                    decoration: const InputDecoration(
-                                      labelText: 'Template Spreadsheet URL',
-                                      border: OutlineInputBorder(),
-                                      prefixIcon: Icon(Icons.link),
+                                    controller: _templateControllers[_selectedSpreadsheetLang],
+                                    decoration: InputDecoration(
+                                      labelText: 'Template Spreadsheet URL (${_languages.firstWhere((l) => l['code'] == _selectedSpreadsheetLang)['label']})',
+                                      border: const OutlineInputBorder(),
+                                      prefixIcon: const Icon(Icons.link),
                                       hintText: 'https://docs.google.com/spreadsheets/d/.../edit',
                                     ),
-                                    onChanged: _onTemplateUrlChanged,
-                                    validator: (v) => _extractSpreadsheetId(v ?? '') == null ? 'Invalid Google Sheets URL' : null,
+                                    onChanged: (_) => setState(() {}),
                                   ),
-                                  if (_extractedTemplateId != null) ...[
-                                    const SizedBox(height: 12),
-                                    Container(
+                                  const SizedBox(height: 16),
+                                  // Solution URL for selected language
+                                  TextFormField(
+                                    controller: _solutionControllers[_selectedSpreadsheetLang],
+                                    decoration: InputDecoration(
+                                      labelText: 'Solution Spreadsheet URL (${_languages.firstWhere((l) => l['code'] == _selectedSpreadsheetLang)['label']}) - Optional',
+                                      border: const OutlineInputBorder(),
+                                      prefixIcon: const Icon(Icons.verified),
+                                      hintText: 'https://docs.google.com/spreadsheets/d/.../edit',
+                                    ),
+                                    onChanged: (_) => setState(() {}),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  // Show extracted IDs
+                                  Builder(builder: (context) {
+                                    final templateId = _extractSpreadsheetId(_templateControllers[_selectedSpreadsheetLang]?.text ?? '');
+                                    final solutionId = _extractSpreadsheetId(_solutionControllers[_selectedSpreadsheetLang]?.text ?? '');
+                                    if (templateId == null && solutionId == null) return const SizedBox.shrink();
+                                    return Container(
                                       padding: const EdgeInsets.all(12),
                                       decoration: BoxDecoration(color: Colors.green.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
-                                      child: Row(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
-                                          const Icon(Icons.check_circle, color: Colors.green, size: 20),
-                                          const SizedBox(width: 8),
-                                          Expanded(child: Text('ID: $_extractedTemplateId', style: theme.textTheme.bodySmall?.copyWith(fontFamily: 'monospace', color: Colors.green.shade700))),
+                                          if (templateId != null)
+                                            Row(
+                                              children: [
+                                                const Icon(Icons.check_circle, color: Colors.green, size: 16),
+                                                const SizedBox(width: 6),
+                                                Text('Template: ', style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600)),
+                                                Expanded(child: Text(templateId, style: theme.textTheme.bodySmall?.copyWith(fontFamily: 'monospace'))),
+                                              ],
+                                            ),
+                                          if (solutionId != null) ...[
+                                            if (templateId != null) const SizedBox(height: 4),
+                                            Row(
+                                              children: [
+                                                const Icon(Icons.check_circle, color: Colors.blue, size: 16),
+                                                const SizedBox(width: 6),
+                                                Text('Solution: ', style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600)),
+                                                Expanded(child: Text(solutionId, style: theme.textTheme.bodySmall?.copyWith(fontFamily: 'monospace'))),
+                                              ],
+                                            ),
+                                          ],
                                         ],
                                       ),
-                                    ),
-                                  ],
+                                    );
+                                  }),
                                 ],
                               ),
                             ),
+                          ),
+                          const SizedBox(height: 16),
+                          // Legacy template (for backward compatibility)
+                          ExpansionTile(
+                            tilePadding: EdgeInsets.zero,
+                            title: Text('Legacy Template (Optional)', style: theme.textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant)),
+                            children: [
+                              Card(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(16),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text('This is the fallback template used when no language-specific template is available.', style: theme.textTheme.bodySmall),
+                                      const SizedBox(height: 12),
+                                      TextFormField(
+                                        controller: _templateUrlController,
+                                        decoration: const InputDecoration(
+                                          labelText: 'Legacy Template URL',
+                                          border: OutlineInputBorder(),
+                                          prefixIcon: Icon(Icons.link),
+                                        ),
+                                        onChanged: _onTemplateUrlChanged,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                           const SizedBox(height: 16),
                           Card(
@@ -365,16 +521,6 @@ class _SectionEditorScreenState extends State<SectionEditorScreen> {
                                       const SizedBox(width: 8),
                                       Text('Validation Settings', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
                                     ],
-                                  ),
-                                  const SizedBox(height: 16),
-                                  TextFormField(
-                                    controller: _solutionUrlController,
-                                    decoration: const InputDecoration(
-                                      labelText: 'Solution Spreadsheet URL (Optional)',
-                                      border: OutlineInputBorder(),
-                                      prefixIcon: Icon(Icons.verified),
-                                    ),
-                                    onChanged: _onSolutionUrlChanged,
                                   ),
                                   const SizedBox(height: 16),
                                   TextFormField(

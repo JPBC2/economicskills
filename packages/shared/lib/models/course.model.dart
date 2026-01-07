@@ -116,6 +116,7 @@ class Lesson {
   final String explanationText;
   final String? sourceReferences;
   final String? youtubeVideoUrl;
+  final String slug;
   final int displayOrder;
   final bool isActive;
   final DateTime createdAt;
@@ -129,6 +130,7 @@ class Lesson {
     required this.explanationText,
     this.sourceReferences,
     this.youtubeVideoUrl,
+    required this.slug,
     required this.displayOrder,
     this.isActive = true,
     required this.createdAt,
@@ -155,6 +157,7 @@ class Lesson {
       explanationText: json['explanation_text'] as String? ?? '',
       sourceReferences: json['source_references'] as String?,
       youtubeVideoUrl: json['youtube_video_url'] as String?,
+      slug: json['slug'] as String? ?? '', // Fallback for old data or laggy migration
       displayOrder: json['display_order'] as int? ?? 0,
       isActive: json['is_active'] as bool? ?? true,
       createdAt: DateTime.parse(json['created_at'] as String),
@@ -253,6 +256,10 @@ class Section {
   final int xpReward;
   final DateTime createdAt;
   final DateTime updatedAt;
+  
+  // Language-specific template and solution spreadsheet IDs
+  final Map<String, String?> templateSpreadsheets;
+  final Map<String, String?> solutionSpreadsheets;
 
   Section({
     required this.id,
@@ -266,9 +273,32 @@ class Section {
     this.xpReward = 10,
     required this.createdAt,
     required this.updatedAt,
+    this.templateSpreadsheets = const {},
+    this.solutionSpreadsheets = const {},
   });
 
+  /// Get template spreadsheet ID for a specific language, falling back to English then default
+  String? getTemplateForLanguage(String langCode) {
+    return templateSpreadsheets[langCode] 
+        ?? templateSpreadsheets['en'] 
+        ?? templateSpreadsheetId;
+  }
+
+  /// Get solution spreadsheet ID for a specific language, falling back to English
+  String? getSolutionForLanguage(String langCode) {
+    return solutionSpreadsheets[langCode] ?? solutionSpreadsheets['en'];
+  }
+
   factory Section.fromJson(Map<String, dynamic> json) {
+    // Parse language-specific templates
+    final templates = <String, String?>{};
+    final solutions = <String, String?>{};
+    
+    for (final lang in ['en', 'es', 'zh', 'ru', 'fr', 'pt', 'it', 'ca', 'ro', 'de', 'nl']) {
+      templates[lang] = json['template_spreadsheet_$lang'] as String?;
+      solutions[lang] = json['solution_spreadsheet_$lang'] as String?;
+    }
+    
     return Section(
       id: json['id'] as String,
       exerciseId: json['exercise_id'] as String,
@@ -281,18 +311,36 @@ class Section {
       xpReward: json['xp_reward'] as int? ?? 10,
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
+      templateSpreadsheets: templates,
+      solutionSpreadsheets: solutions,
     );
   }
 
-  Map<String, dynamic> toJson() => {
-        'id': id,
-        'exercise_id': exerciseId,
-        'title': title,
-        'explanation': explanation,
-        'instructions': instructions,
-        'hint': hint,
-        'display_order': displayOrder,
-        'template_spreadsheet_id': templateSpreadsheetId,
-        'xp_reward': xpReward,
-      };
+  Map<String, dynamic> toJson() {
+    final json = <String, dynamic>{
+      'id': id,
+      'exercise_id': exerciseId,
+      'title': title,
+      'explanation': explanation,
+      'instructions': instructions,
+      'hint': hint,
+      'display_order': displayOrder,
+      'template_spreadsheet_id': templateSpreadsheetId,
+      'xp_reward': xpReward,
+    };
+    
+    // Add language-specific templates and solutions
+    for (final entry in templateSpreadsheets.entries) {
+      if (entry.value != null) {
+        json['template_spreadsheet_${entry.key}'] = entry.value;
+      }
+    }
+    for (final entry in solutionSpreadsheets.entries) {
+      if (entry.value != null) {
+        json['solution_spreadsheet_${entry.key}'] = entry.value;
+      }
+    }
+    
+    return json;
+  }
 }

@@ -9,6 +9,7 @@ import 'package:economicskills/main.dart'; // contains supabase
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:economicskills/l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
+import 'package:economicskills/app/routes/app_router.dart' show isPublicRoutePath;
 import 'package:pointer_interceptor/pointer_interceptor.dart';
 
 class TopNav extends ConsumerWidget implements PreferredSizeWidget {
@@ -29,7 +30,7 @@ class TopNav extends ConsumerWidget implements PreferredSizeWidget {
     final Color buttonTextColor = isDark ? AppColors.textOnDark : AppColors.textOnLight;
     final Color appBarColor = isDark ? AppColors.appBarDark : AppColors.appBarLight;
 
-    // Language items
+    // Language items - 11 supported languages
     final List<Map<String, dynamic>> languages = [
       {'code': 'en', 'label': 'English'},
       {'code': 'es', 'label': 'Español'},
@@ -37,6 +38,11 @@ class TopNav extends ConsumerWidget implements PreferredSizeWidget {
       {'code': 'ru', 'label': 'Русский'},
       {'code': 'fr', 'label': 'Français'},
       {'code': 'pt', 'label': 'Português'},
+      {'code': 'it', 'label': 'Italiano'},
+      {'code': 'ca', 'label': 'Català'},
+      {'code': 'ro', 'label': 'Română'},
+      {'code': 'de', 'label': 'Deutsch'},
+      {'code': 'nl', 'label': 'Nederlands'},
     ];
 
     return AppBar(
@@ -255,11 +261,23 @@ class TopNav extends ConsumerWidget implements PreferredSizeWidget {
   }
 
   Future<void> _signOut(BuildContext context, AppLocalizations l10n) async {
+    // Get current route before signing out
+    final currentPath = GoRouterState.of(context).matchedLocation;
+    final isOnPublicPage = isPublicRoutePath(currentPath);
+    
     try {
       await supabase.auth.signOut();
       if (context.mounted) {
         context.showSnackBar(l10n.signOutSuccess);
-        context.go('/'); // Navigate to home to refresh UI
+        
+        // Smart redirect: stay on public pages, redirect from protected pages
+        if (isOnPublicPage) {
+          // Refresh the current page state by replacing with same route
+          context.go(currentPath);
+        } else {
+          // Redirect to home from protected pages
+          context.go('/');
+        }
       }
     } catch (error) {
       if (context.mounted) {

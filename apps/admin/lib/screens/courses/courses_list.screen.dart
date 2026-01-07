@@ -26,7 +26,8 @@ class _CoursesListScreenState extends State<CoursesListScreen> {
       final response = await supabase
           .from('courses')
           .select()
-          .order('display_order');
+          .order('display_order', ascending: true)
+          .order('title', ascending: true);
       
       setState(() {
         _courses = (response as List).map((c) => Course.fromJson(c)).toList();

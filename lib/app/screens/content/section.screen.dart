@@ -104,8 +104,11 @@ class _SectionScreenState extends State<SectionScreen> {
 
       // Auto-create spreadsheet copy if authenticated
       final user = supabase.auth.currentUser;
-      if (user != null && section.templateSpreadsheetId != null) {
-        await _autoCreateSpreadsheet(user.id, section);
+      // Get user's language from app locale
+      final userLang = mounted ? Localizations.localeOf(context).languageCode : 'en';
+      final templateId = section.getTemplateForLanguage(userLang);
+      if (user != null && templateId != null) {
+        await _autoCreateSpreadsheet(user.id, section, templateId);
       }
 
       setState(() => _isLoading = false);
@@ -118,7 +121,7 @@ class _SectionScreenState extends State<SectionScreen> {
   }
 
   /// Auto-create a fresh spreadsheet copy using Edge Function
-  Future<void> _autoCreateSpreadsheet(String userId, Section section) async {
+  Future<void> _autoCreateSpreadsheet(String userId, Section section, String templateId) async {
     try {
       final supabase = Supabase.instance.client;
       
@@ -142,7 +145,7 @@ class _SectionScreenState extends State<SectionScreen> {
       final response = await supabase.functions.invoke(
         'copy-spreadsheet',
         body: {
-          'template_id': section.templateSpreadsheetId,
+          'template_id': templateId, // Use language-specific template
           'section_id': section.id,
           'user_id': userId,
           'new_name': 'Exercise: ${section.title}',
@@ -183,7 +186,7 @@ class _SectionScreenState extends State<SectionScreen> {
             content: Text('Failed to create spreadsheet: ${e.toString().replaceAll('Exception:', '')}'),
             backgroundColor: Colors.red,
             duration: const Duration(seconds: 10),
-            action: SnackBarAction(label: 'Retry', onPressed: () => _autoCreateSpreadsheet(userId, section)),
+            action: SnackBarAction(label: 'Retry', onPressed: () => _autoCreateSpreadsheet(userId, section, templateId)),
           ),
         );
       }
@@ -220,7 +223,10 @@ class _SectionScreenState extends State<SectionScreen> {
 
     try {
       // Call auto-create with fresh: true to delete old and create new
-      await _autoCreateSpreadsheet(user.id, _section!);
+      final userLang = Localizations.localeOf(context).languageCode;
+      final templateId = _section!.getTemplateForLanguage(userLang);
+      if (templateId == null) return;
+      await _autoCreateSpreadsheet(user.id, _section!, templateId);
       
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -600,8 +606,11 @@ class _SectionScreenState extends State<SectionScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Back button
-            TextButton.icon(
-              onPressed: () => context.pop(),
+            OutlinedButton.icon(
+              onPressed: () {
+                debugPrint('Back button pressed - navigating to /courses');
+                context.go('/courses');
+              },
               icon: const Icon(Icons.arrow_back, size: 18),
               label: const Text('Back'),
             ),

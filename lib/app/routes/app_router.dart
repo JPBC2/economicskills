@@ -23,7 +23,7 @@ final appRouter = GoRouter(
     final isAuthenticated = user != null;
     final isGoingToLogin = state.matchedLocation == '/login';
     final isGoingToSignup = state.matchedLocation == '/signup';
-    final isPublicRoute = _isPublicRoute(state.matchedLocation);
+    final isPublicRoute = isPublicRoutePath(state.matchedLocation);
 
     // If user is authenticated and on landing page, redirect to dashboard
     if (isAuthenticated && state.matchedLocation == '/') {
@@ -112,11 +112,11 @@ final appRouter = GoRouter(
 
     // Lessons
     GoRoute(
-      path: '/lessons/:lessonId',
+      path: '/lessons/:lessonSlug',
       name: 'lesson',
       builder: (context, state) {
-        final lessonId = state.pathParameters['lessonId'] ?? '';
-        return LessonScreen(lessonId: lessonId);
+        final lessonSlug = state.pathParameters['lessonSlug'] ?? '';
+        return LessonScreen(lessonId: lessonSlug); // Service now handles slug or ID
       },
     ),
 
@@ -139,7 +139,8 @@ final appRouter = GoRouter(
 );
 
 /// Helper function to determine if a route is public
-bool _isPublicRoute(String path) {
+/// Exported for use in sign-out logic
+bool isPublicRoutePath(String path) {
   const publicRoutes = [
     '/',
     '/login',

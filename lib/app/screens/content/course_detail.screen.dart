@@ -298,7 +298,9 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
               : null,
           trailing: Icon(Icons.arrow_forward_ios, size: 16, color: colorScheme.onSurfaceVariant),
           onTap: () {
-            context.go('/lessons/${lesson.id}');
+            // Use slug if available and not empty, otherwise fallback to ID
+            final identifier = lesson.slug.isNotEmpty ? lesson.slug : lesson.id;
+            context.go('/lessons/$identifier');
           },
         ),
         // Exercises under this lesson

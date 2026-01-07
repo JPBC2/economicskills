@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:youtube_player_iframe/youtube_player_iframe.dart';
-import 'package:economicskills/app/services/course.service.dart';
+import 'package:shared/shared.dart' hide UserService;
 import 'package:economicskills/app/services/user.service.dart';
-import 'package:economicskills/app/models/course.model.dart';
 import 'package:economicskills/app/widgets/top_nav.widget.dart';
 import 'package:economicskills/app/widgets/hiding_scaffold.widget.dart';
 import 'package:economicskills/app/widgets/drawer_nav.widget.dart';
@@ -30,7 +29,10 @@ class _LessonScreenState extends State<LessonScreen> {
   late final UserService _userService;
   Lesson? _lesson;
   bool _isLoading = true;
+  String? _error;
   YoutubePlayerController? _youtubeController;
+  bool _isExplanationExpanded = false;
+  bool _isExerciseExpanded = false;
 
   @override
   void initState() {
@@ -60,9 +62,13 @@ class _LessonScreenState extends State<LessonScreen> {
         );
       }
     } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
+      print('Error loading lesson: $e'); // Debug print
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _error = e.toString();
+        });
+      }
     }
   }
 
@@ -107,6 +113,17 @@ class _LessonScreenState extends State<LessonScreen> {
             Icon(Icons.error_outline, size: 64, color: theme.colorScheme.error),
             const SizedBox(height: 16),
             Text('Lesson not found', style: theme.textTheme.titleLarge),
+            const SizedBox(height: 8),
+            SelectableText(
+              'ID: ${widget.lessonId}\nError: ${_error ?? "Unknown error"}',
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.error),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () => context.go('/courses'),
+              child: const Text('Back to Courses'),
+            ),
           ],
         ),
       ),
@@ -149,34 +166,32 @@ class _LessonScreenState extends State<LessonScreen> {
                 const SizedBox(height: 32),
               ],
 
-              // Explanation Text (PUBLIC)
+              // Explanation Text (PUBLIC) - Collapsible
               Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(24.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(Icons.menu_book, color: colorScheme.primary),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Explanation',
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      SelectableText(
+                clipBehavior: Clip.antiAlias,
+                child: ExpansionTile(
+                  initiallyExpanded: _isExplanationExpanded,
+                  onExpansionChanged: (expanded) {
+                    setState(() => _isExplanationExpanded = expanded);
+                  },
+                  leading: Icon(Icons.menu_book, color: colorScheme.primary),
+                  title: Text(
+                    'Explanation',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(24.0, 0, 24.0, 24.0),
+                      child: SelectableText(
                         lesson.explanationText,
                         style: theme.textTheme.bodyLarge?.copyWith(
                           height: 1.7,
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(height: 24),
@@ -215,7 +230,8 @@ class _LessonScreenState extends State<LessonScreen> {
               ],
 
               // Exercise Section (REQUIRES LOGIN)
-              if (lesson.exercise != null) _buildExerciseSection(lesson.exercise!, theme),
+              if (lesson.exercises != null && lesson.exercises!.isNotEmpty) 
+                _buildExerciseSection(lesson.exercises!.first, theme),
             ],
           ),
         ),
@@ -229,73 +245,70 @@ class _LessonScreenState extends State<LessonScreen> {
 
     return Card(
       elevation: 2,
-      child: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+      clipBehavior: Clip.antiAlias,
+      child: ExpansionTile(
+        initiallyExpanded: _isExerciseExpanded,
+        onExpansionChanged: (expanded) {
+          setState(() => _isExerciseExpanded = expanded);
+        },
+        leading: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: colorScheme.primaryContainer,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(Icons.edit_document, color: colorScheme.primary),
+        ),
+        title: Text(
+          'Exercise',
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        subtitle: Text(
+          exercise.title,
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: colorScheme.onSurfaceVariant,
+          ),
+        ),
+        trailing: !isAuthenticated 
+            ? Chip(
+                label: const Text('Login Required'),
+                backgroundColor: colorScheme.secondaryContainer,
+              )
+            : null,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24.0, 0, 24.0, 24.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: colorScheme.primaryContainer,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Icon(Icons.edit_document, color: colorScheme.primary),
+                Text(
+                  exercise.instructions,
+                  style: theme.textTheme.bodyMedium?.copyWith(height: 1.6),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Practice Exercise',
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text(
-                        exercise.title,
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                if (!isAuthenticated)
-                  Chip(
-                    label: const Text('Login Required'),
-                    backgroundColor: colorScheme.secondaryContainer,
+                const SizedBox(height: 24),
+                if (isAuthenticated)
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      // Navigate to exercise with spreadsheet
+                      context.go('/exercises/${exercise.id}');
+                    },
+                    icon: const Icon(Icons.play_arrow),
+                    label: const Text('Start Exercise'),
+                  )
+                else
+                  OutlinedButton.icon(
+                    onPressed: () {
+                      context.go('/login');
+                    },
+                    icon: const Icon(Icons.login),
+                    label: const Text('Sign in to Start Exercise'),
                   ),
               ],
             ),
-            const SizedBox(height: 16),
-            Text(
-              exercise.instructions,
-              style: theme.textTheme.bodyMedium?.copyWith(height: 1.6),
-            ),
-            const SizedBox(height: 24),
-            if (isAuthenticated)
-              ElevatedButton.icon(
-                onPressed: () {
-                  // Navigate to exercise with spreadsheet
-                  context.go('/exercises/${exercise.id}');
-                },
-                icon: const Icon(Icons.play_arrow),
-                label: const Text('Start Exercise'),
-              )
-            else
-              OutlinedButton.icon(
-                onPressed: () {
-                  context.go('/login');
-                },
-                icon: const Icon(Icons.login),
-                label: const Text('Sign in to Start Exercise'),
-              ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

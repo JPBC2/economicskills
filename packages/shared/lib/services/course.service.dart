@@ -14,7 +14,7 @@ class CourseService {
         .from('courses')
         .select()
         .eq('is_active', true)
-        .order('display_order');
+        .order('display_order', ascending: true);
 
     return (response as List).map((c) => Course.fromJson(c)).toList();
   }
@@ -74,18 +74,22 @@ class CourseService {
   }
 
   /// Fetch a single lesson with its exercise and sections
-  /// This is the main method for displaying a lesson page
-  Future<Lesson?> getLessonWithExercise(String lessonId) async {
-    final response = await _client
-        .from('lessons')
-        .select('''
+  /// Accepts either UUID or slug
+  Future<Lesson?> getLessonWithExercise(String identifier) async {
+    final isUuid = RegExp(r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$', caseSensitive: false)
+        .hasMatch(identifier);
+
+    final query = _client.from('lessons').select('''
           *,
           exercises:exercises(
             *,
             sections:sections(*)
           )
-        ''')
-        .eq('id', lessonId)
+        ''');
+
+    final response = await (isUuid 
+        ? query.eq('id', identifier)
+        : query.eq('slug', identifier))
         .eq('is_active', true)
         .single();
 

@@ -173,7 +173,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 ),
               ),
               Text(
-                'Welcome back to Economic skills',
+                'Welcome back to Economic Skills',
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: colorScheme.onSurfaceVariant,
                 ),

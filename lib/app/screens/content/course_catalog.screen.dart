@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:economicskills/app/services/course.service.dart';
-import 'package:economicskills/app/models/course.model.dart';
+import 'package:shared/shared.dart';
 import 'package:economicskills/app/widgets/top_nav.widget.dart';
 import 'package:economicskills/app/widgets/hiding_scaffold.widget.dart';
 import 'package:economicskills/app/widgets/drawer_nav.widget.dart';
