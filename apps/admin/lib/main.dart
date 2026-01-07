@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared/shared.dart';
 import 'screens/dashboard.screen.dart';
 import 'screens/login.screen.dart';
+import 'widgets/swipe_navigation_wrapper.widget.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -30,6 +31,10 @@ class AdminApp extends StatelessWidget {
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.system,
       home: const AuthGate(),
+      builder: (context, child) {
+        // Wrap all pages with keyboard navigation shortcuts (Alt+Left = Back)
+        return KeyboardNavigationWrapper(child: child ?? const SizedBox.shrink());
+      },
     );
   }
 }

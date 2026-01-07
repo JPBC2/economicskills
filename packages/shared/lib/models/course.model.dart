@@ -256,10 +256,19 @@ class Section {
   final int xpReward;
   final DateTime createdAt;
   final DateTime updatedAt;
-  
+
+  // Exercise type support flags
+  final bool supportsSpreadsheet;
+  final bool supportsPython;
+
   // Language-specific template and solution spreadsheet IDs
   final Map<String, String?> templateSpreadsheets;
   final Map<String, String?> solutionSpreadsheets;
+
+  // Python exercise fields
+  final Map<String, String?> pythonStarterCode;
+  final String? pythonSolutionCode;
+  final Map<String, dynamic>? pythonValidationConfig;
 
   Section({
     required this.id,
@@ -273,14 +282,19 @@ class Section {
     this.xpReward = 10,
     required this.createdAt,
     required this.updatedAt,
+    this.supportsSpreadsheet = true,
+    this.supportsPython = false,
     this.templateSpreadsheets = const {},
     this.solutionSpreadsheets = const {},
+    this.pythonStarterCode = const {},
+    this.pythonSolutionCode,
+    this.pythonValidationConfig,
   });
 
   /// Get template spreadsheet ID for a specific language, falling back to English then default
   String? getTemplateForLanguage(String langCode) {
-    return templateSpreadsheets[langCode] 
-        ?? templateSpreadsheets['en'] 
+    return templateSpreadsheets[langCode]
+        ?? templateSpreadsheets['en']
         ?? templateSpreadsheetId;
   }
 
@@ -289,16 +303,23 @@ class Section {
     return solutionSpreadsheets[langCode] ?? solutionSpreadsheets['en'];
   }
 
+  /// Get Python starter code for a specific language, falling back to English
+  String? getPythonStarterCodeForLanguage(String langCode) {
+    return pythonStarterCode[langCode] ?? pythonStarterCode['en'];
+  }
+
   factory Section.fromJson(Map<String, dynamic> json) {
-    // Parse language-specific templates
+    // Parse language-specific templates and solutions
     final templates = <String, String?>{};
     final solutions = <String, String?>{};
-    
+    final pythonStarter = <String, String?>{};
+
     for (final lang in ['en', 'es', 'zh', 'ru', 'fr', 'pt', 'it', 'ca', 'ro', 'de', 'nl']) {
       templates[lang] = json['template_spreadsheet_$lang'] as String?;
       solutions[lang] = json['solution_spreadsheet_$lang'] as String?;
+      pythonStarter[lang] = json['python_starter_code_$lang'] as String?;
     }
-    
+
     return Section(
       id: json['id'] as String,
       exerciseId: json['exercise_id'] as String,
@@ -311,8 +332,13 @@ class Section {
       xpReward: json['xp_reward'] as int? ?? 10,
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
+      supportsSpreadsheet: json['supports_spreadsheet'] as bool? ?? true,
+      supportsPython: json['supports_python'] as bool? ?? false,
       templateSpreadsheets: templates,
       solutionSpreadsheets: solutions,
+      pythonStarterCode: pythonStarter,
+      pythonSolutionCode: json['python_solution_code'] as String?,
+      pythonValidationConfig: json['python_validation_config'] as Map<String, dynamic>?,
     );
   }
 
@@ -327,8 +353,12 @@ class Section {
       'display_order': displayOrder,
       'template_spreadsheet_id': templateSpreadsheetId,
       'xp_reward': xpReward,
+      'supports_spreadsheet': supportsSpreadsheet,
+      'supports_python': supportsPython,
+      'python_solution_code': pythonSolutionCode,
+      'python_validation_config': pythonValidationConfig,
     };
-    
+
     // Add language-specific templates and solutions
     for (final entry in templateSpreadsheets.entries) {
       if (entry.value != null) {
@@ -340,7 +370,12 @@ class Section {
         json['solution_spreadsheet_${entry.key}'] = entry.value;
       }
     }
-    
+    for (final entry in pythonStarterCode.entries) {
+      if (entry.value != null) {
+        json['python_starter_code_${entry.key}'] = entry.value;
+      }
+    }
+
     return json;
   }
 }

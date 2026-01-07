@@ -8,6 +8,9 @@ class CourseService {
 
   CourseService(this._client);
 
+  /// Expose client for direct operations (delete, update order, etc.)
+  SupabaseClient get client => _client;
+
   /// Fetch all active courses
   Future<List<Course>> getCourses() async {
     final response = await _client
@@ -96,8 +99,8 @@ class CourseService {
     return Lesson.fromJson(response);
   }
 
-  /// Fetch full course hierarchy (Course > Units > Lessons)
-  /// Useful for course detail page and navigation
+  /// Fetch full course hierarchy (Course > Units > Lessons > Exercises > Sections)
+  /// Useful for Admin CMS hierarchy navigation
   Future<Course?> getFullCourseHierarchy(String courseId) async {
     final response = await _client
         .from('courses')
@@ -105,11 +108,16 @@ class CourseService {
           *,
           units:units(
             *,
-            lessons:lessons(*)
+            lessons:lessons(
+              *,
+              exercises:exercises(
+                *,
+                sections:sections(*)
+              )
+            )
           )
         ''')
         .eq('id', courseId)
-        .eq('is_active', true)
         .single();
 
     return Course.fromJson(response);

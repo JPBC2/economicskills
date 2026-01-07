@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared/shared.dart';
@@ -9,6 +10,7 @@ import 'package:economicskills/app/widgets/top_nav.widget.dart';
 import 'package:economicskills/app/widgets/hiding_scaffold.widget.dart';
 import 'package:economicskills/app/widgets/drawer_nav.widget.dart';
 import 'package:economicskills/app/widgets/embedded_spreadsheet.widget.dart';
+import 'package:economicskills/app/widgets/python_exercise_widget.dart';
 import 'package:economicskills/app/res/responsive.res.dart';
 
 /// Section Screen - DataCamp-style split-screen exercise with embedded spreadsheet
@@ -43,7 +45,10 @@ class _SectionScreenState extends State<SectionScreen> {
   bool _showHint = false;
   bool _exerciseExpanded = true;
   bool _instructionsExpanded = true;
-  
+
+  // Exercise tool selection
+  String _selectedTool = 'spreadsheet'; // 'spreadsheet' or 'python'
+
   // Scroll controller for mobile spreadsheet
   final ScrollController _spreadsheetScrollController = ScrollController();
 
@@ -739,33 +744,53 @@ class _SectionScreenState extends State<SectionScreen> {
 
   Widget _buildSpreadsheetPanel(ThemeData theme, ColorScheme colorScheme) {
     final isAuthenticated = Supabase.instance.client.auth.currentUser != null;
+    final supportsSpreadsheet = _section?.supportsSpreadsheet ?? true;
+    final supportsPython = _section?.supportsPython ?? false;
+    final showTabs = supportsSpreadsheet && supportsPython;
 
     return Container(
       color: colorScheme.surfaceContainerLowest,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Embedded spreadsheet (no header - more space)
-          Expanded(
-            child: kIsWeb && _section?.templateSpreadsheetId != null
-                ? EmbeddedSpreadsheet(
-                    spreadsheetId: _userSpreadsheet?.spreadsheetId ?? _section!.templateSpreadsheetId!,
-                    isEditable: _userSpreadsheet != null,
-                  )
-                : Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.table_chart, size: 64, color: Colors.grey.shade400),
-                        const SizedBox(height: 16),
-                        Text('Spreadsheet preview not available', style: TextStyle(color: Colors.grey.shade600)),
-                      ],
-                    ),
+          // Tool selector tabs (if both tools are supported)
+          if (showTabs)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: colorScheme.surface,
+                border: Border(bottom: BorderSide(color: colorScheme.outlineVariant)),
+              ),
+              child: Row(
+                children: [
+                  _buildToolTab(
+                    icon: Icons.table_chart,
+                    label: 'Google Sheets',
+                    isSelected: _selectedTool == 'spreadsheet',
+                    onTap: () => setState(() => _selectedTool = 'spreadsheet'),
+                    colorScheme: colorScheme,
                   ),
+                  const SizedBox(width: 8),
+                  _buildToolTab(
+                    icon: Icons.code,
+                    label: 'Python',
+                    isSelected: _selectedTool == 'python',
+                    onTap: () => setState(() => _selectedTool = 'python'),
+                    colorScheme: colorScheme,
+                  ),
+                ],
+              ),
+            ),
+
+          // Exercise content area
+          Expanded(
+            child: _selectedTool == 'python' && supportsPython
+                ? _buildPythonExercise(theme, colorScheme)
+                : _buildSpreadsheetExercise(theme, colorScheme),
           ),
 
-          // Bottom action bar
-          if (isAuthenticated)
+          // Bottom action bar (only for spreadsheet)
+          if (isAuthenticated && _selectedTool == 'spreadsheet')
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
@@ -1168,5 +1193,139 @@ class _SectionScreenState extends State<SectionScreen> {
         ],
       ),
     );
+  }
+
+  /// Build tool selector tab
+  Widget _buildToolTab({
+    required IconData icon,
+    required String label,
+    required bool isSelected,
+    required VoidCallback onTap,
+    required ColorScheme colorScheme,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? colorScheme.primaryContainer : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              size: 18,
+              color: isSelected ? colorScheme.onPrimaryContainer : colorScheme.onSurfaceVariant,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: TextStyle(
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                color: isSelected ? colorScheme.onPrimaryContainer : colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Build spreadsheet exercise UI (existing spreadsheet functionality)
+  Widget _buildSpreadsheetExercise(ThemeData theme, ColorScheme colorScheme) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Expanded(
+          child: kIsWeb && _section?.templateSpreadsheetId != null
+              ? EmbeddedSpreadsheet(
+                  spreadsheetId: _userSpreadsheet?.spreadsheetId ?? _section!.templateSpreadsheetId!,
+                  isEditable: _userSpreadsheet != null,
+                )
+              : Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.table_chart, size: 64, color: Colors.grey.shade400),
+                      const SizedBox(height: 16),
+                      Text('Spreadsheet preview not available', style: TextStyle(color: Colors.grey.shade600)),
+                    ],
+                  ),
+                ),
+        ),
+      ],
+    );
+  }
+
+  /// Build Python exercise UI
+  Widget _buildPythonExercise(ThemeData theme, ColorScheme colorScheme) {
+    if (_section == null) {
+      return const Center(child: Text('Section not found'));
+    }
+
+    // Get user's language code
+    final languageCode = Localizations.localeOf(context).languageCode;
+
+    return PythonExerciseWidget(
+      section: _section!,
+      languageCode: languageCode,
+      onComplete: (passed, xpEarned) async {
+        if (passed) {
+          // Award XP and mark as completed
+          await _awardXPAndComplete(xpEarned, 'python');
+        }
+      },
+    );
+  }
+
+  /// Award XP and mark section as completed
+  Future<void> _awardXPAndComplete(int xpEarned, String completedWith) async {
+    try {
+      final userId = Supabase.instance.client.auth.currentUser?.id;
+      if (userId == null) return;
+
+      // Update user progress
+      await Supabase.instance.client.from('user_progress').upsert({
+        'user_id': userId,
+        'section_id': _section!.id,
+        'is_completed': true,
+        'completed_with': completedWith,
+        'xp_earned': xpEarned,
+        'completed_at': DateTime.now().toIso8601String(),
+      });
+
+      // Record XP transaction
+      await Supabase.instance.client.from('xp_transactions').insert({
+        'user_id': userId,
+        'amount': xpEarned,
+        'transaction_type': 'earned',
+        'source_type': 'section',
+        'source_id': _section!.id,
+        'description': 'Completed section: ${_section!.title}',
+      });
+
+      // Reload progress
+      await _loadData();
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Section completed! You earned $xpEarned XP!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to save progress: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 }
