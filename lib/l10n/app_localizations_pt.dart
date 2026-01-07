@@ -43,6 +43,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get comingSoonCourse => 'Gerenciamento de cursos';
 
   @override
+  String get navDashboard => 'Dashboard';
+
+  @override
   String get navContent => 'Conteúdo';
 
   @override

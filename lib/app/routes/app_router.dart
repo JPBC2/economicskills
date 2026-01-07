@@ -9,6 +9,7 @@ import 'package:economicskills/app/screens/content/course_catalog.screen.dart';
 import 'package:economicskills/app/screens/content/course_detail.screen.dart';
 import 'package:economicskills/app/screens/content/section.screen.dart';
 import 'package:economicskills/app/screens/content/lesson.screen.dart';
+import 'package:economicskills/app/screens/dashboard.screen.dart';
 import 'package:economicskills/app/screens/exercises/elasticity.dart';
 
 /// Global router configuration using go_router
@@ -23,6 +24,11 @@ final appRouter = GoRouter(
     final isGoingToLogin = state.matchedLocation == '/login';
     final isGoingToSignup = state.matchedLocation == '/signup';
     final isPublicRoute = _isPublicRoute(state.matchedLocation);
+
+    // If user is authenticated and on landing page, redirect to dashboard
+    if (isAuthenticated && state.matchedLocation == '/') {
+      return '/dashboard';
+    }
 
     // If user is authenticated and trying to access login/signup, redirect to dashboard
     if (isAuthenticated && (isGoingToLogin || isGoingToSignup)) {
@@ -67,6 +73,13 @@ final appRouter = GoRouter(
       path: '/signup',
       name: 'signup',
       redirect: (context, state) => '/login',
+    ),
+
+    // Dashboard (authenticated users home)
+    GoRoute(
+      path: '/dashboard',
+      name: 'dashboard',
+      builder: (context, state) => const DashboardScreen(),
     ),
 
     // Course catalog
@@ -116,13 +129,6 @@ final appRouter = GoRouter(
 
     // PROTECTED ROUTES
     
-    // Dashboard (authenticated home)
-    GoRoute(
-      path: '/dashboard',
-      name: 'dashboard',
-      builder: (context, state) => const HomeScreen(),
-    ),
-
     // Exercises
     GoRoute(
       path: '/exercises/elasticity',

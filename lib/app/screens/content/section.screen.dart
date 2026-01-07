@@ -958,6 +958,33 @@ class _SectionScreenState extends State<SectionScreen> {
                   ),
                 ],
               ),
+            // Completed status (shown after buttons on mobile)
+            if (_progress?.isCompleted ?? false) ...[
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.green.shade100,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.check_circle, color: Colors.green.shade700, size: 18),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Completed! +${_progress!.xpEarned} XP',
+                      style: TextStyle(color: Colors.green.shade700, fontWeight: FontWeight.w600),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+            // Validation result (shown after buttons on mobile)
+            if (_lastValidation != null) ...[
+              const SizedBox(height: 16),
+              _buildValidationResult(theme, colorScheme),
+            ],
           ],
         ),
       ),
@@ -1002,7 +1029,10 @@ class _SectionScreenState extends State<SectionScreen> {
             color: isSuccess ? Colors.green : Colors.orange,
           ),
           const SizedBox(height: 8),
-          Text('${result.correctCells}/${result.totalCells} correct (${result.score}%)'),
+          Text(
+            '${result.correctCells}/${result.totalCells} correct (${result.score}%)',
+            style: TextStyle(color: isSuccess ? Colors.green.shade900 : Colors.orange.shade900),
+          ),
         ],
       ),
     );

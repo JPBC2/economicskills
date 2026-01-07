@@ -1,5 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/user.model.dart';
+import '../models/profile.model.dart';
 
 /// Service for user-related operations (progress, XP, spreadsheets)
 /// Requires authentication for all operations

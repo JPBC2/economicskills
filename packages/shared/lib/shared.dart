@@ -7,6 +7,7 @@ library shared;
 export 'models/course.model.dart';
 export 'models/user.model.dart';
 export 'models/translation.model.dart';
+export 'models/profile.model.dart';
 
 // Services
 export 'services/course.service.dart';

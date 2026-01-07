@@ -43,6 +43,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get comingSoonCourse => '课程管理';
 
   @override
+  String get navDashboard => 'Dashboard';
+
+  @override
   String get navContent => '内容';
 
   @override

@@ -75,6 +75,24 @@ class _DrawerNavState extends ConsumerState<DrawerNav> {
             ),
           ),
 
+          // Dashboard (only for authenticated users)
+          Builder(
+            builder: (context) {
+              final user = supabase.auth.currentUser;
+              if (user != null) {
+                return ListTile(
+                  leading: Icon(Icons.dashboard, color: itemColor),
+                  title: Text(l10n.navDashboard, style: itemTextStyle),
+                  onTap: () {
+                    context.go('/dashboard');
+                    Navigator.pop(context);
+                  },
+                );
+              }
+              return const SizedBox.shrink();
+            },
+          ),
+
           // Content button
           ListTile(
             leading: Icon(Icons.menu_book, color: itemColor),

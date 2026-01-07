@@ -172,6 +172,12 @@ abstract class AppLocalizations {
   /// **'Course management'**
   String get comingSoonCourse;
 
+  /// No description provided for @navDashboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Dashboard'**
+  String get navDashboard;
+
   /// No description provided for @navContent.
   ///
   /// In en, this message translates to:

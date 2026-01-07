@@ -28,12 +28,15 @@ class EmbeddedSpreadsheet extends StatefulWidget {
 class _EmbeddedSpreadsheetState extends State<EmbeddedSpreadsheet> {
   late String _viewId;
   bool _isLoading = true;
-  bool _isRegistered = false;
+  
+  // Static set to track registered view IDs to avoid re-registration
+  static final Set<String> _registeredViewIds = {};
 
   @override
   void initState() {
     super.initState();
-    _viewId = 'google-sheet-${widget.spreadsheetId.hashCode}-${DateTime.now().millisecondsSinceEpoch}';
+    // Use stable viewId based only on spreadsheetId - no timestamp
+    _viewId = 'google-sheet-${widget.spreadsheetId}';
     if (kIsWeb) {
       _registerView();
     }
@@ -43,8 +46,7 @@ class _EmbeddedSpreadsheetState extends State<EmbeddedSpreadsheet> {
   void didUpdateWidget(EmbeddedSpreadsheet oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.spreadsheetId != widget.spreadsheetId) {
-      _viewId = 'google-sheet-${widget.spreadsheetId.hashCode}-${DateTime.now().millisecondsSinceEpoch}';
-      _isRegistered = false;
+      _viewId = 'google-sheet-${widget.spreadsheetId}';
       if (kIsWeb) {
         _registerView();
       }
@@ -52,7 +54,11 @@ class _EmbeddedSpreadsheetState extends State<EmbeddedSpreadsheet> {
   }
 
   void _registerView() {
-    if (_isRegistered) return;
+    // Check if already registered in the static set
+    if (_registeredViewIds.contains(_viewId)) {
+      setState(() => _isLoading = false);
+      return;
+    }
 
     setState(() => _isLoading = true);
 
@@ -82,7 +88,8 @@ class _EmbeddedSpreadsheetState extends State<EmbeddedSpreadsheet> {
       },
     );
 
-    _isRegistered = true;
+    // Mark as registered in static set
+    _registeredViewIds.add(_viewId);
 
     // Small delay to ensure registration completes
     Future.delayed(const Duration(milliseconds: 100), () {
@@ -108,7 +115,7 @@ class _EmbeddedSpreadsheetState extends State<EmbeddedSpreadsheet> {
       clipBehavior: Clip.antiAlias,
       child: Stack(
         children: [
-          if (_isRegistered)
+          if (_registeredViewIds.contains(_viewId))
             HtmlElementView(viewType: _viewId),
           if (_isLoading)
             Container(
