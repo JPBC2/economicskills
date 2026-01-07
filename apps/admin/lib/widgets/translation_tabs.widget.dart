@@ -35,6 +35,7 @@ class TranslationTabs extends StatefulWidget {
 class _TranslationTabsState extends State<TranslationTabs> {
   late String _selectedLanguage;
   late Map<String, Map<String, TextEditingController>> _controllers;
+  final Map<String, double> _fieldHeights = {}; // Track heights for resizable fields
 
   @override
   void initState() {
@@ -51,6 +52,10 @@ class _TranslationTabsState extends State<TranslationTabs> {
       for (final field in widget.fields) {
         final value = widget.translations[lang]?[field.key] ?? '';
         _controllers[lang]![field.key] = TextEditingController(text: value);
+        // Initialize default heights for resizable fields
+        if (field.isResizable && !_fieldHeights.containsKey(field.key)) {
+          _fieldHeights[field.key] = 56.0 + (field.maxLines - 1) * 24.0;
+        }
       }
     }
   }
@@ -103,6 +108,7 @@ class _TranslationTabsState extends State<TranslationTabs> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -133,6 +139,68 @@ class _TranslationTabsState extends State<TranslationTabs> {
         // Fields for selected language
         ...widget.fields.map((field) {
           final controller = _controllers[_selectedLanguage]![field.key]!;
+          
+          if (field.isResizable) {
+            final height = _fieldHeights[field.key] ?? 100.0;
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  SizedBox(
+                    height: height,
+                    child: TextFormField(
+                      controller: controller,
+                      decoration: InputDecoration(
+                        labelText:
+                            '${field.label} (${SupportedLanguages.names[_selectedLanguage]})',
+                        border: const OutlineInputBorder(),
+                        alignLabelWithHint: true,
+                        hintText: field.hint,
+                      ),
+                      maxLines: null,
+                      expands: true,
+                      textAlignVertical: TextAlignVertical.top,
+                      onChanged: (_) => _onFieldChanged(),
+                      validator: field.isRequired && _selectedLanguage == 'en'
+                          ? (value) =>
+                              value?.isEmpty == true ? 'Required in English' : null
+                          : null,
+                    ),
+                  ),
+                  // Drag handle
+                  MouseRegion(
+                    cursor: SystemMouseCursors.resizeUpDown,
+                    child: GestureDetector(
+                      onVerticalDragUpdate: (details) {
+                        setState(() {
+                          _fieldHeights[field.key] = (height + details.delta.dy).clamp(56.0, 400.0);
+                        });
+                      },
+                      child: Container(
+                        height: 8,
+                        decoration: BoxDecoration(
+                          color: colorScheme.surfaceContainerHighest,
+                          borderRadius: const BorderRadius.vertical(bottom: Radius.circular(4)),
+                        ),
+                        child: Center(
+                          child: Container(
+                            width: 32,
+                            height: 3,
+                            decoration: BoxDecoration(
+                              color: colorScheme.outline.withOpacity(0.5),
+                              borderRadius: BorderRadius.circular(2),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }
+          
           return Padding(
             padding: const EdgeInsets.only(bottom: 16),
             child: TextFormField(
@@ -144,8 +212,7 @@ class _TranslationTabsState extends State<TranslationTabs> {
                 alignLabelWithHint: field.maxLines > 1,
                 hintText: field.hint,
               ),
-              minLines: field.isResizable ? field.maxLines : null,
-              maxLines: field.isResizable ? null : field.maxLines,
+              maxLines: field.maxLines,
               onChanged: (_) => _onFieldChanged(),
               validator: field.isRequired && _selectedLanguage == 'en'
                   ? (value) =>

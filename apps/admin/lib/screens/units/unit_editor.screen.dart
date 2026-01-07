@@ -206,7 +206,7 @@ class _UnitEditorScreenState extends State<UnitEditorScreen> {
                                   TranslationTabs(
                                     fields: const [
                                       TranslationField(key: 'title', label: 'Title', isRequired: true, hint: 'e.g., Fundamentals'),
-                                      TranslationField(key: 'description', label: 'Description', maxLines: 4),
+                                      TranslationField(key: 'description', label: 'Description', maxLines: 4, isResizable: true),
                                     ],
                                     translations: _translations,
                                     onChanged: (t) => setState(() => _translations = t),

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared/shared.dart';
 import '../../main.dart';
 import '../../widgets/translation_tabs.widget.dart';
-import '../units/units_list.screen.dart';
+import '../../widgets/course_hierarchy_tree.widget.dart';
 
 /// Course Editor with multilingual support (6 languages)
 /// Allows creating/editing courses with translations
@@ -22,11 +22,13 @@ class _CourseEditorScreenState extends State<CourseEditorScreen> {
   bool _isActive = true;
   bool _isSaving = false;
   bool _isLoading = true;
+  bool _contentExpanded = false; // Content section collapsed by default
   
   // Translations: { language: { field: value } }
   Map<String, Map<String, String>> _translations = {};
   
   late final TranslationService _translationService;
+  late final CourseService _courseService;
 
   bool get isEditing => widget.course != null;
 
@@ -34,6 +36,7 @@ class _CourseEditorScreenState extends State<CourseEditorScreen> {
   void initState() {
     super.initState();
     _translationService = TranslationService(supabase);
+    _courseService = CourseService(supabase);
     
     if (widget.course != null) {
       _displayOrderController.text = widget.course!.displayOrder.toString();
@@ -171,134 +174,101 @@ class _CourseEditorScreenState extends State<CourseEditorScreen> {
           ? const Center(child: CircularProgressIndicator())
           : Form(
               key: _formKey,
-              child: Row(
-                children: [
-                  // Main content
-                  Expanded(
-                    flex: 2,
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.all(24),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Collapsible Content section
+                    Card(
+                      child: ExpansionTile(
+                        initiallyExpanded: _contentExpanded,
+                        onExpansionChanged: (expanded) => setState(() => _contentExpanded = expanded),
+                        title: Text(
+                          (_translations['en']?['title']?.isNotEmpty == true)
+                              ? _translations['en']!['title']!
+                              : 'Content',
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        trailing: Icon(_contentExpanded ? Icons.expand_less : Icons.expand_more),
                         children: [
-                          // Translation tabs
-                          Card(
-                            child: Padding(
-                              padding: const EdgeInsets.all(16),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Content',
-                                    style: theme.textTheme.titleMedium?.copyWith(
-                                      fontWeight: FontWeight.bold,
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                TranslationTabs(
+                                  fields: const [
+                                    TranslationField(
+                                      key: 'title',
+                                      label: 'Title',
+                                      isRequired: true,
+                                      hint: 'e.g., Microeconomics',
                                     ),
-                                  ),
-                                  const SizedBox(height: 16),
-                                  TranslationTabs(
-                                    fields: const [
-                                      TranslationField(
-                                        key: 'title',
-                                        label: 'Title',
-                                        isRequired: true,
-                                        hint: 'e.g., Microeconomics',
+                                    TranslationField(
+                                      key: 'description',
+                                      label: 'Description',
+                                      maxLines: 4,
+                                      hint: 'Brief description of the course',
+                                      isResizable: true,
+                                    ),
+                                  ],
+                                  translations: _translations,
+                                  onChanged: (translations) {
+                                    setState(() => _translations = translations);
+                                  },
+                                ),
+                                const SizedBox(height: 16),
+                                // Inline Settings
+                                const Divider(),
+                                const SizedBox(height: 8),
+                                Text('Settings', style: theme.textTheme.labelLarge),
+                                const SizedBox(height: 8),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: SwitchListTile(
+                                        title: const Text('Active'),
+                                        subtitle: const Text('Visible to students'),
+                                        value: _isActive,
+                                        onChanged: (value) => setState(() => _isActive = value),
+                                        contentPadding: EdgeInsets.zero,
                                       ),
-                                      TranslationField(
-                                        key: 'description',
-                                        label: 'Description',
-                                        maxLines: 4,
-                                        hint: 'Brief description of the course',
+                                    ),
+                                    const SizedBox(width: 16),
+                                    SizedBox(
+                                      width: 150,
+                                      child: TextFormField(
+                                        controller: _displayOrderController,
+                                        decoration: const InputDecoration(
+                                          labelText: 'Display Order',
+                                          border: OutlineInputBorder(),
+                                          isDense: true,
+                                        ),
+                                        keyboardType: TextInputType.number,
                                       ),
-                                    ],
-                                    translations: _translations,
-                                    onChanged: (translations) {
-                                      setState(() => _translations = translations);
-                                    },
-                                  ),
-                                ],
-                              ),
+                                    ),
+                                  ],
+                                ),
+                              ],
                             ),
                           ),
                         ],
                       ),
                     ),
-                  ),
-                  // Sidebar
-                  Container(
-                    width: 300,
-                    decoration: BoxDecoration(
-                      border: Border(
-                        left: BorderSide(color: colorScheme.outlineVariant),
+                    // Course Hierarchy - below Content card
+                    if (isEditing) ...[
+                      const SizedBox(height: 24),
+                      CourseHierarchyTree(
+                        course: widget.course!,
+                        courseService: _courseService,
+                        onRefresh: () => setState(() {}),
                       ),
-                    ),
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.all(24),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Settings',
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          SwitchListTile(
-                            title: const Text('Active'),
-                            subtitle: const Text('Visible to students'),
-                            value: _isActive,
-                            onChanged: (value) {
-                              setState(() => _isActive = value);
-                            },
-                          ),
-                          const SizedBox(height: 16),
-                          TextFormField(
-                            controller: _displayOrderController,
-                            decoration: const InputDecoration(
-                              labelText: 'Display Order',
-                              border: OutlineInputBorder(),
-                              helperText: 'Lower numbers appear first',
-                            ),
-                            keyboardType: TextInputType.number,
-                          ),
-                          const SizedBox(height: 24),
-                          if (isEditing) ...[
-                            const Divider(),
-                            const SizedBox(height: 16),
-                            Text(
-                              'Units',
-                              style: theme.textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Manage units and lessons for this course',
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                            OutlinedButton.icon(
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => UnitsListScreen(
-                                      course: widget.course!,
-                                    ),
-                                  ),
-                                );
-                              },
-                              icon: const Icon(Icons.folder_open),
-                              label: const Text('Manage Units'),
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
+                    ],
+                  ],
+                ),
               ),
             ),
     );
