@@ -161,8 +161,13 @@ class _PythonExerciseWidgetState extends State<PythonExerciseWidget> with Single
     });
 
     try {
+      // Determine which code to submit based on active tab
+      final codeToSubmit = (widget.showAnswer && _tabController.index == 1)
+          ? _solutionController.text
+          : _codeController.text;
+
       // First run the code
-      final execution = await _pyodideService.runPython(_codeController.text);
+      final execution = await _pyodideService.runPython(codeToSubmit);
 
       setState(() {
         _output = execution.output;
@@ -187,7 +192,7 @@ class _PythonExerciseWidgetState extends State<PythonExerciseWidget> with Single
 
       // Run validation
       final validation = await _pyodideService.validateCode(
-        code: _codeController.text,
+        code: codeToSubmit,
         validationConfig: config,
       );
 
