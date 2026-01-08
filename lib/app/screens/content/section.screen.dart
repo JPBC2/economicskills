@@ -1401,7 +1401,7 @@ class _SectionScreenState extends State<SectionScreen> {
       await Supabase.instance.client.from('xp_transactions').insert({
         'user_id': userId,
         'amount': xpEarned,
-        'transaction_type': 'earned',
+        'transaction_type': 'earn',
         'source_type': 'section',
         'source_id': _section!.id,
         'description': 'Completed section: ${_section!.title}',
