@@ -655,7 +655,6 @@ class _SectionEditorScreenState extends State<SectionEditorScreen> {
                       ],
                     ),
                   ),
-                ),
             ),
     );
   }

@@ -302,7 +302,6 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
                       ],
                     ),
                   ),
-                ),
             ),
     );
   }

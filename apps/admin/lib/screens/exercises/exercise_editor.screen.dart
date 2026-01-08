@@ -216,7 +216,6 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
                       ],
                     ),
                   ),
-                ),
             ),
     );
   }
