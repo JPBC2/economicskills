@@ -380,10 +380,11 @@ class _PythonExerciseWidgetState extends State<PythonExerciseWidget> with Single
 
   /// Build toolbar with Run, Submit, Hint buttons
   Widget _buildToolbar() {
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: Colors.grey[100],
+        color: colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
@@ -438,11 +439,12 @@ class _PythonExerciseWidgetState extends State<PythonExerciseWidget> with Single
 
   /// Build code editor (simple TextField for now, can be replaced with CodeMirror)
   Widget _buildCodeEditor() {
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey[300]!),
+        border: Border.all(color: colorScheme.outline),
         borderRadius: BorderRadius.circular(8),
-        color: Colors.grey[50],
+        color: colorScheme.surfaceContainer,
       ),
       child: TextField(
         controller: _codeController,
@@ -463,11 +465,13 @@ class _PythonExerciseWidgetState extends State<PythonExerciseWidget> with Single
 
   /// Build solution code editor (editable)
   Widget _buildSolutionEditor() {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.deepPurple.shade200),
+        border: Border.all(color: isDark ? Colors.deepPurple.shade300 : Colors.deepPurple.shade200),
         borderRadius: BorderRadius.circular(8),
-        color: Colors.deepPurple.shade50,
+        color: isDark ? Colors.deepPurple.shade900.withValues(alpha: 0.3) : Colors.deepPurple.shade50,
       ),
       child: TextField(
         controller: _solutionController,
@@ -489,9 +493,10 @@ class _PythonExerciseWidgetState extends State<PythonExerciseWidget> with Single
 
   /// Build output panel with console output and validation feedback
   Widget _buildOutputPanel() {
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey[300]!),
+        border: Border.all(color: colorScheme.outline),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
@@ -501,7 +506,7 @@ class _PythonExerciseWidgetState extends State<PythonExerciseWidget> with Single
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: Colors.grey[200],
+              color: colorScheme.surfaceContainerHighest,
               borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
             ),
             child: const Text(
