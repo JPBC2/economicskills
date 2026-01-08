@@ -47,11 +47,11 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
             .single();
       } else {
         // Search by title with case-insensitive match
-        final slug = widget.courseSlug.toLowerCase().replaceAll('-', ' ');
+        String searchTitle = widget.courseSlug.replaceAll('-', '%');
         courseData = await supabase
             .from('courses')
             .select()
-            .ilike('title', '%$slug%')
+            .ilike('title', '%$searchTitle%')
             .single();
       }
 
@@ -369,7 +369,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
           FilledButton.tonal(
             onPressed: () {
               // Navigate using slug (title converted to URL-friendly format)
-              final slug = section.title.toLowerCase().replaceAll(' ', '_').replaceAll(RegExp(r'[^a-z0-9_]'), '');
+              final slug = section.title.toLowerCase().replaceAll(' ', '-').replaceAll(RegExp(r'[^a-z0-9-]'), '');
               context.go('/sections/$slug');
             },
             style: FilledButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 12)),

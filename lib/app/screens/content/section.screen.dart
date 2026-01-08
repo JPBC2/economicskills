@@ -84,8 +84,8 @@ class _SectionScreenState extends State<SectionScreen> {
             .single();
       } else {
         // Search by title with case-insensitive match (underscores become spaces/dots)
-        // Handle slugs like "1_annual_nominal_dividends_per_share" matching "1. Annual nominal dividends per share."
-        String searchTitle = widget.sectionSlug.replaceAll('_', '%');
+        // Handle slugs like "1-annual-nominal-dividends-per-share" matching "1. Annual nominal dividends per share."
+        String searchTitle = widget.sectionSlug.replaceAll('-', '%');
         sectionData = await supabase
             .from('sections')
             .select('*, exercises(*)')
