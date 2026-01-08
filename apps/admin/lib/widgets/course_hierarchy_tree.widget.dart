@@ -454,10 +454,28 @@ class _CourseHierarchyTreeState extends State<CourseHierarchyTree> {
                 ...(exercise.sections ?? []).map((section) => _buildSectionTile(section, exercise)),
                 Align(
                   alignment: Alignment.centerLeft,
-                  child: TextButton.icon(
-                    onPressed: () => _navigateToEditor(SectionEditorScreen(exercise: exercise)),
-                    icon: const Icon(Icons.add, size: 20),
-                    label: const Text('Add Section'),
+                  child: Wrap(
+                    spacing: 8,
+                    children: [
+                      TextButton.icon(
+                        onPressed: () => _navigateToEditor(SectionEditorScreen(
+                          exercise: exercise,
+                          sectionType: 'spreadsheet',
+                        )),
+                        icon: Icon(Icons.table_chart, size: 18, color: Colors.green.shade700),
+                        label: Text('Add Spreadsheet Section', 
+                          style: TextStyle(color: Colors.green.shade700)),
+                      ),
+                      TextButton.icon(
+                        onPressed: () => _navigateToEditor(SectionEditorScreen(
+                          exercise: exercise,
+                          sectionType: 'python',
+                        )),
+                        icon: Icon(Icons.code, size: 18, color: Colors.deepPurple.shade700),
+                        label: Text('Add Python Section',
+                          style: TextStyle(color: Colors.deepPurple.shade700)),
+                      ),
+                    ],
                   ),
                 ),
               ],
@@ -471,10 +489,15 @@ class _CourseHierarchyTreeState extends State<CourseHierarchyTree> {
   Widget _buildSectionTile(Section section, Exercise exercise) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final isPython = section.sectionType == 'python';
     
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 8),
-      leading: Icon(Icons.article, size: 20, color: colorScheme.outline),
+      leading: Icon(
+        isPython ? Icons.code : Icons.table_chart,
+        size: 20, 
+        color: isPython ? Colors.deepPurple.shade400 : Colors.green.shade400,
+      ),
       title: Text(
         section.title,
         style: const TextStyle(fontWeight: FontWeight.w500),

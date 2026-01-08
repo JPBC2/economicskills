@@ -260,6 +260,7 @@ class Section {
   // Exercise type support flags
   final bool supportsSpreadsheet;
   final bool supportsPython;
+  final String sectionType; // 'python' or 'spreadsheet'
 
   // Language-specific template and solution spreadsheet IDs
   final Map<String, String?> templateSpreadsheets;
@@ -284,6 +285,7 @@ class Section {
     required this.updatedAt,
     this.supportsSpreadsheet = true,
     this.supportsPython = false,
+    this.sectionType = 'spreadsheet',
     this.templateSpreadsheets = const {},
     this.solutionSpreadsheets = const {},
     this.pythonStarterCode = const {},
@@ -334,6 +336,7 @@ class Section {
       updatedAt: DateTime.parse(json['updated_at'] as String),
       supportsSpreadsheet: json['supports_spreadsheet'] as bool? ?? true,
       supportsPython: json['supports_python'] as bool? ?? false,
+      sectionType: json['section_type'] as String? ?? 'spreadsheet',
       templateSpreadsheets: templates,
       solutionSpreadsheets: solutions,
       pythonStarterCode: pythonStarter,
@@ -355,6 +358,7 @@ class Section {
       'xp_reward': xpReward,
       'supports_spreadsheet': supportsSpreadsheet,
       'supports_python': supportsPython,
+      'section_type': sectionType,
       'python_solution_code': pythonSolutionCode,
       'python_validation_config': pythonValidationConfig,
     };

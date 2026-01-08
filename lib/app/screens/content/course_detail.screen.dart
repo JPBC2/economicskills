@@ -22,6 +22,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
   List<Unit> _units = [];
   bool _isLoading = true;
   String? _error;
+  Set<String> _completedSectionIds = {}; // Track completed sections for check marks
 
   @override
   void initState() {
@@ -80,9 +81,31 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
       // Ensure we have a list
       final unitsList = unitsResponse is List ? unitsResponse : [unitsResponse];
 
+      // Load user progress if authenticated
+      Set<String> completedSections = {};
+      final user = supabase.auth.currentUser;
+      if (user != null) {
+        try {
+          final progressResponse = await supabase
+              .from('user_progress')
+              .select('section_id')
+              .eq('user_id', user.id)
+              .eq('is_completed', true);
+
+          if (progressResponse is List) {
+            completedSections = progressResponse
+                .map((p) => p['section_id'] as String)
+                .toSet();
+          }
+        } catch (e) {
+          print('Error loading user progress: $e');
+        }
+      }
+
       setState(() {
         _course = course;
         _units = unitsList.map((u) => Unit.fromJson(u as Map<String, dynamic>)).toList();
+        _completedSectionIds = completedSections;
         _isLoading = false;
       });
     } catch (e, stackTrace) {
@@ -229,6 +252,39 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
     );
   }
 
+  /// Check if a section is completed
+  bool _isSectionCompleted(Section section) {
+    return _completedSectionIds.contains(section.id);
+  }
+
+  /// Check if all sections in an exercise are completed
+  bool _isExerciseCompleted(Exercise exercise) {
+    if (exercise.sections == null || exercise.sections!.isEmpty) {
+      return false;
+    }
+    return exercise.sections!.every((section) => _isSectionCompleted(section));
+  }
+
+  /// Check if all exercises (and their sections) under a lesson are completed
+  bool _isLessonCompleted(Lesson lesson) {
+    if (lesson.exercises == null || lesson.exercises!.isEmpty) {
+      return false;
+    }
+    return lesson.exercises!.every((exercise) => _isExerciseCompleted(exercise));
+  }
+
+  /// Build a check mark icon for completed items
+  Widget _buildCheckMark() {
+    return Container(
+      padding: const EdgeInsets.all(2),
+      decoration: BoxDecoration(
+        color: Colors.green.shade100,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Icon(Icons.check, color: Colors.green.shade700, size: 14),
+    );
+  }
+
   Widget _buildUnitCard(Unit unit, ThemeData theme, ColorScheme colorScheme) {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
@@ -271,6 +327,9 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
   }
 
   Widget _buildLessonTile(Lesson lesson, ThemeData theme, ColorScheme colorScheme) {
+    final isCompleted = _isLessonCompleted(lesson);
+    final isAuthenticated = Supabase.instance.client.auth.currentUser != null;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -285,7 +344,17 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
             ),
             child: Icon(Icons.play_circle_filled, color: colorScheme.primary, size: 24),
           ),
-          title: Text(lesson.title, style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600)),
+          title: Row(
+            children: [
+              Expanded(
+                child: Text(lesson.title, style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600)),
+              ),
+              if (isAuthenticated && isCompleted) ...[
+                const SizedBox(width: 8),
+                _buildCheckMark(),
+              ],
+            ],
+          ),
           subtitle: lesson.explanationText.isNotEmpty 
               ? Text(
                   lesson.explanationText,
@@ -314,6 +383,9 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
   }
 
   Widget _buildExerciseTile(Exercise exercise, ThemeData theme, ColorScheme colorScheme) {
+    final isCompleted = _isExerciseCompleted(exercise);
+    final isAuthenticated = Supabase.instance.client.auth.currentUser != null;
+
     return ExpansionTile(
       tilePadding: const EdgeInsets.only(left: 56, right: 16),
       leading: Container(
@@ -324,7 +396,17 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
         ),
         child: Icon(Icons.assignment, color: Colors.orange.shade700, size: 20),
       ),
-      title: Text(exercise.title, style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500)),
+      title: Row(
+        children: [
+          Expanded(
+            child: Text(exercise.title, style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500)),
+          ),
+          if (isAuthenticated && isCompleted) ...[
+            const SizedBox(width: 8),
+            _buildCheckMark(),
+          ],
+        ],
+      ),
       subtitle: Text(
         exercise.instructions,
         maxLines: 2,
@@ -347,17 +429,34 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
   }
 
   Widget _buildSectionTile(Section section, ThemeData theme, ColorScheme colorScheme) {
+    final isCompleted = _isSectionCompleted(section);
+    final isAuthenticated = Supabase.instance.client.auth.currentUser != null;
+
     return ListTile(
       contentPadding: const EdgeInsets.only(left: 80, right: 16),
       leading: Container(
         padding: const EdgeInsets.all(6),
         decoration: BoxDecoration(
-          color: Colors.green.shade100,
+          color: isCompleted ? Colors.green.shade200 : Colors.green.shade100,
           borderRadius: BorderRadius.circular(6),
         ),
-        child: Icon(Icons.table_chart, color: Colors.green.shade700, size: 18),
+        child: Icon(
+          isCompleted ? Icons.check : Icons.table_chart,
+          color: Colors.green.shade700,
+          size: 18,
+        ),
       ),
-      title: Text(section.title, style: theme.textTheme.bodySmall),
+      title: Row(
+        children: [
+          Expanded(
+            child: Text(section.title, style: theme.textTheme.bodySmall),
+          ),
+          if (isAuthenticated && isCompleted) ...[
+            const SizedBox(width: 4),
+            _buildCheckMark(),
+          ],
+        ],
+      ),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [

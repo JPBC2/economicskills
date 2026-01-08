@@ -9,6 +9,7 @@
 /// 
 /// For Flutter Web, you'll need to expose these via a backend proxy
 /// since service account credentials shouldn't be in client-side code.
+library;
 
 class GoogleConfig {
   // These should be loaded from environment variables or a secure backend

@@ -31,6 +31,7 @@ class _SectionScreenState extends State<SectionScreen> {
   Exercise? _exercise;
   SectionSpreadsheet? _userSpreadsheet;
   SectionProgress? _progress;
+  String? _courseSlug; // For back navigation to the correct course
   
   bool _isLoading = true;
   bool _isSaving = false;
@@ -73,9 +74,21 @@ class _SectionScreenState extends State<SectionScreen> {
   Future<void> _loadData() async {
     try {
       final supabase = Supabase.instance.client;
+
+      // Check for tool suffix in slug (-spreadsheet or -python)
+      String slug = widget.sectionSlug;
+      String? requestedTool;
+      if (slug.endsWith('-spreadsheet')) {
+        slug = slug.substring(0, slug.length - '-spreadsheet'.length);
+        requestedTool = 'spreadsheet';
+      } else if (slug.endsWith('-python')) {
+        slug = slug.substring(0, slug.length - '-python'.length);
+        requestedTool = 'python';
+      }
+
       // Determine if slug is a UUID or a readable slug
       final isUuid = RegExp(r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$', caseSensitive: false)
-          .hasMatch(widget.sectionSlug);
+          .hasMatch(slug);
 
       // Load section with exercise details by ID or title
       dynamic sectionData;
@@ -83,18 +96,23 @@ class _SectionScreenState extends State<SectionScreen> {
         sectionData = await supabase
             .from('sections')
             .select('*, exercises(*)')
-            .eq('id', widget.sectionSlug)
+            .eq('id', slug)
             .single();
       } else {
         // Search by title with case-insensitive match (underscores become spaces/dots)
         // Handle slugs like "1-annual-nominal-dividends-per-share" matching "1. Annual nominal dividends per share."
-        String searchTitle = widget.sectionSlug.replaceAll('-', '%');
+        String searchTitle = slug.replaceAll('-', '%');
         sectionData = await supabase
             .from('sections')
             .select('*, exercises(*)')
             .ilike('title', '%$searchTitle%')
             .limit(1)
             .single();
+      }
+
+      // Auto-select tool based on URL suffix
+      if (requestedTool != null) {
+        _selectedTool = requestedTool;
       }
 
       final section = Section.fromJson(sectionData);
@@ -106,9 +124,56 @@ class _SectionScreenState extends State<SectionScreen> {
         }
       }
 
+      // Trace hierarchy to get course slug for back navigation
+      // section → exercise → lesson → unit → course
+      String? courseSlug;
+      try {
+        final hierarchyData = await supabase
+            .from('sections')
+            .select('''
+              exercise_id,
+              exercises!inner (
+                lesson_id,
+                lessons!inner (
+                  unit_id,
+                  units!inner (
+                    course_id,
+                    courses!inner (
+                      title
+                    )
+                  )
+                )
+              )
+            ''')
+            .eq('id', section.id)
+            .single();
+
+        // Extract course title and convert to slug
+        final exercises = hierarchyData['exercises'];
+        if (exercises != null) {
+          final lessons = exercises['lessons'];
+          if (lessons != null) {
+            final units = lessons['units'];
+            if (units != null) {
+              final courses = units['courses'];
+              if (courses != null && courses['title'] != null) {
+                final courseTitle = courses['title'] as String;
+                courseSlug = courseTitle
+                    .toLowerCase()
+                    .replaceAll(' ', '-')
+                    .replaceAll(RegExp(r'[^a-z0-9-]'), '');
+              }
+            }
+          }
+        }
+      } catch (e) {
+        debugPrint('Error tracing hierarchy for back navigation: $e');
+      }
+
       setState(() {
         _section = section;
         _exercise = exercise;
+        _courseSlug = courseSlug;
       });
 
       // Auto-create spreadsheet copy if authenticated
@@ -407,8 +472,8 @@ class _SectionScreenState extends State<SectionScreen> {
             Text('Section not found', style: theme.textTheme.titleLarge),
             const SizedBox(height: 24),
             ElevatedButton(
-              onPressed: () => context.go('/courses'),
-              child: const Text('Back to Courses'),
+              onPressed: () => context.go(_courseSlug != null ? '/courses/$_courseSlug' : '/courses'),
+              child: const Text('Back to Course'),
             ),
           ],
         ),
@@ -503,7 +568,7 @@ class _SectionScreenState extends State<SectionScreen> {
           children: [
             // Back button
             TextButton.icon(
-              onPressed: () => context.pop(),
+              onPressed: () => context.go(_courseSlug != null ? '/courses/$_courseSlug' : '/courses'),
               icon: const Icon(Icons.arrow_back, size: 18),
               label: const Text('Back'),
             ),
@@ -602,13 +667,97 @@ class _SectionScreenState extends State<SectionScreen> {
             ],
 
             const SizedBox(height: 24),
-            
-            // Spreadsheet
-            _buildSpreadsheetCard(theme, colorScheme),
+
+            // Exercise content - respect tool selection
+            _buildMobileExerciseCard(theme, colorScheme),
           ],
         ),
       );
     }
+  }
+
+  /// Build mobile exercise card based on the selected/effective tool
+  Widget _buildMobileExerciseCard(ThemeData theme, ColorScheme colorScheme) {
+    final supportsSpreadsheet = _section?.supportsSpreadsheet ?? true;
+    final supportsPython = _section?.supportsPython ?? false;
+
+    // Auto-select the only available tool if only one is supported
+    final String effectiveTool;
+    if (!supportsSpreadsheet && supportsPython) {
+      effectiveTool = 'python';
+    } else if (supportsSpreadsheet && !supportsPython) {
+      effectiveTool = 'spreadsheet';
+    } else {
+      effectiveTool = _selectedTool;
+    }
+
+    // Return the appropriate card based on the effective tool
+    if (effectiveTool == 'python' && supportsPython) {
+      return _buildMobilePythonCard(theme, colorScheme);
+    } else {
+      return _buildSpreadsheetCard(theme, colorScheme);
+    }
+  }
+
+  /// Build mobile Python exercise card
+  Widget _buildMobilePythonCard(ThemeData theme, ColorScheme colorScheme) {
+    if (_section == null) {
+      return Card(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Center(child: Text('Section not found')),
+        ),
+      );
+    }
+
+    final languageCode = Localizations.localeOf(context).languageCode;
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            SizedBox(
+              height: 500, // Fixed height for mobile Python editor
+              child: PythonExerciseWidget(
+                key: _pythonExerciseKey,
+                section: _section!,
+                languageCode: languageCode,
+                showAnswer: _showAnswer,
+                onComplete: (passed, xpEarned) async {
+                  if (passed) {
+                    await _awardXPAndComplete(xpEarned, 'python');
+                  }
+                },
+              ),
+            ),
+            // Completed status
+            if (_progress?.isCompleted ?? false) ...[
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.green.shade100,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.check_circle, color: Colors.green.shade700, size: 18),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Completed! +${_progress!.xpEarned} XP',
+                      style: TextStyle(color: Colors.green.shade700, fontWeight: FontWeight.w600),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _buildInstructionsPanel(ThemeData theme, ColorScheme colorScheme) {
@@ -625,8 +774,9 @@ class _SectionScreenState extends State<SectionScreen> {
             // Back button
             OutlinedButton.icon(
               onPressed: () {
-                debugPrint('Back button pressed - navigating to /courses');
-                context.go('/courses');
+                final destination = _courseSlug != null ? '/courses/$_courseSlug' : '/courses';
+                debugPrint('Back button pressed - navigating to $destination');
+                context.go(destination);
               },
               icon: const Icon(Icons.arrow_back, size: 18),
               label: const Text('Back'),
@@ -905,13 +1055,55 @@ class _SectionScreenState extends State<SectionScreen> {
 
   Widget _buildSpreadsheetCard(ThemeData theme, ColorScheme colorScheme) {
     final isAuthenticated = Supabase.instance.client.auth.currentUser != null;
-    
+
+    // Determine which spreadsheet to show
+    final userLang = Localizations.localeOf(context).languageCode;
+    final solutionSpreadsheetUrl = _section?.getSolutionForLanguage(userLang);
+    final solutionId = solutionSpreadsheetUrl != null
+        ? _extractSpreadsheetId(solutionSpreadsheetUrl)
+        : null;
+
+    // If _showAnswer is true and we have a solution, show solution spreadsheet
+    String? spreadsheetIdToShow;
+    bool isEditable = false;
+
+    if (_showAnswer && solutionId != null && solutionId.isNotEmpty) {
+      spreadsheetIdToShow = solutionId;
+      isEditable = false;
+    } else {
+      spreadsheetIdToShow = _userSpreadsheet?.spreadsheetId ?? _section?.templateSpreadsheetId;
+      isEditable = _userSpreadsheet != null;
+    }
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            // Banner when viewing solution
+            if (_showAnswer && solutionId != null && solutionId.isNotEmpty)
+              Container(
+                margin: const EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.deepPurple.shade100,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.visibility, size: 18, color: Colors.deepPurple.shade700),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Viewing Solution Spreadsheet',
+                      style: TextStyle(
+                        color: Colors.deepPurple.shade800,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             // Horizontally scrollable container with minimum width to force desktop view
             SingleChildScrollView(
               controller: _spreadsheetScrollController,
@@ -919,10 +1111,10 @@ class _SectionScreenState extends State<SectionScreen> {
               child: SizedBox(
                 width: 900, // Minimum width to force Google Sheets desktop view
                 height: 600,
-                child: _section?.templateSpreadsheetId != null
+                child: spreadsheetIdToShow != null
                     ? EmbeddedSpreadsheet(
-                        spreadsheetId: _userSpreadsheet?.spreadsheetId ?? _section!.templateSpreadsheetId!,
-                        isEditable: _userSpreadsheet != null,
+                        spreadsheetId: spreadsheetIdToShow,
+                        isEditable: isEditable,
                       )
                     : const Center(child: Text('No spreadsheet available')),
               ),
@@ -1197,53 +1389,33 @@ class _SectionScreenState extends State<SectionScreen> {
             side: BorderSide(color: colorScheme.outline),
           ),
         ),
-        // Answer content (collapsible) - only for spreadsheet mode
-        if (solutionSpreadsheetUrl != null && solutionSpreadsheetUrl.isNotEmpty)
-          AnimatedCrossFade(
-            firstChild: const SizedBox.shrink(),
-            secondChild: Container(
-              margin: const EdgeInsets.only(top: 12),
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.deepPurple.shade50,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.deepPurple.shade300),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Icon(Icons.table_chart, size: 18, color: Colors.deepPurple.shade700),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Solution Spreadsheet',
-                        style: TextStyle(
-                          color: Colors.deepPurple.shade800,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  // Embedded solution spreadsheet
-                  Container(
-                    height: 300,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.deepPurple.shade200),
-                    ),
-                    clipBehavior: Clip.antiAlias,
-                    child: EmbeddedSpreadsheet(
-                      spreadsheetId: _extractSpreadsheetId(solutionSpreadsheetUrl) ?? solutionSpreadsheetUrl,
-                    ),
-                  ),
-                ],
-              ),
+        // Note: For spreadsheet, the solution replaces the template in the right pane
+        // No expandable section here - the right pane will show the solution when _showAnswer is true
+        if (_showAnswer && solutionSpreadsheetUrl != null && solutionSpreadsheetUrl.isNotEmpty)
+          Container(
+            margin: const EdgeInsets.only(top: 12),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.deepPurple.shade50,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.deepPurple.shade300),
             ),
-            crossFadeState: _showAnswer ? CrossFadeState.showSecond : CrossFadeState.showFirst,
-            duration: const Duration(milliseconds: 200),
+            child: Row(
+              children: [
+                Icon(Icons.visibility, size: 18, color: Colors.deepPurple.shade700),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Viewing solution spreadsheet in the right pane',
+                    style: TextStyle(
+                      color: Colors.deepPurple.shade800,
+                      fontWeight: FontWeight.w500,
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
       ],
     );
@@ -1348,14 +1520,55 @@ class _SectionScreenState extends State<SectionScreen> {
 
   /// Build spreadsheet exercise UI (existing spreadsheet functionality)
   Widget _buildSpreadsheetExercise(ThemeData theme, ColorScheme colorScheme) {
+    // Determine which spreadsheet to show
+    final userLang = Localizations.localeOf(context).languageCode;
+    final solutionSpreadsheetUrl = _section?.getSolutionForLanguage(userLang);
+    final solutionId = solutionSpreadsheetUrl != null
+        ? _extractSpreadsheetId(solutionSpreadsheetUrl)
+        : null;
+
+    // If _showAnswer is true and we have a solution, show solution spreadsheet
+    // Otherwise show user's spreadsheet or template
+    String? spreadsheetIdToShow;
+    bool isEditable = false;
+
+    if (_showAnswer && solutionId != null && solutionId.isNotEmpty) {
+      // Show the solution spreadsheet (read-only)
+      spreadsheetIdToShow = solutionId;
+      isEditable = false;
+    } else {
+      // Show user's spreadsheet or template
+      spreadsheetIdToShow = _userSpreadsheet?.spreadsheetId ?? _section?.templateSpreadsheetId;
+      isEditable = _userSpreadsheet != null;
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        // Banner when viewing solution
+        if (_showAnswer && solutionId != null && solutionId.isNotEmpty)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            color: Colors.deepPurple.shade100,
+            child: Row(
+              children: [
+                Icon(Icons.visibility, size: 18, color: Colors.deepPurple.shade700),
+                const SizedBox(width: 8),
+                Text(
+                  'Viewing Solution Spreadsheet',
+                  style: TextStyle(
+                    color: Colors.deepPurple.shade800,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
         Expanded(
-          child: kIsWeb && _section?.templateSpreadsheetId != null
+          child: kIsWeb && spreadsheetIdToShow != null
               ? EmbeddedSpreadsheet(
-                  spreadsheetId: _userSpreadsheet?.spreadsheetId ?? _section!.templateSpreadsheetId!,
-                  isEditable: _userSpreadsheet != null,
+                  spreadsheetId: spreadsheetIdToShow,
+                  isEditable: isEditable,
                 )
               : Center(
                   child: Column(

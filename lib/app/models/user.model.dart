@@ -1,4 +1,5 @@
 /// User progress and XP data models
+library;
 
 class UserProfile {
   final String id;

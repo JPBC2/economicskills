@@ -289,14 +289,7 @@ class _LessonScreenState extends State<LessonScreen> {
                 ),
                 const SizedBox(height: 24),
                 if (isAuthenticated)
-                  ElevatedButton.icon(
-                    onPressed: () {
-                      // Navigate to exercise with spreadsheet
-                      context.go('/exercises/${exercise.id}');
-                    },
-                    icon: const Icon(Icons.play_arrow),
-                    label: const Text('Start Exercise'),
-                  )
+                  _buildExerciseButtons(exercise, theme)
                 else
                   OutlinedButton.icon(
                     onPressed: () {
@@ -310,6 +303,67 @@ class _LessonScreenState extends State<LessonScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  /// Build exercise buttons based on what tools the sections support
+  Widget _buildExerciseButtons(Exercise exercise, ThemeData theme) {
+    final colorScheme = theme.colorScheme;
+    final sections = exercise.sections ?? [];
+
+    // Check which tools are supported across all sections
+    final hasSpreadsheetSection = sections.any((s) => s.supportsSpreadsheet);
+    final hasPythonSection = sections.any((s) => s.supportsPython);
+
+    // Find the first section that supports each tool for navigation
+    final spreadsheetSection = sections.cast<Section?>().firstWhere(
+      (s) => s?.supportsSpreadsheet == true,
+      orElse: () => null,
+    );
+    final pythonSection = sections.cast<Section?>().firstWhere(
+      (s) => s?.supportsPython == true,
+      orElse: () => null,
+    );
+
+    return Wrap(
+      spacing: 12,
+      runSpacing: 8,
+      children: [
+        if (hasSpreadsheetSection && spreadsheetSection != null)
+          ElevatedButton.icon(
+            onPressed: () {
+              // Build slug from section title and append -spreadsheet
+              final slug = spreadsheetSection.title
+                  .toLowerCase()
+                  .replaceAll(' ', '-')
+                  .replaceAll(RegExp(r'[^a-z0-9-]'), '');
+              context.go('/sections/$slug-spreadsheet');
+            },
+            icon: const Icon(Icons.table_chart),
+            label: const Text('Start Spreadsheet Exercise'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: colorScheme.primary,
+              foregroundColor: colorScheme.onPrimary,
+            ),
+          ),
+        if (hasPythonSection && pythonSection != null)
+          ElevatedButton.icon(
+            onPressed: () {
+              // Build slug from section title and append -python
+              final slug = pythonSection.title
+                  .toLowerCase()
+                  .replaceAll(' ', '-')
+                  .replaceAll(RegExp(r'[^a-z0-9-]'), '');
+              context.go('/sections/$slug-python');
+            },
+            icon: const Icon(Icons.code),
+            label: const Text('Start Python Exercise'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.green.shade700,
+              foregroundColor: Colors.white,
+            ),
+          ),
+      ],
     );
   }
 }

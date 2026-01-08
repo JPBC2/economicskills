@@ -6,11 +6,18 @@ import '../../widgets/translation_tabs.widget.dart';
 
 /// Section Editor with multilingual support (6 languages)
 /// Links spreadsheet templates and configures validation
+/// Supports two section types: 'python' and 'spreadsheet'
 class SectionEditorScreen extends StatefulWidget {
   final Exercise exercise;
   final Section? section;
+  final String sectionType; // 'python' or 'spreadsheet'
 
-  const SectionEditorScreen({super.key, required this.exercise, this.section});
+  const SectionEditorScreen({
+    super.key, 
+    required this.exercise, 
+    this.section,
+    this.sectionType = 'spreadsheet', // Default to spreadsheet for backwards compatibility
+  });
 
   @override
   State<SectionEditorScreen> createState() => _SectionEditorScreenState();
@@ -54,6 +61,12 @@ class _SectionEditorScreenState extends State<SectionEditorScreen> {
   late final TranslationService _translationService;
 
   bool get isEditing => widget.section != null;
+  
+  /// Get the effective section type (from existing section when editing, or from widget param for new)
+  String get effectiveSectionType => widget.section?.sectionType ?? widget.sectionType;
+  
+  /// Check if this is a Python section
+  bool get isPythonSection => effectiveSectionType == 'python';
 
   @override
   void initState() {
@@ -210,14 +223,16 @@ class _SectionEditorScreenState extends State<SectionEditorScreen> {
       return;
     }
     
-    // Check if at least one template is provided (either legacy or language-specific)
-    final hasAnyTemplate = _extractedTemplateId != null || 
-        _templateControllers.values.any((c) => _extractSpreadsheetId(c.text) != null);
-    if (!hasAnyTemplate) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter at least one template spreadsheet URL'), backgroundColor: Colors.red),
-      );
-      return;
+    // Check if at least one template is provided (only required for spreadsheet sections)
+    if (!isPythonSection) {
+      final hasAnyTemplate = _extractedTemplateId != null || 
+          _templateControllers.values.any((c) => _extractSpreadsheetId(c.text) != null);
+      if (!hasAnyTemplate) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please enter at least one template spreadsheet URL'), backgroundColor: Colors.red),
+        );
+        return;
+      }
     }
 
     setState(() => _isSaving = true);
@@ -234,20 +249,31 @@ class _SectionEditorScreenState extends State<SectionEditorScreen> {
         'instructions': englishInstructions.isEmpty ? null : englishInstructions,
         'hint': englishHint.isEmpty ? null : englishHint,
         'display_order': int.tryParse(_displayOrderController.text) ?? 1,
-        'template_spreadsheet_id': _extractedTemplateId,
         'xp_reward': int.tryParse(_xpRewardController.text) ?? 10,
-        'python_solution_code': _pythonSolutionCodeController.text.trim().isEmpty 
-            ? null 
-            : _pythonSolutionCodeController.text.trim(),
+        'section_type': effectiveSectionType,
+        'supports_python': isPythonSection,
+        'supports_spreadsheet': !isPythonSection,
       };
       
-      // Add language-specific template and solution IDs
-      for (final lang in _languages) {
-        final code = lang['code'] as String;
-        final templateId = _extractSpreadsheetId(_templateControllers[code]?.text ?? '');
-        final solutionId = _extractSpreadsheetId(_solutionControllers[code]?.text ?? '');
-        data['template_spreadsheet_$code'] = templateId;
-        data['solution_spreadsheet_$code'] = solutionId;
+      // Add spreadsheet-specific fields only for spreadsheet sections
+      if (!isPythonSection) {
+        data['template_spreadsheet_id'] = _extractedTemplateId;
+        
+        // Add language-specific template and solution IDs
+        for (final lang in _languages) {
+          final code = lang['code'] as String;
+          final templateId = _extractSpreadsheetId(_templateControllers[code]?.text ?? '');
+          final solutionId = _extractSpreadsheetId(_solutionControllers[code]?.text ?? '');
+          data['template_spreadsheet_$code'] = templateId;
+          data['solution_spreadsheet_$code'] = solutionId;
+        }
+      }
+      
+      // Add Python-specific fields only for Python sections
+      if (isPythonSection) {
+        data['python_solution_code'] = _pythonSolutionCodeController.text.trim().isEmpty 
+            ? null 
+            : _pythonSolutionCodeController.text.trim();
       }
 
       String sectionId;
@@ -318,10 +344,13 @@ class _SectionEditorScreenState extends State<SectionEditorScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final sectionTypeLabel = isPythonSection ? 'Python' : 'Spreadsheet';
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(isEditing ? 'Edit Section' : 'New Section'),
+        title: Text(isEditing 
+            ? 'Edit $sectionTypeLabel Section' 
+            : 'New $sectionTypeLabel Section'),
         actions: [
           FilledButton(
             onPressed: _isSaving ? null : _save,
@@ -336,52 +365,119 @@ class _SectionEditorScreenState extends State<SectionEditorScreen> {
           ? const Center(child: CircularProgressIndicator())
           : Form(
               key: _formKey,
-              child: Row(
-                children: [
-                  Expanded(
-                    flex: 2,
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.all(24),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Card(
-                            color: colorScheme.surfaceContainerHighest,
-                            child: Padding(
-                              padding: const EdgeInsets.all(12),
-                              child: Row(
-                                children: [
-                                  Icon(Icons.assignment, size: 20, color: Colors.orange.shade700),
-                                  const SizedBox(width: 8),
-                                  Expanded(child: Text('Exercise: ${widget.exercise.title}',
-                                      style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500))),
-                                ],
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-                          Card(
-                            child: Padding(
-                              padding: const EdgeInsets.all(16),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text('Section Details', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                                  const SizedBox(height: 16),
-                                  TranslationTabs(
-                                    fields: const [
-                                      TranslationField(key: 'title', label: 'Title', isRequired: true, hint: 'e.g., Cashflows'),
-                                      TranslationField(key: 'explanation', label: 'Explanation', maxLines: 4, isResizable: true, hint: 'Brief explanation of the topic (e.g., "Companies pay dividends throughout the year")'),
-                                      TranslationField(key: 'instructions', label: 'Instructions', maxLines: 6, isResizable: true, hint: 'Step-by-step instructions for students to follow'),
-                                      TranslationField(key: 'hint', label: 'Hint', maxLines: 4, isResizable: true, hint: 'Help text shown when student clicks "Take a hint" (reduces XP by 30%)'),
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(24),
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 800),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Section type indicator
+                        Card(
+                          color: isPythonSection 
+                              ? Colors.deepPurple.shade50 
+                              : Colors.green.shade50,
+                          child: Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  isPythonSection ? Icons.code : Icons.table_chart,
+                                  size: 20, 
+                                  color: isPythonSection 
+                                      ? Colors.deepPurple.shade700 
+                                      : Colors.green.shade700,
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        isPythonSection ? 'Python Section' : 'Spreadsheet Section',
+                                        style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+                                      ),
+                                      Text(
+                                        'Exercise: ${widget.exercise.title}',
+                                        style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
+                                      ),
                                     ],
-                                    translations: _translations,
-                                    onChanged: (t) => setState(() => _translations = t),
                                   ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
                           ),
+                        ),
+                        const SizedBox(height: 24),
+                        
+                        // Section Details (Title, Explanation, Instructions, Hint)
+                        Card(
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Section Details', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                                const SizedBox(height: 16),
+                                TranslationTabs(
+                                  fields: const [
+                                    TranslationField(key: 'title', label: 'Title', isRequired: true, hint: 'e.g., Cashflows'),
+                                    TranslationField(key: 'explanation', label: 'Explanation', maxLines: 4, isResizable: true, hint: 'Brief explanation of the topic'),
+                                    TranslationField(key: 'instructions', label: 'Instructions', maxLines: 6, isResizable: true, hint: 'Step-by-step instructions for students'),
+                                    TranslationField(key: 'hint', label: 'Hint', maxLines: 4, isResizable: true, hint: 'Help text shown when student clicks "Take a hint" (reduces XP by 30%)'),
+                                  ],
+                                  translations: _translations,
+                                  onChanged: (t) => setState(() => _translations = t),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        
+                        // Settings (Display Order, XP Reward) - moved here after Hint
+                        Card(
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Settings', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                                const SizedBox(height: 16),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: TextFormField(
+                                        controller: _displayOrderController, 
+                                        decoration: const InputDecoration(
+                                          labelText: 'Display Order', 
+                                          border: OutlineInputBorder(),
+                                        ), 
+                                        keyboardType: TextInputType.number,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 16),
+                                    Expanded(
+                                      child: TextFormField(
+                                        controller: _xpRewardController, 
+                                        decoration: const InputDecoration(
+                                          labelText: 'XP Reward', 
+                                          border: OutlineInputBorder(), 
+                                          prefixIcon: Icon(Icons.star),
+                                        ), 
+                                        keyboardType: TextInputType.number,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        
+                        // SPREADSHEET-ONLY: Template & Solution Spreadsheets
+                        if (!isPythonSection) ...[
                           const SizedBox(height: 16),
                           Card(
                             child: Padding(
@@ -398,7 +494,7 @@ class _SectionEditorScreenState extends State<SectionEditorScreen> {
                                   ),
                                   const SizedBox(height: 8),
                                   Text(
-                                    'Configure spreadsheet templates for each language. Students will see the template matching their selected language.',
+                                    'Configure spreadsheet templates for each language.',
                                     style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
                                   ),
                                   const SizedBox(height: 16),
@@ -427,99 +523,31 @@ class _SectionEditorScreenState extends State<SectionEditorScreen> {
                                     }).toList(),
                                   ),
                                   const SizedBox(height: 16),
-                                  // Template URL for selected language
                                   TextFormField(
                                     controller: _templateControllers[_selectedSpreadsheetLang],
                                     decoration: InputDecoration(
                                       labelText: 'Template Spreadsheet URL (${_languages.firstWhere((l) => l['code'] == _selectedSpreadsheetLang)['label']})',
                                       border: const OutlineInputBorder(),
                                       prefixIcon: const Icon(Icons.link),
-                                      hintText: 'https://docs.google.com/spreadsheets/d/.../edit',
                                     ),
                                     onChanged: (_) => setState(() {}),
                                   ),
                                   const SizedBox(height: 16),
-                                  // Solution URL for selected language
                                   TextFormField(
                                     controller: _solutionControllers[_selectedSpreadsheetLang],
                                     decoration: InputDecoration(
                                       labelText: 'Solution Spreadsheet URL (${_languages.firstWhere((l) => l['code'] == _selectedSpreadsheetLang)['label']}) - Optional',
                                       border: const OutlineInputBorder(),
                                       prefixIcon: const Icon(Icons.verified),
-                                      hintText: 'https://docs.google.com/spreadsheets/d/.../edit',
                                     ),
                                     onChanged: (_) => setState(() {}),
                                   ),
-                                  const SizedBox(height: 12),
-                                  // Show extracted IDs
-                                  Builder(builder: (context) {
-                                    final templateId = _extractSpreadsheetId(_templateControllers[_selectedSpreadsheetLang]?.text ?? '');
-                                    final solutionId = _extractSpreadsheetId(_solutionControllers[_selectedSpreadsheetLang]?.text ?? '');
-                                    if (templateId == null && solutionId == null) return const SizedBox.shrink();
-                                    return Container(
-                                      padding: const EdgeInsets.all(12),
-                                      decoration: BoxDecoration(color: Colors.green.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          if (templateId != null)
-                                            Row(
-                                              children: [
-                                                const Icon(Icons.check_circle, color: Colors.green, size: 16),
-                                                const SizedBox(width: 6),
-                                                Text('Template: ', style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600)),
-                                                Expanded(child: Text(templateId, style: theme.textTheme.bodySmall?.copyWith(fontFamily: 'monospace'))),
-                                              ],
-                                            ),
-                                          if (solutionId != null) ...[
-                                            if (templateId != null) const SizedBox(height: 4),
-                                            Row(
-                                              children: [
-                                                const Icon(Icons.check_circle, color: Colors.blue, size: 16),
-                                                const SizedBox(width: 6),
-                                                Text('Solution: ', style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600)),
-                                                Expanded(child: Text(solutionId, style: theme.textTheme.bodySmall?.copyWith(fontFamily: 'monospace'))),
-                                              ],
-                                            ),
-                                          ],
-                                        ],
-                                      ),
-                                    );
-                                  }),
                                 ],
                               ),
                             ),
                           ),
                           const SizedBox(height: 16),
-                          // Legacy template (for backward compatibility)
-                          ExpansionTile(
-                            tilePadding: EdgeInsets.zero,
-                            title: Text('Legacy Template (Optional)', style: theme.textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant)),
-                            children: [
-                              Card(
-                                child: Padding(
-                                  padding: const EdgeInsets.all(16),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text('This is the fallback template used when no language-specific template is available.', style: theme.textTheme.bodySmall),
-                                      const SizedBox(height: 12),
-                                      TextFormField(
-                                        controller: _templateUrlController,
-                                        decoration: const InputDecoration(
-                                          labelText: 'Legacy Template URL',
-                                          border: OutlineInputBorder(),
-                                          prefixIcon: Icon(Icons.link),
-                                        ),
-                                        onChanged: _onTemplateUrlChanged,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
+                          // Validation Settings
                           Card(
                             child: Padding(
                               padding: const EdgeInsets.all(16),
@@ -548,7 +576,30 @@ class _SectionEditorScreenState extends State<SectionEditorScreen> {
                             ),
                           ),
                           const SizedBox(height: 16),
-                          // Python Solution Code
+                          // Warning card for spreadsheet sections
+                          Card(
+                            color: Colors.amber.withValues(alpha: 0.1),
+                            child: Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Row(
+                                children: [
+                                  Icon(Icons.warning_amber, size: 20, color: Colors.amber.shade700),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Text(
+                                      'Share the template spreadsheet with your service account email.',
+                                      style: theme.textTheme.bodySmall?.copyWith(color: Colors.amber.shade900),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                        
+                        // PYTHON-ONLY: Python Solution Code
+                        if (isPythonSection) ...[
+                          const SizedBox(height: 16),
                           Card(
                             child: Padding(
                               padding: const EdgeInsets.all(16),
@@ -573,7 +624,7 @@ class _SectionEditorScreenState extends State<SectionEditorScreen> {
                                     maxLines: 12,
                                     style: const TextStyle(fontFamily: 'monospace', fontSize: 13),
                                     decoration: InputDecoration(
-                                      labelText: 'Python Solution Code (Optional)',
+                                      labelText: 'Python Solution Code',
                                       border: const OutlineInputBorder(),
                                       alignLabelWithHint: true,
                                       hintText: '# Complete Python solution...\nimport pandas as pd\n\n# Load data...',
@@ -584,23 +635,15 @@ class _SectionEditorScreenState extends State<SectionEditorScreen> {
                                   // Test in Browser button
                                   if (isEditing)
                                     Tooltip(
-                                      message: 'Opens the section in your web browser to test the solution code with real validation',
+                                      message: 'Opens the section in your web browser to test the solution code',
                                       child: OutlinedButton.icon(
                                         onPressed: () async {
-                                          // Generate URL-friendly slug from section title
                                           final title = widget.section!.title.toLowerCase()
                                               .replaceAll(RegExp(r'[^a-z0-9]+'), '-')
                                               .replaceAll(RegExp(r'^-|-$'), '');
                                           final url = 'http://localhost:3000/#/sections/$title';
-                                          
                                           if (await canLaunchUrl(Uri.parse(url))) {
                                             await launchUrl(Uri.parse(url));
-                                          } else {
-                                            if (mounted) {
-                                              ScaffoldMessenger.of(context).showSnackBar(
-                                                const SnackBar(content: Text('Could not open browser. Make sure the web app is running on localhost:3000')),
-                                              );
-                                            }
                                           }
                                         },
                                         icon: const Icon(Icons.open_in_browser),
@@ -612,49 +655,10 @@ class _SectionEditorScreenState extends State<SectionEditorScreen> {
                             ),
                           ),
                         ],
-                      ),
+                      ],
                     ),
                   ),
-                  Container(
-                    width: 300,
-                    decoration: BoxDecoration(border: Border(left: BorderSide(color: colorScheme.outlineVariant))),
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.all(24),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Settings', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                          const SizedBox(height: 16),
-                          TextFormField(controller: _displayOrderController, decoration: const InputDecoration(labelText: 'Display Order', border: OutlineInputBorder()), keyboardType: TextInputType.number),
-                          const SizedBox(height: 16),
-                          TextFormField(controller: _xpRewardController, decoration: const InputDecoration(labelText: 'XP Reward', border: OutlineInputBorder(), prefixIcon: Icon(Icons.star)), keyboardType: TextInputType.number),
-                          const SizedBox(height: 24),
-                          Card(
-                            color: Colors.amber.withValues(alpha: 0.1),
-                            child: Padding(
-                              padding: const EdgeInsets.all(16),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: [
-                                      Icon(Icons.warning_amber, size: 20, color: Colors.amber.shade700),
-                                      const SizedBox(width: 8),
-                                      Text('Important', style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold, color: Colors.amber.shade800)),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 12),
-                                  Text('Share the template spreadsheet with your service account email.',
-                                      style: theme.textTheme.bodySmall?.copyWith(color: Colors.amber.shade900)),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
     );

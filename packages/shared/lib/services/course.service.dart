@@ -90,14 +90,31 @@ class CourseService {
           )
         ''');
 
-    // Convert hyphens to underscores for database lookup (slugs stored with underscores)
-    final dbSlug = identifier.replaceAll('-', '_');
-    
-    final response = await (isUuid 
-        ? query.eq('id', identifier)
-        : query.eq('slug', dbSlug))
-        .eq('is_active', true)
-        .single();
+    dynamic response;
+    if (isUuid) {
+      response = await query
+          .eq('id', identifier)
+          .eq('is_active', true)
+          .single();
+    } else {
+      // Try exact slug match first (with underscores)
+      final dbSlug = identifier.replaceAll('-', '_');
+      try {
+        response = await query
+            .eq('slug', dbSlug)
+            .eq('is_active', true)
+            .single();
+      } catch (e) {
+        // If exact match fails, try flexible title matching (like sections do)
+        // Convert slug to search pattern: "decision-making-under-scarcity" -> "%decision%making%under%scarcity%"
+        final searchTitle = identifier.replaceAll('-', '%').replaceAll('_', '%');
+        response = await query
+            .ilike('title', '%$searchTitle%')
+            .eq('is_active', true)
+            .limit(1)
+            .single();
+      }
+    }
 
     return Lesson.fromJson(response);
   }
