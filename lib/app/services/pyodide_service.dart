@@ -438,54 +438,120 @@ check_type(${varName}, '${expectedType}')
   /// Evaluate JavaScript code and return result as String
   Future<String> _evalJS(String code) async {
     final completer = Completer<String>();
+    final callbackId = 'pyodide_callback_${DateTime.now().millisecondsSinceEpoch}';
 
-    try {
-      // Use Function constructor to evaluate async JS
-      final jsCode = '''
-        (async () => {
-          try {
-            const result = await (${code});
-            return result;
-          } catch (e) {
-            throw new Error(e.toString());
-          }
-        })()
-      ''';
+    // Create callback function in window scope
+    final setupCallback = '''
+      window['${callbackId}_resolve'] = function(result) {
+        window['${callbackId}_result'] = result;
+      };
+      window['${callbackId}_reject'] = function(error) {
+        window['${callbackId}_error'] = error;
+      };
+    ''';
 
-      // This is a simplified version - in production, use proper JS interop
-      final result = web.window.eval(jsCode);
+    // Execute the async code with callback
+    final jsCode = '''
+      (async () => {
+        try {
+          const result = await (${code});
+          window['${callbackId}_resolve'](result != null ? String(result) : '');
+        } catch (e) {
+          window['${callbackId}_reject'](e.toString());
+        }
+      })();
+    ''';
 
-      // Handle promises
-      if (result != null) {
-        // Wait for promise to resolve
-        _waitForPromise(result, completer);
-      } else {
-        completer.complete('');
-      }
-    } catch (e) {
-      completer.completeError(e);
-    }
+    // Inject setup callback
+    _injectScript(setupCallback);
+
+    // Inject main script
+    _injectScript(jsCode);
+
+    // Poll for result
+    _pollForResult(callbackId, completer);
 
     return completer.future;
   }
 
-  /// Wait for a JavaScript promise to resolve
-  void _waitForPromise(JSAny result, Completer<String> completer) {
-    // Convert JSAny to Promise and wait
-    // This is a simplified implementation
-    // In production, use proper promise handling with js_interop
+  /// Inject JavaScript code into the page
+  void _injectScript(String code) {
+    final script = web.document.createElement('script') as web.HTMLScriptElement;
+    script.textContent = code;
+    web.document.head!.appendChild(script);
+    // Remove script after execution
+    script.remove();
+  }
 
-    final callback = ((JSAny? value) {
-      completer.complete(value?.toString() ?? '');
-    }).toJS;
+  /// Poll for JavaScript callback result
+  void _pollForResult(String callbackId, Completer<String> completer, [int attempts = 0]) {
+    const maxAttempts = 100; // 10 seconds max
+    const pollInterval = Duration(milliseconds: 100);
 
-    final errorCallback = ((JSAny? error) {
-      completer.completeError(error?.toString() ?? 'Unknown error');
-    }).toJS;
+    if (attempts >= maxAttempts) {
+      completer.completeError('JavaScript execution timeout');
+      _cleanupCallback(callbackId);
+      return;
+    }
 
-    // Call then() on the promise
-    result.callMethod('then'.toJS, callback);
-    result.callMethod('catch'.toJS, errorCallback);
+    // Check if result is available
+    final checkScript = '''
+      (function() {
+        if (window['${callbackId}_result'] !== undefined) {
+          return window['${callbackId}_result'];
+        } else if (window['${callbackId}_error'] !== undefined) {
+          return 'ERROR:' + window['${callbackId}_error'];
+        }
+        return null;
+      })();
+    ''';
+
+    try {
+      // Use a getter approach to check window properties
+      final resultCheck = web.document.createElement('script') as web.HTMLScriptElement;
+      resultCheck.id = '${callbackId}_check';
+      resultCheck.textContent = '''
+        if (window['${callbackId}_result'] !== undefined) {
+          document.getElementById('${callbackId}_check').dataset.result = window['${callbackId}_result'];
+        } else if (window['${callbackId}_error'] !== undefined) {
+          document.getElementById('${callbackId}_check').dataset.error = window['${callbackId}_error'];
+        }
+      ''';
+      web.document.head!.appendChild(resultCheck);
+
+      final resultAttr = resultCheck.dataset['result'];
+      final errorAttr = resultCheck.dataset['error'];
+
+      resultCheck.remove();
+
+      if (resultAttr != null) {
+        completer.complete(resultAttr);
+        _cleanupCallback(callbackId);
+        return;
+      } else if (errorAttr != null) {
+        completer.completeError(errorAttr);
+        _cleanupCallback(callbackId);
+        return;
+      }
+    } catch (e) {
+      // Continue polling
+    }
+
+    // Poll again after delay
+    Future.delayed(pollInterval, () {
+      _pollForResult(callbackId, completer, attempts + 1);
+    });
+  }
+
+  /// Clean up callback functions
+  void _cleanupCallback(String callbackId) {
+    final cleanup = '''
+      delete window['${callbackId}_resolve'];
+      delete window['${callbackId}_reject'];
+      delete window['${callbackId}_result'];
+      delete window['${callbackId}_error'];
+    ''';
+    _injectScript(cleanup);
   }
 
   /// Escape Python code for embedding in JavaScript string
@@ -544,14 +610,3 @@ class ValidationFeedback {
     required this.message,
   });
 }
-
-// Helper extension for JSAny
-extension on JSAny {
-  void callMethod(JSAny name, JSAny arg) {
-    // This is a placeholder - proper implementation would use js_interop
-    // to call methods on JavaScript objects
-  }
-}
-
-// Import for jsonDecode
-import 'dart:convert';

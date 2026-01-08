@@ -748,6 +748,16 @@ class _SectionScreenState extends State<SectionScreen> {
     final supportsPython = _section?.supportsPython ?? false;
     final showTabs = supportsSpreadsheet && supportsPython;
 
+    // Auto-select the only available tool if only one is supported
+    final String effectiveTool;
+    if (!supportsSpreadsheet && supportsPython) {
+      effectiveTool = 'python';
+    } else if (supportsSpreadsheet && !supportsPython) {
+      effectiveTool = 'spreadsheet';
+    } else {
+      effectiveTool = _selectedTool;
+    }
+
     return Container(
       color: colorScheme.surfaceContainerLowest,
       child: Column(
@@ -766,7 +776,7 @@ class _SectionScreenState extends State<SectionScreen> {
                   _buildToolTab(
                     icon: Icons.table_chart,
                     label: 'Google Sheets',
-                    isSelected: _selectedTool == 'spreadsheet',
+                    isSelected: effectiveTool == 'spreadsheet',
                     onTap: () => setState(() => _selectedTool = 'spreadsheet'),
                     colorScheme: colorScheme,
                   ),
@@ -774,7 +784,7 @@ class _SectionScreenState extends State<SectionScreen> {
                   _buildToolTab(
                     icon: Icons.code,
                     label: 'Python',
-                    isSelected: _selectedTool == 'python',
+                    isSelected: effectiveTool == 'python',
                     onTap: () => setState(() => _selectedTool = 'python'),
                     colorScheme: colorScheme,
                   ),
@@ -784,13 +794,13 @@ class _SectionScreenState extends State<SectionScreen> {
 
           // Exercise content area
           Expanded(
-            child: _selectedTool == 'python' && supportsPython
+            child: effectiveTool == 'python' && supportsPython
                 ? _buildPythonExercise(theme, colorScheme)
                 : _buildSpreadsheetExercise(theme, colorScheme),
           ),
 
           // Bottom action bar (only for spreadsheet)
-          if (isAuthenticated && _selectedTool == 'spreadsheet')
+          if (isAuthenticated && effectiveTool == 'spreadsheet')
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
