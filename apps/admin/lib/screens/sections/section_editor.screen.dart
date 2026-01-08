@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared/shared.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../main.dart';
 import '../../widgets/translation_tabs.widget.dart';
 
@@ -579,6 +580,33 @@ class _SectionEditorScreenState extends State<SectionEditorScreen> {
                                       hintStyle: TextStyle(color: Colors.grey.shade400, fontFamily: 'monospace'),
                                     ),
                                   ),
+                                  const SizedBox(height: 16),
+                                  // Test in Browser button
+                                  if (isEditing)
+                                    Tooltip(
+                                      message: 'Opens the section in your web browser to test the solution code with real validation',
+                                      child: OutlinedButton.icon(
+                                        onPressed: () async {
+                                          // Generate URL-friendly slug from section title
+                                          final title = widget.section!.title.toLowerCase()
+                                              .replaceAll(RegExp(r'[^a-z0-9]+'), '_')
+                                              .replaceAll(RegExp(r'^_|_$'), '');
+                                          final url = 'http://localhost:3000/#/sections/$title';
+                                          
+                                          if (await canLaunchUrl(Uri.parse(url))) {
+                                            await launchUrl(Uri.parse(url));
+                                          } else {
+                                            if (mounted) {
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                const SnackBar(content: Text('Could not open browser. Make sure the web app is running on localhost:3000')),
+                                              );
+                                            }
+                                          }
+                                        },
+                                        icon: const Icon(Icons.open_in_browser),
+                                        label: const Text('Test in Browser'),
+                                      ),
+                                    ),
                                 ],
                               ),
                             ),
