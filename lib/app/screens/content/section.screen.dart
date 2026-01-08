@@ -116,10 +116,18 @@ class _SectionScreenState extends State<SectionScreen> {
       // This ensures users can't access /sections/slug directly - they must use -spreadsheet or -python
       if (requestedTool == null && mounted) {
         // Build the canonical slug from section title
-        final canonicalSlug = section.title
+        var canonicalSlug = section.title
             .toLowerCase()
             .replaceAll(' ', '-')
             .replaceAll(RegExp(r'[^a-z0-9-]'), '');
+
+        // Remove any existing tool suffixes from the slug to avoid double suffixes
+        // e.g., "1-annual-dividends-spreadsheet" -> "1-annual-dividends"
+        if (canonicalSlug.endsWith('-spreadsheet')) {
+          canonicalSlug = canonicalSlug.substring(0, canonicalSlug.length - '-spreadsheet'.length);
+        } else if (canonicalSlug.endsWith('-python')) {
+          canonicalSlug = canonicalSlug.substring(0, canonicalSlug.length - '-python'.length);
+        }
 
         // Determine which suffix to use based on what the section supports
         String suffix;
@@ -421,7 +429,22 @@ class _SectionScreenState extends State<SectionScreen> {
   }
 
   Future<void> _validateSpreadsheet() async {
-    if (_userSpreadsheet == null) return;
+    // Determine which spreadsheet to validate based on what's being displayed
+    final userLang = Localizations.localeOf(context).languageCode;
+    final solutionSpreadsheetUrl = _section?.getSolutionForLanguage(userLang);
+    final solutionId = solutionSpreadsheetUrl != null
+        ? _extractSpreadsheetId(solutionSpreadsheetUrl)
+        : null;
+
+    // If showing answer, validate the solution spreadsheet; otherwise validate user's spreadsheet
+    String? spreadsheetIdToValidate;
+    if (_showAnswer && solutionId != null && solutionId.isNotEmpty) {
+      spreadsheetIdToValidate = solutionId;
+    } else if (_userSpreadsheet != null) {
+      spreadsheetIdToValidate = _userSpreadsheet!.spreadsheetId;
+    }
+
+    if (spreadsheetIdToValidate == null) return;
 
     setState(() {
       _isValidating = true;
@@ -430,9 +453,10 @@ class _SectionScreenState extends State<SectionScreen> {
 
     try {
       final result = await _spreadsheetService.validateSpreadsheet(
-        spreadsheetId: _userSpreadsheet!.spreadsheetId,
+        spreadsheetId: spreadsheetIdToValidate,
         sectionId: _section!.id,
         hintUsed: _showHint,
+        answerUsed: _showAnswer, // Pass answer flag for XP penalty
       );
 
       setState(() {
@@ -1093,7 +1117,7 @@ class _SectionScreenState extends State<SectionScreen> {
 
     if (_showAnswer && solutionId != null && solutionId.isNotEmpty) {
       spreadsheetIdToShow = solutionId;
-      isEditable = false;
+      isEditable = true; // Solution spreadsheet should be editable
     } else {
       spreadsheetIdToShow = _userSpreadsheet?.spreadsheetId ?? _section?.templateSpreadsheetId;
       isEditable = _userSpreadsheet != null;
@@ -1557,9 +1581,9 @@ class _SectionScreenState extends State<SectionScreen> {
     bool isEditable = false;
 
     if (_showAnswer && solutionId != null && solutionId.isNotEmpty) {
-      // Show the solution spreadsheet (read-only)
+      // Show the solution spreadsheet (editable copy)
       spreadsheetIdToShow = solutionId;
-      isEditable = false;
+      isEditable = true;
     } else {
       // Show user's spreadsheet or template
       spreadsheetIdToShow = _userSpreadsheet?.spreadsheetId ?? _section?.templateSpreadsheetId;

@@ -471,8 +471,16 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
           FilledButton.tonal(
             onPressed: () {
               // Navigate using slug (title converted to URL-friendly format)
-              final slug = section.title.toLowerCase().replaceAll(' ', '-').replaceAll(RegExp(r'[^a-z0-9-]'), '');
-              context.go('/sections/$slug');
+              var slug = section.title.toLowerCase().replaceAll(' ', '-').replaceAll(RegExp(r'[^a-z0-9-]'), '');
+              // Remove existing tool suffixes to avoid double suffixes
+              if (slug.endsWith('-spreadsheet')) {
+                slug = slug.substring(0, slug.length - '-spreadsheet'.length);
+              } else if (slug.endsWith('-python')) {
+                slug = slug.substring(0, slug.length - '-python'.length);
+              }
+              // Add appropriate suffix based on what the section supports
+              final suffix = section.supportsSpreadsheet ? '-spreadsheet' : '-python';
+              context.go('/sections/$slug$suffix');
             },
             style: FilledButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 12)),
             child: const Text('Start', style: TextStyle(fontSize: 12)),

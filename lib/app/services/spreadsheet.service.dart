@@ -43,6 +43,7 @@ class SpreadsheetService {
     required String spreadsheetId,
     required String sectionId,
     bool hintUsed = false,
+    bool answerUsed = false,
   }) async {
     final user = _supabase.auth.currentUser;
     if (user == null) throw Exception('User not authenticated');
@@ -54,6 +55,7 @@ class SpreadsheetService {
         'section_id': sectionId,
         'user_id': user.id,
         'hint_used': hintUsed,
+        'answer_used': answerUsed,
       },
     );
 

@@ -333,10 +333,16 @@ class _LessonScreenState extends State<LessonScreen> {
           ElevatedButton.icon(
             onPressed: () {
               // Build slug from section title and append -spreadsheet
-              final slug = spreadsheetSection.title
+              var slug = spreadsheetSection.title
                   .toLowerCase()
                   .replaceAll(' ', '-')
                   .replaceAll(RegExp(r'[^a-z0-9-]'), '');
+              // Remove existing tool suffixes to avoid double suffixes
+              if (slug.endsWith('-spreadsheet')) {
+                slug = slug.substring(0, slug.length - '-spreadsheet'.length);
+              } else if (slug.endsWith('-python')) {
+                slug = slug.substring(0, slug.length - '-python'.length);
+              }
               context.go('/sections/$slug-spreadsheet');
             },
             icon: const Icon(Icons.table_chart),
@@ -350,10 +356,16 @@ class _LessonScreenState extends State<LessonScreen> {
           ElevatedButton.icon(
             onPressed: () {
               // Build slug from section title and append -python
-              final slug = pythonSection.title
+              var slug = pythonSection.title
                   .toLowerCase()
                   .replaceAll(' ', '-')
                   .replaceAll(RegExp(r'[^a-z0-9-]'), '');
+              // Remove existing tool suffixes to avoid double suffixes
+              if (slug.endsWith('-spreadsheet')) {
+                slug = slug.substring(0, slug.length - '-spreadsheet'.length);
+              } else if (slug.endsWith('-python')) {
+                slug = slug.substring(0, slug.length - '-python'.length);
+              }
               context.go('/sections/$slug-python');
             },
             icon: const Icon(Icons.code),
