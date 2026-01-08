@@ -68,9 +68,10 @@ class TopNav extends ConsumerWidget implements PreferredSizeWidget {
           l10n: l10n,
           // inDevelopment: true, // Removed assumption, treating as nav
         ),
-        // Account / Sign In button (auth-aware)
-        Builder(
-          builder: (context) {
+        // Account / Sign In button (auth-aware with StreamBuilder)
+        StreamBuilder(
+          stream: supabase.auth.onAuthStateChange,
+          builder: (context, snapshot) {
             final user = supabase.auth.currentUser;
             final bool isAuthenticated = user != null;
             
