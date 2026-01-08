@@ -171,78 +171,118 @@ class _UnitEditorScreenState extends State<UnitEditorScreen> {
           ? const Center(child: CircularProgressIndicator())
           : Form(
               key: _formKey,
-              child: Row(
-                children: [
-                  Expanded(
-                    flex: 2,
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.all(24),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Card(
-                            color: colorScheme.surfaceContainerHighest,
-                            child: Padding(
-                              padding: const EdgeInsets.all(12),
-                              child: Row(
-                                children: [
-                                  Icon(Icons.school, size: 20, color: colorScheme.primary),
-                                  const SizedBox(width: 8),
-                                  Text('Course: ${widget.course.title}',
-                                      style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500)),
-                                ],
-                              ),
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Course context card
+                    Card(
+                      color: colorScheme.surfaceContainerHighest,
+                      child: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Row(
+                          children: [
+                            Icon(Icons.school, size: 20, color: colorScheme.primary),
+                            const SizedBox(width: 8),
+                            Text('Course: ${widget.course.title}',
+                                style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500)),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    
+                    // Content (Title, Description)
+                    Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Content', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                            const SizedBox(height: 16),
+                            TranslationTabs(
+                              fields: const [
+                                TranslationField(key: 'title', label: 'Title', isRequired: true, hint: 'e.g., Fundamentals'),
+                                TranslationField(key: 'description', label: 'Description', maxLines: 4, isResizable: true),
+                              ],
+                              translations: _translations,
+                              onChanged: (t) => setState(() => _translations = t),
                             ),
-                          ),
-                          const SizedBox(height: 24),
-                          Card(
-                            child: Padding(
-                              padding: const EdgeInsets.all(16),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text('Content', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                                  const SizedBox(height: 16),
-                                  TranslationTabs(
-                                    fields: const [
-                                      TranslationField(key: 'title', label: 'Title', isRequired: true, hint: 'e.g., Fundamentals'),
-                                      TranslationField(key: 'description', label: 'Description', maxLines: 4, isResizable: true),
-                                    ],
-                                    translations: _translations,
-                                    onChanged: (t) => setState(() => _translations = t),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    
+                    // Settings (moved from right pane)
+                    Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Settings', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                            const SizedBox(height: 16),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: TextFormField(
+                                    controller: _displayOrderController, 
+                                    decoration: const InputDecoration(
+                                      labelText: 'Display Order', 
+                                      border: OutlineInputBorder(),
+                                    ), 
+                                    keyboardType: TextInputType.number,
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: SwitchListTile(
+                                    title: const Text('Active'),
+                                    subtitle: const Text('Visible to students'),
+                                    value: _isActive,
+                                    onChanged: (v) => setState(() => _isActive = v),
+                                    contentPadding: EdgeInsets.zero,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: SwitchListTile(
+                                    title: const Text('Premium Unit'),
+                                    subtitle: const Text('Requires XP to unlock'),
+                                    value: _isPremium,
+                                    onChanged: (v) => setState(() => _isPremium = v),
+                                    contentPadding: EdgeInsets.zero,
+                                  ),
+                                ),
+                                if (_isPremium) ...[
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: TextFormField(
+                                      controller: _unlockCostController, 
+                                      decoration: const InputDecoration(
+                                        labelText: 'Unlock Cost (XP)', 
+                                        border: OutlineInputBorder(), 
+                                        prefixIcon: Icon(Icons.star),
+                                      ), 
+                                      keyboardType: TextInputType.number,
+                                    ),
                                   ),
                                 ],
-                              ),
+                              ],
                             ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  Container(
-                    width: 300,
-                    decoration: BoxDecoration(border: Border(left: BorderSide(color: colorScheme.outlineVariant))),
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.all(24),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Settings', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                          const SizedBox(height: 16),
-                          SwitchListTile(title: const Text('Active'), subtitle: const Text('Visible to students'), value: _isActive, onChanged: (v) => setState(() => _isActive = v)),
-                          const Divider(),
-                          SwitchListTile(title: const Text('Premium Unit'), subtitle: const Text('Requires XP to unlock'), value: _isPremium, onChanged: (v) => setState(() => _isPremium = v)),
-                          if (_isPremium) ...[
-                            const SizedBox(height: 16),
-                            TextFormField(controller: _unlockCostController, decoration: const InputDecoration(labelText: 'Unlock Cost (XP)', border: OutlineInputBorder(), prefixIcon: Icon(Icons.star)), keyboardType: TextInputType.number),
                           ],
-                          const SizedBox(height: 16),
-                          TextFormField(controller: _displayOrderController, decoration: const InputDecoration(labelText: 'Display Order', border: OutlineInputBorder()), keyboardType: TextInputType.number),
-                        ],
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
     );

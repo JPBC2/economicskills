@@ -139,98 +139,84 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
           ? const Center(child: CircularProgressIndicator())
           : Form(
               key: _formKey,
-              child: Row(
-                children: [
-                  Expanded(
-                    flex: 2,
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.all(24),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Card(
-                            color: colorScheme.surfaceContainerHighest,
-                            child: Padding(
-                              padding: const EdgeInsets.all(12),
-                              child: Row(
-                                children: [
-                                  Icon(Icons.book, size: 20, color: colorScheme.tertiary),
-                                  const SizedBox(width: 8),
-                                  Text('Lesson ${widget.lesson.displayOrder}: ${widget.lesson.title}',
-                                      style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500)),
-                                ],
-                              ),
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                        // Lesson context card
+                        Card(
+                          color: colorScheme.surfaceContainerHighest,
+                          child: Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: Row(
+                              children: [
+                                Icon(Icons.book, size: 20, color: colorScheme.tertiary),
+                                const SizedBox(width: 8),
+                                Text('Lesson ${widget.lesson.displayOrder}: ${widget.lesson.title}',
+                                    style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500)),
+                              ],
                             ),
                           ),
-                          const SizedBox(height: 24),
-                          Card(
-                            child: Padding(
-                              padding: const EdgeInsets.all(16),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text('Exercise Details', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                                  const SizedBox(height: 16),
-                                  TranslationTabs(
-                                    fields: const [
-                                      TranslationField(key: 'title', label: 'Title', isRequired: true, hint: 'e.g., Calculating the economic profit of investments'),
-                                      TranslationField(key: 'instructions', label: 'Overview', maxLines: 10, isRequired: true, isResizable: true, hint: 'Brief explanation of what this exercise covers'),
-                                    ],
-                                    translations: _translations,
-                                    onChanged: (t) => setState(() => _translations = t),
-                                  ),
-                                ],
-                              ),
+                        ),
+                        const SizedBox(height: 24),
+                        
+                        // Exercise Details
+                        Card(
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Exercise Details', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                                const SizedBox(height: 16),
+                                TranslationTabs(
+                                  fields: const [
+                                    TranslationField(key: 'title', label: 'Title', isRequired: true, hint: 'e.g., Calculating the economic profit of investments'),
+                                    TranslationField(key: 'instructions', label: 'Overview', maxLines: 10, isRequired: true, isResizable: true, hint: 'Brief explanation of what this exercise covers'),
+                                  ],
+                                  translations: _translations,
+                                  onChanged: (t) => setState(() => _translations = t),
+                                ),
+                              ],
                             ),
                           ),
-                        ],
-                      ),
+                        ),
+                        const SizedBox(height: 16),
+                        
+                        // Information card (moved from right pane)
+                        Card(
+                          color: colorScheme.surfaceContainerHighest,
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Icon(Icons.info_outline, size: 20, color: colorScheme.primary),
+                                    const SizedBox(width: 8),
+                                    Text('About Exercises', style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
+                                  ],
+                                ),
+                                const SizedBox(height: 12),
+                                Text(
+                                  'An exercise contains sections with Google Sheets spreadsheets or Python code that students must complete.',
+                                  style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'After creating the exercise, add sections to link spreadsheet templates or Python exercises.',
+                                  style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  Container(
-                    width: 300,
-                    decoration: BoxDecoration(border: Border(left: BorderSide(color: colorScheme.outlineVariant))),
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.all(24),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Information', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                          const SizedBox(height: 16),
-                          Card(
-                            color: colorScheme.surfaceContainerHighest,
-                            child: Padding(
-                              padding: const EdgeInsets.all(16),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: [
-                                      Icon(Icons.info_outline, size: 20, color: colorScheme.primary),
-                                      const SizedBox(width: 8),
-                                      Text('About Exercises', style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 12),
-                                  Text(
-                                    'An exercise contains sections with Google Sheets spreadsheets that students must complete.',
-                                    style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
-                                  ),
-                                  const SizedBox(height: 12),
-                                  Text(
-                                    'After creating the exercise, add sections to link spreadsheet templates.',
-                                    style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+                ),
             ),
     );
   }

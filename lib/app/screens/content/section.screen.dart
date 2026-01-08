@@ -110,12 +110,36 @@ class _SectionScreenState extends State<SectionScreen> {
             .single();
       }
 
+      final section = Section.fromJson(sectionData);
+
+      // If no tool suffix was provided in the URL, redirect to the appropriate suffixed URL
+      // This ensures users can't access /sections/slug directly - they must use -spreadsheet or -python
+      if (requestedTool == null && mounted) {
+        // Build the canonical slug from section title
+        final canonicalSlug = section.title
+            .toLowerCase()
+            .replaceAll(' ', '-')
+            .replaceAll(RegExp(r'[^a-z0-9-]'), '');
+
+        // Determine which suffix to use based on what the section supports
+        String suffix;
+        if (section.supportsSpreadsheet) {
+          suffix = '-spreadsheet';
+        } else if (section.supportsPython) {
+          suffix = '-python';
+        } else {
+          suffix = '-spreadsheet'; // Default fallback
+        }
+
+        // Redirect to the suffixed URL
+        context.go('/sections/$canonicalSlug$suffix');
+        return; // Stop loading, the redirect will trigger a new load
+      }
+
       // Auto-select tool based on URL suffix
       if (requestedTool != null) {
         _selectedTool = requestedTool;
       }
-
-      final section = Section.fromJson(sectionData);
       Exercise? exercise;
       if (sectionData['exercises'] != null) {
         final exerciseData = sectionData['exercises'];

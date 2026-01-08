@@ -177,111 +177,132 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
           ? const Center(child: CircularProgressIndicator())
           : Form(
               key: _formKey,
-              child: Row(
-                children: [
-                  Expanded(
-                    flex: 2,
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.all(24),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Card(
-                            color: colorScheme.surfaceContainerHighest,
-                            child: Padding(
-                              padding: const EdgeInsets.all(12),
-                              child: Row(
-                                children: [
-                                  Icon(Icons.folder, size: 20, color: colorScheme.secondary),
-                                  const SizedBox(width: 8),
-                                  Text('Unit ${widget.unit.displayOrder}: ${widget.unit.title}',
-                                      style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500)),
-                                ],
-                              ),
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                        // Unit context card
+                        Card(
+                          color: colorScheme.surfaceContainerHighest,
+                          child: Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: Row(
+                              children: [
+                                Icon(Icons.folder, size: 20, color: colorScheme.secondary),
+                                const SizedBox(width: 8),
+                                Text('Unit ${widget.unit.displayOrder}: ${widget.unit.title}',
+                                    style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500)),
+                              ],
                             ),
                           ),
-                          const SizedBox(height: 24),
-                          Card(
-                            child: Padding(
-                              padding: const EdgeInsets.all(16),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text('Content', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                                  const SizedBox(height: 16),
-                                  TranslationTabs(
-                                    fields: const [
-                                      TranslationField(key: 'title', label: 'Title', isRequired: true, hint: 'e.g., Scarcity'),
-                                      TranslationField(key: 'explanation_text', label: 'Explanation', maxLines: 8, isRequired: true),
-                                      TranslationField(key: 'source_references', label: 'Source References', maxLines: 4),
-                                    ],
-                                    translations: _translations,
-                                    onChanged: (t) => setState(() => _translations = t),
+                        ),
+                        const SizedBox(height: 24),
+                        
+                        // Content (Title, Explanation, Source References)
+                        Card(
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Content', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                                const SizedBox(height: 16),
+                                TranslationTabs(
+                                  fields: const [
+                                    TranslationField(key: 'title', label: 'Title', isRequired: true, hint: 'e.g., Scarcity'),
+                                    TranslationField(key: 'explanation_text', label: 'Explanation', maxLines: 8, isRequired: true),
+                                    TranslationField(key: 'source_references', label: 'Source References', maxLines: 4),
+                                  ],
+                                  translations: _translations,
+                                  onChanged: (t) => setState(() => _translations = t),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        
+                        // Media
+                        Card(
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Media', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                                const SizedBox(height: 16),
+                                TextFormField(
+                                  controller: _youtubeUrlController,
+                                  decoration: const InputDecoration(
+                                    labelText: 'YouTube Video URL',
+                                    border: OutlineInputBorder(),
+                                    prefixIcon: Icon(Icons.play_circle_outline),
+                                    hintText: 'https://www.youtube.com/watch?v=...',
                                   ),
-                                ],
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          Card(
-                            child: Padding(
-                              padding: const EdgeInsets.all(16),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text('Media', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                                  const SizedBox(height: 16),
-                                  TextFormField(
-                                    controller: _youtubeUrlController,
-                                    decoration: const InputDecoration(
-                                      labelText: 'YouTube Video URL',
-                                      border: OutlineInputBorder(),
-                                      prefixIcon: Icon(Icons.play_circle_outline),
-                                      hintText: 'https://www.youtube.com/watch?v=...',
+                                  onChanged: (_) => setState(() {}),
+                                ),
+                                if (youtubeId != null) ...[
+                                  const SizedBox(height: 12),
+                                  Container(
+                                    padding: const EdgeInsets.all(12),
+                                    decoration: BoxDecoration(color: Colors.green.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
+                                    child: Row(
+                                      children: [
+                                        const Icon(Icons.check_circle, color: Colors.green, size: 20),
+                                        const SizedBox(width: 8),
+                                        Text('Valid YouTube URL (ID: $youtubeId)', style: const TextStyle(color: Colors.green)),
+                                      ],
                                     ),
-                                    onChanged: (_) => setState(() {}),
                                   ),
-                                  if (youtubeId != null) ...[
-                                    const SizedBox(height: 12),
-                                    Container(
-                                      padding: const EdgeInsets.all(12),
-                                      decoration: BoxDecoration(color: Colors.green.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
-                                      child: Row(
-                                        children: [
-                                          const Icon(Icons.check_circle, color: Colors.green, size: 20),
-                                          const SizedBox(width: 8),
-                                          Text('Valid YouTube URL (ID: $youtubeId)', style: const TextStyle(color: Colors.green)),
-                                        ],
+                                ],
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        
+                        // Settings (moved from right pane)
+                        Card(
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Settings', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                                const SizedBox(height: 16),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: TextFormField(
+                                        controller: _displayOrderController, 
+                                        decoration: const InputDecoration(
+                                          labelText: 'Display Order', 
+                                          border: OutlineInputBorder(),
+                                        ), 
+                                        keyboardType: TextInputType.number,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 16),
+                                    Expanded(
+                                      child: SwitchListTile(
+                                        title: const Text('Active'),
+                                        subtitle: const Text('Visible to students'),
+                                        value: _isActive,
+                                        onChanged: (v) => setState(() => _isActive = v),
+                                        contentPadding: EdgeInsets.zero,
                                       ),
                                     ),
                                   ],
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
-                  Container(
-                    width: 300,
-                    decoration: BoxDecoration(border: Border(left: BorderSide(color: colorScheme.outlineVariant))),
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.all(24),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Settings', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                          const SizedBox(height: 16),
-                          SwitchListTile(title: const Text('Active'), subtitle: const Text('Visible to students'), value: _isActive, onChanged: (v) => setState(() => _isActive = v)),
-                          const SizedBox(height: 16),
-                          TextFormField(controller: _displayOrderController, decoration: const InputDecoration(labelText: 'Display Order', border: OutlineInputBorder()), keyboardType: TextInputType.number),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+                ),
             ),
     );
   }
