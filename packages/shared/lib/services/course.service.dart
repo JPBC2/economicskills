@@ -77,7 +77,7 @@ class CourseService {
   }
 
   /// Fetch a single lesson with its exercise and sections
-  /// Accepts either UUID or slug
+  /// Accepts either UUID or slug (with hyphens or underscores)
   Future<Lesson?> getLessonWithExercise(String identifier) async {
     final isUuid = RegExp(r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$', caseSensitive: false)
         .hasMatch(identifier);
@@ -90,9 +90,12 @@ class CourseService {
           )
         ''');
 
+    // Convert hyphens to underscores for database lookup (slugs stored with underscores)
+    final dbSlug = identifier.replaceAll('-', '_');
+    
     final response = await (isUuid 
         ? query.eq('id', identifier)
-        : query.eq('slug', identifier))
+        : query.eq('slug', dbSlug))
         .eq('is_active', true)
         .single();
 

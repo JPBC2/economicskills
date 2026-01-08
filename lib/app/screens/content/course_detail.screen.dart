@@ -299,7 +299,10 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
           trailing: Icon(Icons.arrow_forward_ios, size: 16, color: colorScheme.onSurfaceVariant),
           onTap: () {
             // Use slug if available and not empty, otherwise fallback to ID
-            final identifier = lesson.slug.isNotEmpty ? lesson.slug : lesson.id;
+            // Normalize to use hyphens for SEO
+            final identifier = lesson.slug.isNotEmpty 
+                ? lesson.slug.replaceAll('_', '-') 
+                : lesson.id;
             context.go('/lessons/$identifier');
           },
         ),
