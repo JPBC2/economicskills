@@ -1387,15 +1387,18 @@ class _SectionScreenState extends State<SectionScreen> {
       final userId = Supabase.instance.client.auth.currentUser?.id;
       if (userId == null) return;
 
-      // Update user progress
-      await Supabase.instance.client.from('user_progress').upsert({
-        'user_id': userId,
-        'section_id': _section!.id,
-        'is_completed': true,
-        'completed_with': completedWith,
-        'xp_earned': xpEarned,
-        'completed_at': DateTime.now().toIso8601String(),
-      });
+      // Update user progress (upsert with conflict handling)
+      await Supabase.instance.client.from('user_progress').upsert(
+        {
+          'user_id': userId,
+          'section_id': _section!.id,
+          'is_completed': true,
+          'completed_with': completedWith,
+          'xp_earned': xpEarned,
+          'completed_at': DateTime.now().toIso8601String(),
+        },
+        onConflict: 'user_id,section_id',
+      );
 
       // Record XP transaction
       await Supabase.instance.client.from('xp_transactions').insert({
