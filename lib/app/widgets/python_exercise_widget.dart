@@ -27,10 +27,10 @@ class PythonExerciseWidget extends StatefulWidget {
   });
 
   @override
-  State<PythonExerciseWidget> createState() => _PythonExerciseWidgetState();
+  State<PythonExerciseWidget> createState() => PythonExerciseWidgetState();
 }
 
-class _PythonExerciseWidgetState extends State<PythonExerciseWidget> with SingleTickerProviderStateMixin {
+class PythonExerciseWidgetState extends State<PythonExerciseWidget> with SingleTickerProviderStateMixin {
   final TextEditingController _codeController = TextEditingController();
   final TextEditingController _solutionController = TextEditingController();
   final PyodideService _pyodideService = PyodideService();
@@ -66,10 +66,17 @@ class _PythonExerciseWidgetState extends State<PythonExerciseWidget> with Single
   @override
   void didUpdateWidget(PythonExerciseWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // When Show Answer is clicked, switch to Solution tab
+    // When Show Answer is clicked, switch to Solution tab and reload solution
     if (widget.showAnswer && !oldWidget.showAnswer) {
+      _loadSolutionCode(); // Reload from database in case user modified it
       _tabController.animateTo(1);
     }
+  }
+
+  /// Reload solution from database (called when Show Answer is clicked again)
+  void reloadSolution() {
+    _loadSolutionCode();
+    _tabController.animateTo(1);
   }
 
   /// Load solution code if available

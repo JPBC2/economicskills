@@ -52,6 +52,9 @@ class _SectionScreenState extends State<SectionScreen> {
 
   // Scroll controller for mobile spreadsheet
   final ScrollController _spreadsheetScrollController = ScrollController();
+  
+  // Key to access PythonExerciseWidget for solution reload
+  final GlobalKey<PythonExerciseWidgetState> _pythonExerciseKey = GlobalKey<PythonExerciseWidgetState>();
 
   @override
   void initState() {
@@ -1176,10 +1179,20 @@ class _SectionScreenState extends State<SectionScreen> {
       children: [
         // Show answer button
         OutlinedButton.icon(
-          onPressed: () => setState(() => _showAnswer = !_showAnswer),
-          icon: Icon(_showAnswer ? Icons.visibility : Icons.visibility_outlined, 
+          onPressed: () {
+            if (_showAnswer) {
+              // Already showing answer - reload the solution
+              _pythonExerciseKey.currentState?.reloadSolution();
+            } else {
+              // First time showing answer
+              setState(() => _showAnswer = true);
+            }
+          },
+          icon: Icon(_showAnswer ? Icons.refresh : Icons.visibility_outlined, 
                      color: Colors.deepPurple.shade600),
-          label: Text('Show answer (-50% XP)', style: TextStyle(color: colorScheme.onSurface)),
+          label: Text(
+            _showAnswer ? 'Reload solution (-50% XP)' : 'Show answer (-50% XP)', 
+            style: TextStyle(color: colorScheme.onSurface)),
           style: OutlinedButton.styleFrom(
             side: BorderSide(color: colorScheme.outline),
           ),
@@ -1369,6 +1382,7 @@ class _SectionScreenState extends State<SectionScreen> {
     final languageCode = Localizations.localeOf(context).languageCode;
 
     return PythonExerciseWidget(
+      key: _pythonExerciseKey,
       section: _section!,
       languageCode: languageCode,
       showAnswer: _showAnswer,  // Pass answer state to show solution tab
