@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:js_interop';
+import 'dart:js_interop_unsafe';
 import 'package:web/web.dart' as web;
 
 /// Service for running Python code in the browser using Pyodide (WebAssembly)
@@ -436,122 +437,44 @@ check_type(${varName}, '${expectedType}')
   }
 
   /// Evaluate JavaScript code and return result as String
+  /// Uses dart:js_interop_unsafe with proper Promise handling
   Future<String> _evalJS(String code) async {
-    final completer = Completer<String>();
-    final callbackId = 'pyodide_callback_${DateTime.now().millisecondsSinceEpoch}';
-
-    // Create callback function in window scope
-    final setupCallback = '''
-      window['${callbackId}_resolve'] = function(result) {
-        window['${callbackId}_result'] = result;
-      };
-      window['${callbackId}_reject'] = function(error) {
-        window['${callbackId}_error'] = error;
-      };
-    ''';
-
-    // Execute the async code with callback
-    final jsCode = '''
-      (async () => {
-        try {
-          const result = await (${code});
-          window['${callbackId}_resolve'](result != null ? String(result) : '');
-        } catch (e) {
-          window['${callbackId}_reject'](e.toString());
-        }
-      })();
-    ''';
-
-    // Inject setup callback
-    _injectScript(setupCallback);
-
-    // Inject main script
-    _injectScript(jsCode);
-
-    // Poll for result
-    _pollForResult(callbackId, completer);
-
-    return completer.future;
-  }
-
-  /// Inject JavaScript code into the page
-  void _injectScript(String code) {
-    final script = web.document.createElement('script') as web.HTMLScriptElement;
-    script.textContent = code;
-    web.document.head!.appendChild(script);
-    // Remove script after execution
-    script.remove();
-  }
-
-  /// Poll for JavaScript callback result
-  void _pollForResult(String callbackId, Completer<String> completer, [int attempts = 0]) {
-    const maxAttempts = 100; // 10 seconds max
-    const pollInterval = Duration(milliseconds: 100);
-
-    if (attempts >= maxAttempts) {
-      completer.completeError('JavaScript execution timeout');
-      _cleanupCallback(callbackId);
-      return;
-    }
-
-    // Check if result is available
-    final checkScript = '''
-      (function() {
-        if (window['${callbackId}_result'] !== undefined) {
-          return window['${callbackId}_result'];
-        } else if (window['${callbackId}_error'] !== undefined) {
-          return 'ERROR:' + window['${callbackId}_error'];
-        }
-        return null;
-      })();
-    ''';
-
     try {
-      // Use a getter approach to check window properties
-      final resultCheck = web.document.createElement('script') as web.HTMLScriptElement;
-      resultCheck.id = '${callbackId}_check';
-      resultCheck.textContent = '''
-        if (window['${callbackId}_result'] !== undefined) {
-          document.getElementById('${callbackId}_check').dataset.result = window['${callbackId}_result'];
-        } else if (window['${callbackId}_error'] !== undefined) {
-          document.getElementById('${callbackId}_check').dataset.error = window['${callbackId}_error'];
-        }
+      // Wrap code in an async IIFE that returns a Promise
+      final wrappedCode = '''
+        (async function() {
+          try {
+            const result = await ($code);
+            return result != null ? String(result) : '';
+          } catch (e) {
+            throw new Error(e.toString());
+          }
+        })()
       ''';
-      web.document.head!.appendChild(resultCheck);
-
-      final resultAttr = resultCheck.dataset['result'];
-      final errorAttr = resultCheck.dataset['error'];
-
-      resultCheck.remove();
-
-      if (resultAttr != null) {
-        completer.complete(resultAttr);
-        _cleanupCallback(callbackId);
-        return;
-      } else if (errorAttr != null) {
-        completer.completeError(errorAttr);
-        _cleanupCallback(callbackId);
-        return;
+      
+      // Use globalContext to access the Function constructor
+      // This creates a function that returns our async code
+      final functionConstructor = globalContext['Function'] as JSFunction;
+      
+      // Create a function that returns our code execution result
+      final evalFunction = functionConstructor.callAsConstructor<JSFunction>(
+        'return $wrappedCode'.toJS,
+      );
+      
+      // Call the function to get the Promise
+      final result = evalFunction.callAsFunction();
+      
+      // The result is a Promise, so we need to await it
+      if (result != null && result.isA<JSPromise>()) {
+        final jsPromise = result as JSPromise<JSAny?>;
+        final awaited = await jsPromise.toDart;
+        return awaited?.toString() ?? '';
       }
+      
+      return result?.toString() ?? '';
     } catch (e) {
-      // Continue polling
+      throw Exception('JavaScript evaluation failed: $e');
     }
-
-    // Poll again after delay
-    Future.delayed(pollInterval, () {
-      _pollForResult(callbackId, completer, attempts + 1);
-    });
-  }
-
-  /// Clean up callback functions
-  void _cleanupCallback(String callbackId) {
-    final cleanup = '''
-      delete window['${callbackId}_resolve'];
-      delete window['${callbackId}_reject'];
-      delete window['${callbackId}_result'];
-      delete window['${callbackId}_error'];
-    ''';
-    _injectScript(cleanup);
   }
 
   /// Escape Python code for embedding in JavaScript string
