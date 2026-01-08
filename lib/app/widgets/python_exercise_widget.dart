@@ -63,6 +63,15 @@ class _PythonExerciseWidgetState extends State<PythonExerciseWidget> with Single
     super.dispose();
   }
 
+  @override
+  void didUpdateWidget(PythonExerciseWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // When Show Answer is clicked, switch to Solution tab
+    if (widget.showAnswer && !oldWidget.showAnswer) {
+      _tabController.animateTo(1);
+    }
+  }
+
   /// Load solution code if available
   void _loadSolutionCode() {
     final solutionCode = widget.section.pythonSolutionCode;
