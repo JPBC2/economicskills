@@ -325,6 +325,7 @@ class _PythonExerciseWidgetState extends State<PythonExerciseWidget> with Single
     final hasSolution = widget.section.pythonSolutionCode != null && 
                         widget.section.pythonSolutionCode!.isNotEmpty;
     final showSolutionTab = widget.showAnswer && hasSolution;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
