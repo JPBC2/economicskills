@@ -338,14 +338,14 @@ class _PythonExerciseWidgetState extends State<PythonExerciseWidget> with Single
         if (showSolutionTab)
           Container(
             decoration: BoxDecoration(
-              color: Colors.grey[100],
+              color: colorScheme.surfaceContainerHighest,
               borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
             ),
             child: TabBar(
               controller: _tabController,
-              labelColor: Colors.deepPurple,
-              unselectedLabelColor: Colors.grey[600],
-              indicatorColor: Colors.deepPurple,
+              labelColor: colorScheme.primary,
+              unselectedLabelColor: colorScheme.onSurfaceVariant,
+              indicatorColor: colorScheme.primary,
               tabs: const [
                 Tab(text: 'Your Code'),
                 Tab(text: 'Solution'),
