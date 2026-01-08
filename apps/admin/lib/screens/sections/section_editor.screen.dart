@@ -22,6 +22,7 @@ class _SectionEditorScreenState extends State<SectionEditorScreen> {
   final _templateUrlController = TextEditingController();
   final _solutionUrlController = TextEditingController();
   final _validationRangeController = TextEditingController();
+  final _pythonSolutionCodeController = TextEditingController();  // Python solution code
 
   bool _isSaving = false;
   bool _isLoading = true;
@@ -86,6 +87,11 @@ class _SectionEditorScreenState extends State<SectionEditorScreen> {
         if (solutionId != null && solutionId.isNotEmpty) {
           _solutionControllers[code]!.text = 'https://docs.google.com/spreadsheets/d/$solutionId/edit';
         }
+      }
+      
+      // Load Python solution code
+      if (widget.section!.pythonSolutionCode != null) {
+        _pythonSolutionCodeController.text = widget.section!.pythonSolutionCode!;
       }
       
       _loadTranslations();
@@ -167,6 +173,7 @@ class _SectionEditorScreenState extends State<SectionEditorScreen> {
     _templateUrlController.dispose();
     _solutionUrlController.dispose();
     _validationRangeController.dispose();
+    _pythonSolutionCodeController.dispose();
     for (final controller in _templateControllers.values) {
       controller.dispose();
     }
@@ -228,6 +235,9 @@ class _SectionEditorScreenState extends State<SectionEditorScreen> {
         'display_order': int.tryParse(_displayOrderController.text) ?? 1,
         'template_spreadsheet_id': _extractedTemplateId,
         'xp_reward': int.tryParse(_xpRewardController.text) ?? 10,
+        'python_solution_code': _pythonSolutionCodeController.text.trim().isEmpty 
+            ? null 
+            : _pythonSolutionCodeController.text.trim(),
       };
       
       // Add language-specific template and solution IDs
@@ -530,6 +540,43 @@ class _SectionEditorScreenState extends State<SectionEditorScreen> {
                                       border: OutlineInputBorder(),
                                       prefixIcon: Icon(Icons.grid_on),
                                       hintText: 'e.g., O3:O102',
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          // Python Solution Code
+                          Card(
+                            child: Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Icon(Icons.code, color: Colors.deepPurple.shade700),
+                                      const SizedBox(width: 8),
+                                      Text('Python Solution Code', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'The correct Python code that students should write. Shown when "Show Answer" is clicked (-50% XP).',
+                                    style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  TextFormField(
+                                    controller: _pythonSolutionCodeController,
+                                    maxLines: 12,
+                                    style: const TextStyle(fontFamily: 'monospace', fontSize: 13),
+                                    decoration: InputDecoration(
+                                      labelText: 'Python Solution Code (Optional)',
+                                      border: const OutlineInputBorder(),
+                                      alignLabelWithHint: true,
+                                      hintText: '# Complete Python solution...\nimport pandas as pd\n\n# Load data...',
+                                      hintStyle: TextStyle(color: Colors.grey.shade400, fontFamily: 'monospace'),
                                     ),
                                   ),
                                 ],

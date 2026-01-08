@@ -14,21 +14,27 @@ class PythonExerciseWidget extends StatefulWidget {
   final Section section;
   final String languageCode;
   final Function(bool passed, int xpEarned) onComplete;
+  final bool showAnswer;  // Whether to show the solution tab
+  final VoidCallback? onShowAnswer;  // Callback when user clicks Show Answer
 
   const PythonExerciseWidget({
     super.key,
     required this.section,
     required this.languageCode,
     required this.onComplete,
+    this.showAnswer = false,
+    this.onShowAnswer,
   });
 
   @override
   State<PythonExerciseWidget> createState() => _PythonExerciseWidgetState();
 }
 
-class _PythonExerciseWidgetState extends State<PythonExerciseWidget> {
+class _PythonExerciseWidgetState extends State<PythonExerciseWidget> with SingleTickerProviderStateMixin {
   final TextEditingController _codeController = TextEditingController();
+  final TextEditingController _solutionController = TextEditingController();
   final PyodideService _pyodideService = PyodideService();
+  late TabController _tabController;
 
   bool _isInitializing = false;
   bool _isRunning = false;
@@ -37,18 +43,32 @@ class _PythonExerciseWidgetState extends State<PythonExerciseWidget> {
   String? _error;
   ValidationResult? _validationResult;
   bool _hintUsed = false;
+  bool _answerUsed = false;  // Track if answer was revealed
 
   @override
   void initState() {
     super.initState();
+    // Initialize tab controller with 2 tabs: User Code, Solution
+    _tabController = TabController(length: 2, vsync: this);
     _loadStarterCode();
+    _loadSolutionCode();
     _initializePyodide();
   }
 
   @override
   void dispose() {
     _codeController.dispose();
+    _solutionController.dispose();
+    _tabController.dispose();
     super.dispose();
+  }
+
+  /// Load solution code if available
+  void _loadSolutionCode() {
+    final solutionCode = widget.section.pythonSolutionCode;
+    if (solutionCode != null && solutionCode.isNotEmpty) {
+      _solutionController.text = solutionCode;
+    }
   }
 
   /// Load the starter code for the current language
@@ -176,9 +196,11 @@ class _PythonExerciseWidgetState extends State<PythonExerciseWidget> {
       });
 
       if (validation.passed) {
-        // Calculate XP (with hint penalty)
+        // Calculate XP with penalties (answer -50% takes precedence over hint -30%)
         final baseXP = widget.section.xpReward;
-        final xpEarned = _hintUsed ? (baseXP * 0.7).round() : baseXP;
+        final xpEarned = widget.showAnswer 
+            ? (baseXP * 0.5).round() 
+            : _hintUsed ? (baseXP * 0.7).round() : baseXP;
 
         widget.onComplete(true, xpEarned);
 
@@ -285,6 +307,11 @@ class _PythonExerciseWidgetState extends State<PythonExerciseWidget> {
       );
     }
 
+    // Determine if solution tab should be visible
+    final hasSolution = widget.section.pythonSolutionCode != null && 
+                        widget.section.pythonSolutionCode!.isNotEmpty;
+    final showSolutionTab = widget.showAnswer && hasSolution;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -293,10 +320,37 @@ class _PythonExerciseWidgetState extends State<PythonExerciseWidget> {
 
         const SizedBox(height: 8),
 
-        // Code Editor
+        // Tab bar (only if solution is available and shown)
+        if (showSolutionTab)
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.grey[100],
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
+            ),
+            child: TabBar(
+              controller: _tabController,
+              labelColor: Colors.deepPurple,
+              unselectedLabelColor: Colors.grey[600],
+              indicatorColor: Colors.deepPurple,
+              tabs: const [
+                Tab(text: 'Your Code'),
+                Tab(text: 'Solution'),
+              ],
+            ),
+          ),
+
+        // Code Editor (with or without tabs)
         Expanded(
           flex: 3,
-          child: _buildCodeEditor(),
+          child: showSolutionTab
+              ? TabBarView(
+                  controller: _tabController,
+                  children: [
+                    _buildCodeEditor(),
+                    _buildSolutionEditor(),
+                  ],
+                )
+              : _buildCodeEditor(),
         ),
 
         const SizedBox(height: 8),
@@ -388,6 +442,32 @@ class _PythonExerciseWidgetState extends State<PythonExerciseWidget> {
           contentPadding: EdgeInsets.all(16),
           border: InputBorder.none,
           hintText: '# Write your Python code here...',
+        ),
+      ),
+    );
+  }
+
+  /// Build solution code editor (editable)
+  Widget _buildSolutionEditor() {
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.deepPurple.shade200),
+        borderRadius: BorderRadius.circular(8),
+        color: Colors.deepPurple.shade50,
+      ),
+      child: TextField(
+        controller: _solutionController,
+        maxLines: null,
+        expands: true,
+        style: const TextStyle(
+          fontFamily: 'monospace',
+          fontSize: 14,
+        ),
+        decoration: InputDecoration(
+          contentPadding: const EdgeInsets.all(16),
+          border: InputBorder.none,
+          hintText: '# Solution code...',
+          hintStyle: TextStyle(color: Colors.deepPurple.shade300),
         ),
       ),
     );

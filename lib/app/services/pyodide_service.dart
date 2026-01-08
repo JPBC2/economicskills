@@ -268,6 +268,21 @@ sys.stderr = StringIO()
             if (!passed) allPassed = false;
             break;
 
+          case 'column_exists':
+            // Check if a column exists in a DataFrame
+            final dfName = step['dataframe'] as String? ?? 'df';
+            final colName = step['name'] as String;
+            final passed = await _checkColumnExists(dfName, colName);
+            feedbackList.add(ValidationFeedback(
+              step: stepNum,
+              passed: passed,
+              message: passed
+                  ? 'Column "$colName" exists in DataFrame ✓'
+                  : step['message_en'] as String? ?? 'Column "$colName" not found in DataFrame',
+            ));
+            if (!passed) allPassed = false;
+            break;
+
           case 'variable_value':
             final result = await _checkVariableValue(
               step['name'] as String,
@@ -342,6 +357,21 @@ sys.stderr = StringIO()
       (async () => {
         try {
           const exists = window.pyodide.runPython(\`'${varName}' in globals()\`);
+          return exists ? 'true' : 'false';
+        } catch (e) {
+          return 'false';
+        }
+      })()
+    ''');
+    return result == 'true';
+  }
+
+  /// Check if a column exists in a DataFrame
+  Future<bool> _checkColumnExists(String dfName, String colName) async {
+    final result = await _evalJS('''
+      (async () => {
+        try {
+          const exists = window.pyodide.runPython(\`'$colName' in $dfName.columns\`);
           return exists ? 'true' : 'false';
         } catch (e) {
           return 'false';

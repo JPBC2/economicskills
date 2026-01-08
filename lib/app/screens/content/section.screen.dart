@@ -43,6 +43,7 @@ class _SectionScreenState extends State<SectionScreen> {
   double _leftPanelWidth = 0.35;
   bool _isLeftPanelCollapsed = false;
   bool _showHint = false;
+  bool _showAnswer = false;  // Track if user has requested the solution
   bool _exerciseExpanded = true;
   bool _instructionsExpanded = true;
 
@@ -566,9 +567,11 @@ class _SectionScreenState extends State<SectionScreen> {
                     ? Chip(
                         avatar: Icon(Icons.star, size: 14, color: Colors.amber.shade600),
                         label: Text(
-                          _showHint 
-                            ? '${(_section!.xpReward * 0.7).floor()} XP'
-                            : '${_section!.xpReward} XP',
+                          _showAnswer 
+                            ? '${(_section!.xpReward * 0.5).floor()} XP'
+                            : _showHint 
+                              ? '${(_section!.xpReward * 0.7).floor()} XP'
+                              : '${_section!.xpReward} XP',
                           style: TextStyle(fontSize: 12, color: colorScheme.onSurface),
                         ),
                         backgroundColor: colorScheme.surfaceContainerHighest,
@@ -587,6 +590,12 @@ class _SectionScreenState extends State<SectionScreen> {
             if (_section!.hint != null && _section!.hint!.isNotEmpty && isAuthenticated) ...[
               const SizedBox(height: 24),
               _buildHintSection(theme, colorScheme),
+            ],
+
+            // Show answer button (below hint)
+            if (isAuthenticated) ...[
+              const SizedBox(height: 12),
+              _buildAnswerSection(theme, colorScheme),
             ],
 
             const SizedBox(height: 24),
@@ -682,9 +691,11 @@ class _SectionScreenState extends State<SectionScreen> {
                     ? Chip(
                         avatar: Icon(Icons.star, size: 14, color: Colors.amber.shade600),
                         label: Text(
-                          _showHint 
-                            ? '${(_section!.xpReward * 0.7).floor()} XP'
-                            : '${_section!.xpReward} XP',
+                          _showAnswer 
+                            ? '${(_section!.xpReward * 0.5).floor()} XP'
+                            : _showHint 
+                              ? '${(_section!.xpReward * 0.7).floor()} XP'
+                              : '${_section!.xpReward} XP',
                           style: TextStyle(fontSize: 12, color: colorScheme.onSurface),
                         ),
                         backgroundColor: colorScheme.surfaceContainerHighest,
@@ -703,6 +714,12 @@ class _SectionScreenState extends State<SectionScreen> {
             if (_section!.hint != null && _section!.hint!.isNotEmpty && isAuthenticated) ...[
               const SizedBox(height: 24),
               _buildHintSection(theme, colorScheme),
+            ],
+
+            // Show answer button (below hint)
+            if (isAuthenticated) ...[
+              const SizedBox(height: 12),
+              _buildAnswerSection(theme, colorScheme),
             ],
 
             // Authentication required message
@@ -1146,6 +1163,79 @@ class _SectionScreenState extends State<SectionScreen> {
     );
   }
 
+  Widget _buildAnswerSection(ThemeData theme, ColorScheme colorScheme) {
+    final userLang = Localizations.localeOf(context).languageCode;
+    final solutionSpreadsheetUrl = _section?.getSolutionForLanguage(userLang);
+    final hasSolution = (solutionSpreadsheetUrl != null && solutionSpreadsheetUrl.isNotEmpty) ||
+                        (_section?.pythonSolutionCode != null && _section!.pythonSolutionCode!.isNotEmpty);
+    
+    if (!hasSolution) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Show answer button
+        OutlinedButton.icon(
+          onPressed: () => setState(() => _showAnswer = !_showAnswer),
+          icon: Icon(_showAnswer ? Icons.visibility : Icons.visibility_outlined, 
+                     color: Colors.deepPurple.shade600),
+          label: Text('Show answer (-50% XP)', style: TextStyle(color: colorScheme.onSurface)),
+          style: OutlinedButton.styleFrom(
+            side: BorderSide(color: colorScheme.outline),
+          ),
+        ),
+        // Answer content (collapsible) - only for spreadsheet mode
+        if (solutionSpreadsheetUrl != null && solutionSpreadsheetUrl.isNotEmpty)
+          AnimatedCrossFade(
+            firstChild: const SizedBox.shrink(),
+            secondChild: Container(
+              margin: const EdgeInsets.only(top: 12),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.deepPurple.shade50,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.deepPurple.shade300),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.table_chart, size: 18, color: Colors.deepPurple.shade700),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Solution Spreadsheet',
+                        style: TextStyle(
+                          color: Colors.deepPurple.shade800,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  // Embedded solution spreadsheet
+                  Container(
+                    height: 300,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.deepPurple.shade200),
+                    ),
+                    clipBehavior: Clip.antiAlias,
+                    child: EmbeddedSpreadsheet(
+                      spreadsheetId: _extractSpreadsheetId(solutionSpreadsheetUrl) ?? solutionSpreadsheetUrl,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            crossFadeState: _showAnswer ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+            duration: const Duration(milliseconds: 200),
+          ),
+      ],
+    );
+  }
+
   Widget _buildCollapsibleSection({
     required String title,
     required bool isExpanded,
@@ -1281,6 +1371,7 @@ class _SectionScreenState extends State<SectionScreen> {
     return PythonExerciseWidget(
       section: _section!,
       languageCode: languageCode,
+      showAnswer: _showAnswer,  // Pass answer state to show solution tab
       onComplete: (passed, xpEarned) async {
         if (passed) {
           // Award XP and mark as completed
