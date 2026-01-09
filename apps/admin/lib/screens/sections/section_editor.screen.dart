@@ -1,20 +1,21 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared/shared.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../main.dart';
 import '../../widgets/translation_tabs.widget.dart';
 
-/// Section Editor with multilingual support (6 languages)
-/// Links spreadsheet templates and configures validation
-/// Supports two section types: 'python' and 'spreadsheet'
+/// Section Editor with multilingual support (11 languages)
+/// Links spreadsheet templates, Python starter code, and configures validation
+/// Supports sections with Spreadsheet, Python, or both tools
 class SectionEditorScreen extends StatefulWidget {
   final Exercise exercise;
   final Section? section;
-  final String sectionType; // 'python' or 'spreadsheet'
+  final String sectionType; // 'python', 'spreadsheet', or 'both' (for new sections)
 
   const SectionEditorScreen({
-    super.key, 
-    required this.exercise, 
+    super.key,
+    required this.exercise,
     this.section,
     this.sectionType = 'spreadsheet', // Default to spreadsheet for backwards compatibility
   });
@@ -30,12 +31,17 @@ class _SectionEditorScreenState extends State<SectionEditorScreen> {
   final _templateUrlController = TextEditingController();
   final _solutionUrlController = TextEditingController();
   final _validationRangeController = TextEditingController();
-  final _pythonSolutionCodeController = TextEditingController();  // Python solution code
+  final _pythonSolutionCodeController = TextEditingController();
+  final _pythonValidationConfigController = TextEditingController();
 
   bool _isSaving = false;
   bool _isLoading = true;
   String? _extractedTemplateId;
   String? _extractedSolutionId;
+
+  // Tool support flags (both can be true)
+  bool _supportsSpreadsheet = true;
+  bool _supportsPython = false;
   
   // Supported languages for template URLs
   static const _languages = [
@@ -52,45 +58,66 @@ class _SectionEditorScreenState extends State<SectionEditorScreen> {
     {'code': 'nl', 'label': 'Nederlands'},
   ];
   
-  // Language-specific template and solution URLs  
+  // Language-specific template and solution URLs
   Map<String, TextEditingController> _templateControllers = {};
   Map<String, TextEditingController> _solutionControllers = {};
   String _selectedSpreadsheetLang = 'en';
+
+  // Language-specific Python starter code
+  Map<String, TextEditingController> _pythonStarterCodeControllers = {};
+  String _selectedPythonLang = 'en';
   
   Map<String, Map<String, String>> _translations = {};
   late final TranslationService _translationService;
 
   bool get isEditing => widget.section != null;
-  
-  /// Get the effective section type (from existing section when editing, or from widget param for new)
-  String get effectiveSectionType => widget.section?.sectionType ?? widget.sectionType;
-  
-  /// Check if this is a Python section
-  bool get isPythonSection => effectiveSectionType == 'python';
+
+  /// Check if spreadsheet tool is enabled
+  bool get hasSpreadsheet => _supportsSpreadsheet;
+
+  /// Check if Python tool is enabled
+  bool get hasPython => _supportsPython;
 
   @override
   void initState() {
     super.initState();
     _translationService = TranslationService(supabase);
-    
+
     // Initialize controllers for each language
     for (final lang in _languages) {
       final code = lang['code'] as String;
       _templateControllers[code] = TextEditingController();
       _solutionControllers[code] = TextEditingController();
+      _pythonStarterCodeControllers[code] = TextEditingController();
     }
-    
+
+    // Set initial tool support based on sectionType parameter
+    if (widget.sectionType == 'python') {
+      _supportsSpreadsheet = false;
+      _supportsPython = true;
+    } else if (widget.sectionType == 'both') {
+      _supportsSpreadsheet = true;
+      _supportsPython = true;
+    } else {
+      _supportsSpreadsheet = true;
+      _supportsPython = false;
+    }
+
     if (widget.section != null) {
       _displayOrderController.text = widget.section!.displayOrder.toString();
       _xpRewardController.text = widget.section!.xpReward.toString();
-      
+
+      // Load tool support flags from existing section
+      _supportsSpreadsheet = widget.section!.supportsSpreadsheet;
+      _supportsPython = widget.section!.supportsPython;
+
       // Load legacy template URL (backward compatibility)
       if (widget.section!.templateSpreadsheetId != null) {
         _templateUrlController.text = 'https://docs.google.com/spreadsheets/d/${widget.section!.templateSpreadsheetId}/edit';
         _extractedTemplateId = widget.section!.templateSpreadsheetId;
       }
-      
-      // Load language-specific templates
+
+      // Load language-specific templates and solutions
       for (final lang in _languages) {
         final code = lang['code'] as String;
         final templateId = widget.section!.templateSpreadsheets[code];
@@ -102,12 +129,32 @@ class _SectionEditorScreenState extends State<SectionEditorScreen> {
           _solutionControllers[code]!.text = 'https://docs.google.com/spreadsheets/d/$solutionId/edit';
         }
       }
-      
+
       // Load Python solution code
       if (widget.section!.pythonSolutionCode != null) {
         _pythonSolutionCodeController.text = widget.section!.pythonSolutionCode!;
       }
-      
+
+      // Load Python starter code for each language
+      for (final lang in _languages) {
+        final code = lang['code'] as String;
+        final starterCode = widget.section!.pythonStarterCode[code];
+        if (starterCode != null && starterCode.isNotEmpty) {
+          _pythonStarterCodeControllers[code]!.text = starterCode;
+        }
+      }
+
+      // Load Python validation config
+      if (widget.section!.pythonValidationConfig != null) {
+        try {
+          final jsonString = const JsonEncoder.withIndent('  ')
+              .convert(widget.section!.pythonValidationConfig);
+          _pythonValidationConfigController.text = jsonString;
+        } catch (e) {
+          _pythonValidationConfigController.text = '';
+        }
+      }
+
       _loadTranslations();
       _loadValidationRule(); // Load existing validation rule
     } else {
@@ -188,10 +235,14 @@ class _SectionEditorScreenState extends State<SectionEditorScreen> {
     _solutionUrlController.dispose();
     _validationRangeController.dispose();
     _pythonSolutionCodeController.dispose();
+    _pythonValidationConfigController.dispose();
     for (final controller in _templateControllers.values) {
       controller.dispose();
     }
     for (final controller in _solutionControllers.values) {
+      controller.dispose();
+    }
+    for (final controller in _pythonStarterCodeControllers.values) {
       controller.dispose();
     }
     super.dispose();
@@ -223,13 +274,34 @@ class _SectionEditorScreenState extends State<SectionEditorScreen> {
       return;
     }
     
-    // Check if at least one template is provided (only required for spreadsheet sections)
-    if (!isPythonSection) {
-      final hasAnyTemplate = _extractedTemplateId != null || 
+    // Check if at least one tool is selected
+    if (!_supportsSpreadsheet && !_supportsPython) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enable at least one tool (Spreadsheet or Python)'), backgroundColor: Colors.red),
+      );
+      return;
+    }
+
+    // Check if at least one template is provided (only required if spreadsheet is enabled)
+    if (_supportsSpreadsheet) {
+      final hasAnyTemplate = _extractedTemplateId != null ||
           _templateControllers.values.any((c) => _extractSpreadsheetId(c.text) != null);
       if (!hasAnyTemplate) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Please enter at least one template spreadsheet URL'), backgroundColor: Colors.red),
+        );
+        return;
+      }
+    }
+
+    // Validate Python validation config JSON if provided
+    Map<String, dynamic>? validationConfig;
+    if (_supportsPython && _pythonValidationConfigController.text.trim().isNotEmpty) {
+      try {
+        validationConfig = jsonDecode(_pythonValidationConfigController.text.trim()) as Map<String, dynamic>;
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Invalid JSON in Python Validation Config'), backgroundColor: Colors.red),
         );
         return;
       }
@@ -242,6 +314,16 @@ class _SectionEditorScreenState extends State<SectionEditorScreen> {
       final englishExplanation = _translations['en']?['explanation']?.trim() ?? '';
       final englishHint = _translations['en']?['hint']?.trim() ?? '';
       
+      // Determine section_type for backwards compatibility
+      String sectionType;
+      if (_supportsSpreadsheet && _supportsPython) {
+        sectionType = 'both';
+      } else if (_supportsPython) {
+        sectionType = 'python';
+      } else {
+        sectionType = 'spreadsheet';
+      }
+
       final data = <String, dynamic>{
         'exercise_id': widget.exercise.id,
         'title': englishTitle,
@@ -250,15 +332,15 @@ class _SectionEditorScreenState extends State<SectionEditorScreen> {
         'hint': englishHint.isEmpty ? null : englishHint,
         'display_order': int.tryParse(_displayOrderController.text) ?? 1,
         'xp_reward': int.tryParse(_xpRewardController.text) ?? 10,
-        'section_type': effectiveSectionType,
-        'supports_python': isPythonSection,
-        'supports_spreadsheet': !isPythonSection,
+        'section_type': sectionType,
+        'supports_python': _supportsPython,
+        'supports_spreadsheet': _supportsSpreadsheet,
       };
-      
-      // Add spreadsheet-specific fields only for spreadsheet sections
-      if (!isPythonSection) {
+
+      // Add spreadsheet-specific fields if spreadsheet is enabled
+      if (_supportsSpreadsheet) {
         data['template_spreadsheet_id'] = _extractedTemplateId;
-        
+
         // Add language-specific template and solution IDs
         for (final lang in _languages) {
           final code = lang['code'] as String;
@@ -268,12 +350,22 @@ class _SectionEditorScreenState extends State<SectionEditorScreen> {
           data['solution_spreadsheet_$code'] = solutionId;
         }
       }
-      
-      // Add Python-specific fields only for Python sections
-      if (isPythonSection) {
-        data['python_solution_code'] = _pythonSolutionCodeController.text.trim().isEmpty 
-            ? null 
+
+      // Add Python-specific fields if Python is enabled
+      if (_supportsPython) {
+        data['python_solution_code'] = _pythonSolutionCodeController.text.trim().isEmpty
+            ? null
             : _pythonSolutionCodeController.text.trim();
+
+        // Add Python starter code for each language
+        for (final lang in _languages) {
+          final code = lang['code'] as String;
+          final starterCode = _pythonStarterCodeControllers[code]?.text.trim();
+          data['python_starter_code_$code'] = (starterCode?.isEmpty ?? true) ? null : starterCode;
+        }
+
+        // Add Python validation config
+        data['python_validation_config'] = validationConfig;
       }
 
       String sectionId;
@@ -344,12 +436,21 @@ class _SectionEditorScreenState extends State<SectionEditorScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final sectionTypeLabel = isPythonSection ? 'Python' : 'Spreadsheet';
+
+    // Build section type label
+    String sectionTypeLabel;
+    if (_supportsSpreadsheet && _supportsPython) {
+      sectionTypeLabel = 'Spreadsheet + Python';
+    } else if (_supportsPython) {
+      sectionTypeLabel = 'Python';
+    } else {
+      sectionTypeLabel = 'Spreadsheet';
+    }
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(isEditing 
-            ? 'Edit $sectionTypeLabel Section' 
+        title: Text(isEditing
+            ? 'Edit Section'
             : 'New $sectionTypeLabel Section'),
         actions: [
           FilledButton(
@@ -370,37 +471,79 @@ class _SectionEditorScreenState extends State<SectionEditorScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                        // Section type indicator
+                        // Exercise info
                         Card(
-                          color: isPythonSection 
-                              ? Colors.deepPurple.shade50 
-                              : Colors.green.shade50,
                           child: Padding(
                             padding: const EdgeInsets.all(12),
                             child: Row(
                               children: [
-                                Icon(
-                                  isPythonSection ? Icons.code : Icons.table_chart,
-                                  size: 20, 
-                                  color: isPythonSection 
-                                      ? Colors.deepPurple.shade700 
-                                      : Colors.green.shade700,
-                                ),
+                                Icon(Icons.assignment, size: 20, color: colorScheme.primary),
                                 const SizedBox(width: 8),
                                 Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        isPythonSection ? 'Python Section' : 'Spreadsheet Section',
-                                        style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
-                                      ),
-                                      Text(
-                                        'Exercise: ${widget.exercise.title}',
-                                        style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
-                                      ),
-                                    ],
+                                  child: Text(
+                                    'Exercise: ${widget.exercise.title}',
+                                    style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
                                   ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Tool Selection Card
+                        Card(
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Exercise Tools', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Select which tools students can use to complete this section. You can enable both.',
+                                  style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
+                                ),
+                                const SizedBox(height: 16),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: CheckboxListTile(
+                                        value: _supportsSpreadsheet,
+                                        onChanged: (value) {
+                                          setState(() => _supportsSpreadsheet = value ?? false);
+                                        },
+                                        title: Row(
+                                          children: [
+                                            Icon(Icons.table_chart, color: Colors.green.shade700, size: 20),
+                                            const SizedBox(width: 8),
+                                            const Text('Google Sheets'),
+                                          ],
+                                        ),
+                                        subtitle: const Text('Spreadsheet exercises'),
+                                        controlAffinity: ListTileControlAffinity.leading,
+                                        contentPadding: EdgeInsets.zero,
+                                      ),
+                                    ),
+                                    Expanded(
+                                      child: CheckboxListTile(
+                                        value: _supportsPython,
+                                        onChanged: (value) {
+                                          setState(() => _supportsPython = value ?? false);
+                                        },
+                                        title: Row(
+                                          children: [
+                                            Icon(Icons.code, color: Colors.deepPurple.shade700, size: 20),
+                                            const SizedBox(width: 8),
+                                            const Text('Python'),
+                                          ],
+                                        ),
+                                        subtitle: const Text('Code exercises'),
+                                        controlAffinity: ListTileControlAffinity.leading,
+                                        contentPadding: EdgeInsets.zero,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),
@@ -473,8 +616,8 @@ class _SectionEditorScreenState extends State<SectionEditorScreen> {
                           ),
                         ),
                         
-                        // SPREADSHEET-ONLY: Template & Solution Spreadsheets
-                        if (!isPythonSection) ...[
+                        // SPREADSHEET: Template & Solution Spreadsheets (shown if spreadsheet is enabled)
+                        if (_supportsSpreadsheet) ...[
                           const SizedBox(height: 16),
                           Card(
                             child: Padding(
@@ -594,9 +737,10 @@ class _SectionEditorScreenState extends State<SectionEditorScreen> {
                           ),
                         ],
                         
-                        // PYTHON-ONLY: Python Solution Code
-                        if (isPythonSection) ...[
+                        // PYTHON: Starter Code, Solution Code, and Validation Config (shown if Python is enabled)
+                        if (_supportsPython) ...[
                           const SizedBox(height: 16),
+                          // Python Starter Code (multilingual)
                           Card(
                             child: Padding(
                               padding: const EdgeInsets.all(16),
@@ -605,14 +749,77 @@ class _SectionEditorScreenState extends State<SectionEditorScreen> {
                                 children: [
                                   Row(
                                     children: [
-                                      Icon(Icons.code, color: Colors.deepPurple.shade700),
+                                      Icon(Icons.play_arrow, color: Colors.deepPurple.shade700),
+                                      const SizedBox(width: 8),
+                                      Text('Python Starter Code', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'The initial code students see when they start the exercise. Include comments with TODO instructions.',
+                                    style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  // Language selector for Python starter code
+                                  Wrap(
+                                    spacing: 8,
+                                    runSpacing: 8,
+                                    children: _languages.map((lang) {
+                                      final code = lang['code'] as String;
+                                      final label = lang['label'] as String;
+                                      final hasCode = _pythonStarterCodeControllers[code]?.text.trim().isNotEmpty ?? false;
+                                      return ChoiceChip(
+                                        label: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Text(label),
+                                            if (hasCode) ...[
+                                              const SizedBox(width: 4),
+                                              Icon(Icons.check, size: 14, color: Colors.deepPurple.shade700),
+                                            ],
+                                          ],
+                                        ),
+                                        selected: _selectedPythonLang == code,
+                                        onSelected: (_) => setState(() => _selectedPythonLang = code),
+                                      );
+                                    }).toList(),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  TextFormField(
+                                    controller: _pythonStarterCodeControllers[_selectedPythonLang],
+                                    maxLines: 15,
+                                    style: const TextStyle(fontFamily: 'monospace', fontSize: 13),
+                                    decoration: InputDecoration(
+                                      labelText: 'Starter Code (${_languages.firstWhere((l) => l['code'] == _selectedPythonLang)['label']})',
+                                      border: const OutlineInputBorder(),
+                                      alignLabelWithHint: true,
+                                      hintText: '# Import libraries\nimport pandas as pd\n\n# TODO: Load the data\n# df = pd.read_csv(...)\n\n# TODO: Calculate the result\n# result = ...',
+                                      hintStyle: TextStyle(color: Colors.grey.shade400, fontFamily: 'monospace'),
+                                    ),
+                                    onChanged: (_) => setState(() {}),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          // Python Solution Code
+                          Card(
+                            child: Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Icon(Icons.check_circle, color: Colors.deepPurple.shade700),
                                       const SizedBox(width: 8),
                                       Text('Python Solution Code', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
                                     ],
                                   ),
                                   const SizedBox(height: 8),
                                   Text(
-                                    'The correct Python code that students should write. Shown when "Show Answer" is clicked (-50% XP).',
+                                    'The correct Python code. Shown when "Show Answer" is clicked (-50% XP).',
                                     style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
                                   ),
                                   const SizedBox(height: 16),
@@ -621,36 +828,161 @@ class _SectionEditorScreenState extends State<SectionEditorScreen> {
                                     maxLines: 12,
                                     style: const TextStyle(fontFamily: 'monospace', fontSize: 13),
                                     decoration: InputDecoration(
-                                      labelText: 'Python Solution Code',
+                                      labelText: 'Solution Code',
                                       border: const OutlineInputBorder(),
                                       alignLabelWithHint: true,
-                                      hintText: '# Complete Python solution...\nimport pandas as pd\n\n# Load data...',
+                                      hintText: '# Complete Python solution...\nimport pandas as pd\n\ndf = pd.read_csv(...)\nresult = df["column"].mean()',
                                       hintStyle: TextStyle(color: Colors.grey.shade400, fontFamily: 'monospace'),
                                     ),
                                   ),
-                                  const SizedBox(height: 16),
-                                  // Test in Browser button
-                                  if (isEditing)
-                                    Tooltip(
-                                      message: 'Opens the section in your web browser to test the solution code',
-                                      child: OutlinedButton.icon(
-                                        onPressed: () async {
-                                          final title = widget.section!.title.toLowerCase()
-                                              .replaceAll(RegExp(r'[^a-z0-9]+'), '-')
-                                              .replaceAll(RegExp(r'^-|-$'), '');
-                                          final url = 'http://localhost:3000/#/sections/$title';
-                                          if (await canLaunchUrl(Uri.parse(url))) {
-                                            await launchUrl(Uri.parse(url));
-                                          }
-                                        },
-                                        icon: const Icon(Icons.open_in_browser),
-                                        label: const Text('Test in Browser'),
-                                      ),
-                                    ),
                                 ],
                               ),
                             ),
                           ),
+                          const SizedBox(height: 16),
+                          // Python Validation Config
+                          Card(
+                            child: Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Icon(Icons.rule, color: Colors.deepPurple.shade700),
+                                      const SizedBox(width: 8),
+                                      Text('Validation Configuration', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'JSON configuration for validating student code. Defines what variables, values, or outputs to check.',
+                                    style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  TextFormField(
+                                    controller: _pythonValidationConfigController,
+                                    maxLines: 12,
+                                    style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
+                                    decoration: InputDecoration(
+                                      labelText: 'Validation Config (JSON)',
+                                      border: const OutlineInputBorder(),
+                                      alignLabelWithHint: true,
+                                      hintText: '''{
+  "validation_type": "simple",
+  "steps": [
+    {
+      "step": 1,
+      "type": "variable_exists",
+      "name": "df",
+      "expected_type": "DataFrame",
+      "message_en": "Create a DataFrame called df"
+    },
+    {
+      "step": 2,
+      "type": "variable_value",
+      "name": "result",
+      "expected": 42.5,
+      "tolerance": 0.01,
+      "message_en": "Calculate the result"
+    }
+  ]
+}''',
+                                      hintStyle: TextStyle(color: Colors.grey.shade400, fontFamily: 'monospace'),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  // Validation type help
+                                  ExpansionTile(
+                                    title: Text('Validation Types Reference', style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.primary)),
+                                    tilePadding: EdgeInsets.zero,
+                                    childrenPadding: const EdgeInsets.only(bottom: 8),
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.all(12),
+                                        decoration: BoxDecoration(
+                                          color: Colors.grey.shade100,
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text('• variable_exists: Check if a variable exists with expected type', style: theme.textTheme.bodySmall),
+                                            Text('• variable_value: Check if a variable equals expected value (±tolerance)', style: theme.textTheme.bodySmall),
+                                            Text('• column_exists: Check if a DataFrame has a specific column', style: theme.textTheme.bodySmall),
+                                            Text('• output_contains: Check if print output matches a regex pattern', style: theme.textTheme.bodySmall),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          // Test in Browser button
+                          if (isEditing)
+                            Card(
+                              child: Padding(
+                                padding: const EdgeInsets.all(16),
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.open_in_browser, color: colorScheme.primary),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text('Test Section', style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
+                                          Text('Open this section in the web app to test', style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant)),
+                                        ],
+                                      ),
+                                    ),
+                                    OutlinedButton.icon(
+                                      onPressed: () async {
+                                        var slug = widget.section!.title.toLowerCase()
+                                            .replaceAll(RegExp(r'[^a-z0-9]+'), '-')
+                                            .replaceAll(RegExp(r'^-|-$'), '');
+                                        // Remove existing tool suffix before adding
+                                        if (slug.endsWith('-spreadsheet')) {
+                                          slug = slug.substring(0, slug.length - '-spreadsheet'.length);
+                                        } else if (slug.endsWith('-python')) {
+                                          slug = slug.substring(0, slug.length - '-python'.length);
+                                        }
+                                        final url = 'http://localhost:3000/#/sections/$slug-python';
+                                        if (await canLaunchUrl(Uri.parse(url))) {
+                                          await launchUrl(Uri.parse(url));
+                                        }
+                                      },
+                                      icon: const Icon(Icons.code),
+                                      label: const Text('Test Python'),
+                                    ),
+                                    if (_supportsSpreadsheet) ...[
+                                      const SizedBox(width: 8),
+                                      OutlinedButton.icon(
+                                        onPressed: () async {
+                                          var slug = widget.section!.title.toLowerCase()
+                                              .replaceAll(RegExp(r'[^a-z0-9]+'), '-')
+                                              .replaceAll(RegExp(r'^-|-$'), '');
+                                          if (slug.endsWith('-spreadsheet')) {
+                                            slug = slug.substring(0, slug.length - '-spreadsheet'.length);
+                                          } else if (slug.endsWith('-python')) {
+                                            slug = slug.substring(0, slug.length - '-python'.length);
+                                          }
+                                          final url = 'http://localhost:3000/#/sections/$slug-spreadsheet';
+                                          if (await canLaunchUrl(Uri.parse(url))) {
+                                            await launchUrl(Uri.parse(url));
+                                          }
+                                        },
+                                        icon: const Icon(Icons.table_chart),
+                                        label: const Text('Test Spreadsheet'),
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                              ),
+                            ),
                         ],
                       ],
                     ),
