@@ -390,10 +390,12 @@ class _AssignmentInstructionsPanelState extends State<AssignmentInstructionsPane
   Widget _buildToolLinks(ThemeData theme, ColorScheme colorScheme) {
     final supportsSpreadsheet = widget.section.supportsSpreadsheet;
     final supportsPython = widget.section.supportsPython;
-    // TODO: Add supportsR when implemented
+    final supportsR = widget.section.supportsR;
 
+    // Count how many tools are supported
+    final toolCount = (supportsSpreadsheet ? 1 : 0) + (supportsPython ? 1 : 0) + (supportsR ? 1 : 0);
     // Don't show if only one tool is supported
-    if (!supportsSpreadsheet || !supportsPython) return const SizedBox.shrink();
+    if (toolCount <= 1) return const SizedBox.shrink();
 
     // Build slug for navigation
     var slug = widget.section.title.toLowerCase()
@@ -422,7 +424,8 @@ class _AssignmentInstructionsPanelState extends State<AssignmentInstructionsPane
                 _buildToolLinkChip('spreadsheet', slug, Icons.table_chart, Colors.green),
               if (widget.tool != 'python' && supportsPython)
                 _buildToolLinkChip('python', slug, Icons.code, Colors.deepPurple),
-              // TODO: Add R link when implemented
+              if (widget.tool != 'r' && supportsR)
+                _buildToolLinkChip('r', slug, Icons.analytics, Colors.blue),
             ],
           ),
         ],

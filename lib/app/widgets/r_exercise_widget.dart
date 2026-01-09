@@ -111,9 +111,7 @@ class RExerciseWidgetState extends State<RExerciseWidget> with SingleTickerProvi
   
   /// Load solution code if available
   void _loadSolutionCode() {
-    // R solution code would be stored in a similar field
-    // For now, use Python solution as placeholder
-    final solutionCode = widget.section.pythonSolutionCode;
+    final solutionCode = widget.section.rSolutionCode;
     if (solutionCode != null && solutionCode.isNotEmpty) {
       _solutionController.text = solutionCode;
     }
@@ -127,8 +125,8 @@ class RExerciseWidgetState extends State<RExerciseWidget> with SingleTickerProvi
       return;
     }
     
-    // Try to get R starter code - for now use Python as fallback
-    final starterCode = widget.section.getPythonStarterCodeForLanguage(widget.languageCode);
+    // Get R starter code for the current language
+    final starterCode = widget.section.getRStarterCodeForLanguage(widget.languageCode);
     if (starterCode != null && starterCode.isNotEmpty) {
       _codeController.text = starterCode;
     } else {
@@ -208,8 +206,8 @@ class RExerciseWidgetState extends State<RExerciseWidget> with SingleTickerProvi
     });
     
     try {
-      // Get validation config - use Python config as placeholder
-      final validationConfig = widget.section.pythonValidationConfig ?? {};
+      // Get R validation config
+      final validationConfig = widget.section.rValidationConfig ?? {};
       
       final result = await _webR.validateCode(
         _codeController.text,
@@ -296,7 +294,7 @@ class RExerciseWidgetState extends State<RExerciseWidget> with SingleTickerProvi
               Navigator.pop(context);
               setState(() {
                 // Force reload starter code
-                final starterCode = widget.section.getPythonStarterCodeForLanguage(widget.languageCode);
+                final starterCode = widget.section.getRStarterCodeForLanguage(widget.languageCode);
                 if (starterCode != null && starterCode.isNotEmpty) {
                   _codeController.text = starterCode;
                 } else {
@@ -348,8 +346,8 @@ class RExerciseWidgetState extends State<RExerciseWidget> with SingleTickerProvi
     }
     
     // Check if we should show solution tab
-    final hasSolution = widget.section.pythonSolutionCode != null &&
-                        widget.section.pythonSolutionCode!.isNotEmpty;
+    final hasSolution = widget.section.rSolutionCode != null &&
+                        widget.section.rSolutionCode!.isNotEmpty;
     final showSolutionTab = widget.showAnswer && hasSolution;
     
     return Column(
