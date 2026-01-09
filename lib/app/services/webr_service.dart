@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:js_interop';
+import 'dart:js_interop_unsafe';
 import 'package:web/web.dart' as web;
 
 /// Service for executing R code in the browser using WebR
@@ -14,11 +15,8 @@ class WebRService {
   bool _isInitializing = false;
   String? _initError;
   
-  // Store the WebR instance as a JS object
-  JSObject? _webR;
-  
   /// Check if WebR is initialized and ready
-  bool get isReady => _isInitialized && _webR != null;
+  bool get isReady => _isInitialized;
   
   /// Check if initialization is in progress
   bool get isInitializing => _isInitializing;
@@ -69,8 +67,7 @@ class WebRService {
     final completer = Completer<void>();
     
     // Check if WebR is already loaded
-    final existingWebR = web.window['WebR'];
-    if (existingWebR != null) {
+    if (_hasWebR()) {
       completer.complete();
       return completer.future;
     }
@@ -93,14 +90,23 @@ class WebRService {
     return completer.future;
   }
   
+  /// Check if WebR is loaded on window
+  bool _hasWebR() {
+    try {
+      // Check if WebR constructor exists on window
+      final jsWindow = web.window as JSObject;
+      final webR = jsWindow.getProperty('WebR'.toJS);
+      return webR != null && !webR.isUndefinedOrNull;
+    } catch (_) {
+      return false;
+    }
+  }
+  
   /// Initialize WebR instance
   Future<void> _initializeWebR() async {
-    // WebR initialization is done via JavaScript interop
-    // This is a placeholder - actual implementation requires proper JS interop
-    
-    // For now, we'll use eval to create and initialize WebR
+    // WebR initialization script - creates window.webR
     final initScript = '''
-      (async () => {
+      (async function() {
         const { WebR } = await import('https://webr.r-wasm.org/latest/webr.mjs');
         window.webR = new WebR();
         await window.webR.init();
@@ -109,9 +115,7 @@ class WebRService {
     ''';
     
     try {
-      // Use JavaScript eval for initialization
       await _evalJsAsync(initScript);
-      _webR = web.window['webR'] as JSObject?;
     } catch (e) {
       throw Exception('Failed to initialize WebR: $e');
     }
@@ -128,7 +132,6 @@ class WebRService {
     }
     
     try {
-      // Execute R code via JavaScript interop
       final result = await _evalR(code);
       return RExecutionResult(
         output: result,
@@ -199,13 +202,12 @@ class WebRService {
   
   /// Install an R package
   Future<void> installPackage(String packageName) async {
-    if (!isReady && _webR == null) return;
+    if (!isReady) return;
     
     try {
       await _evalR('webr::install("$packageName")');
-    } catch (e) {
-      // Package installation errors are non-fatal
-      print('Warning: Could not install package $packageName: $e');
+    } catch (_) {
+      // Package installation errors are non-fatal - silently continue
     }
   }
   
@@ -215,10 +217,12 @@ class WebRService {
     final completer = Completer<String>();
     
     try {
-      // Using Function constructor to evaluate async JavaScript
-      final result = web.window.callMethod('eval'.toJS, script.toJS);
-      if (result is JSPromise) {
-        final awaited = await result.toDart;
+      // Use Function constructor to evaluate JavaScript
+      final func = JSFunction('return $script');
+      final result = func.callAsFunction();
+      
+      if (result != null && result.isA<JSPromise>()) {
+        final awaited = await (result as JSPromise).toDart;
         completer.complete(awaited?.toString() ?? '');
       } else {
         completer.complete(result?.toString() ?? '');
@@ -232,10 +236,14 @@ class WebRService {
   
   Future<String> _evalR(String code) async {
     // Escape the R code for JavaScript
-    final escapedCode = code.replaceAll('\\', '\\\\').replaceAll("'", "\\'").replaceAll('\n', '\\n');
+    final escapedCode = code
+        .replaceAll('\\', '\\\\')
+        .replaceAll("'", "\\'")
+        .replaceAll('\n', '\\n')
+        .replaceAll('\r', '');
     
     final script = '''
-      (async () => {
+      (async function() {
         const result = await window.webR.evalR('$escapedCode');
         const output = await result.toArray();
         return output.join('\\n');
@@ -335,6 +343,13 @@ class WebRService {
       return RValidationResult(passed: false, message: 'Error executing function: $e', details: []);
     }
   }
+}
+
+// JS interop extension for global eval
+@JS('Function')
+extension type JSFunction._(JSObject _) implements JSObject {
+  external factory JSFunction(String code);
+  external JSAny? callAsFunction([JSAny? thisArg]);
 }
 
 /// Result of R code execution

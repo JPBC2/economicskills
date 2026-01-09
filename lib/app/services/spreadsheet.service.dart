@@ -6,6 +6,51 @@ class SpreadsheetService {
 
   SpreadsheetService(this._supabase);
 
+  /// Get existing spreadsheet or create a new one by copying the template
+  /// Returns the user's spreadsheet (existing or newly created)
+  Future<SectionSpreadsheet?> getOrCreateSpreadsheet({
+    required String sectionId,
+    required String userId,
+  }) async {
+    // First, check if user already has a spreadsheet for this section
+    final existing = await getUserSpreadsheet(sectionId);
+    if (existing != null) {
+      return existing;
+    }
+
+    // Load section to get template spreadsheet ID and title
+    final sectionData = await _supabase
+        .from('sections')
+        .select('template_spreadsheet_id, title')
+        .eq('id', sectionId)
+        .maybeSingle();
+
+    if (sectionData == null) return null;
+
+    final templateId = sectionData['template_spreadsheet_id'] as String?;
+    if (templateId == null || templateId.isEmpty) return null;
+
+    final sectionTitle = sectionData['title'] as String? ?? 'Exercise';
+
+    // Copy the template spreadsheet
+    try {
+      final result = await copySpreadsheet(
+        templateId: templateId,
+        sectionId: sectionId,
+        newName: '$sectionTitle - Your Copy',
+      );
+
+      return SectionSpreadsheet(
+        id: sectionId,
+        spreadsheetId: result.spreadsheetId,
+        spreadsheetUrl: result.spreadsheetUrl,
+      );
+    } catch (e) {
+      // If copy fails, return null
+      return null;
+    }
+  }
+
   /// Copy a template spreadsheet for the current user
   /// Returns the new spreadsheet URL or throws an error
   Future<SpreadsheetResult> copySpreadsheet({
