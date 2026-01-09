@@ -28,6 +28,10 @@ class _DrawerNavState extends ConsumerState<DrawerNav> {
     {'code': 'ru', 'label': 'Русский'},
     {'code': 'fr', 'label': 'Français'},
     {'code': 'pt', 'label': 'Português'},
+    {'code': 'ar', 'label': 'العربية'},
+    {'code': 'id', 'label': 'Bahasa Indonesia'},
+    {'code': 'ko', 'label': '한국어'},
+    {'code': 'ja', 'label': '日本語'},
   ];
 
   Future<void> _signOut(BuildContext context, AppLocalizations l10n) async {

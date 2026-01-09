@@ -1,0 +1,34 @@
+{
+    "@@locale": "id",
+    "appTitle": "Economic skills",
+    "@appTitle": {
+        "description": "The title of the application"
+    },
+    "homeWelcome": "Selamat Datang di Economic Skills",
+    "@homeWelcome": {
+        "description": "Welcome message on home screen"
+    },
+    "changeLanguage": "Ubah Bahasa",
+    "@changeLanguage": {
+        "description": "Button text to change language"
+    },
+    "sheetsExercisesTitle": "Latihan Interaktif",
+    "sheetsExercisesDesc": "Kuasai konsep ekonomi melalui praktik langsung dengan latihan interaktif Google Sheets dan Python kami. Kerjakan masalah teori ekonomi terapan dengan evaluasi real-time dan umpan balik instan.",
+    "elasticityExerciseBtn": "Pergi ke Latihan Elastisitas",
+    "comingSoonTitle": "Segera Hadir:",
+    "comingSoonSheets": "Integrasi Google Sheets interaktif",
+    "comingSoonEvaluation": "Evaluasi input real-time",
+    "comingSoonProgress": "Pelacakan kemajuan",
+    "comingSoonCourse": "Manajemen kursus",
+    "navDashboard": "Dasbor",
+    "navContent": "Konten",
+    "navAccount": "Akun",
+    "navSignIn": "Masuk",
+    "navSignOut": "Keluar",
+    "navTheme": "Tema",
+    "navLanguage": "Bahasa",
+    "featureInDevelopment": "Fitur ini sedang dalam pengembangan.",
+    "signOutSuccess": "Berhasil keluar!",
+    "signOutError": "Gagal keluar",
+    "switchThemeTooltip": "Ganti tema (gelap / terang)"
+}

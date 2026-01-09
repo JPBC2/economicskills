@@ -68,8 +68,8 @@ class ContentTranslation {
 
 /// Supported languages configuration
 class SupportedLanguages {
-  /// Language codes in display order (11 languages)
-  static const List<String> codes = ['en', 'es', 'zh', 'ru', 'fr', 'pt', 'it', 'ca', 'ro', 'de', 'nl'];
+  /// Language codes in display order (15 languages)
+  static const List<String> codes = ['en', 'es', 'zh', 'ru', 'fr', 'pt', 'it', 'ca', 'ro', 'de', 'nl', 'ar', 'id', 'ko', 'ja'];
 
   /// Language names in their native form
   static const Map<String, String> names = {
@@ -84,6 +84,10 @@ class SupportedLanguages {
     'ro': 'Română',
     'de': 'Deutsch',
     'nl': 'Nederlands',
+    'ar': 'العربية',
+    'id': 'Bahasa Indonesia',
+    'ko': '한국어',
+    'ja': '日本語',
   };
 
   /// Language names in English
@@ -99,6 +103,10 @@ class SupportedLanguages {
     'ro': 'Romanian',
     'de': 'German',
     'nl': 'Dutch',
+    'ar': 'Arabic',
+    'id': 'Indonesian',
+    'ko': 'Korean',
+    'ja': 'Japanese',
   };
 
   /// Flag emoji for each language (for visual identification)
@@ -114,6 +122,10 @@ class SupportedLanguages {
     'ro': '🇷🇴',
     'de': '🇩🇪',
     'nl': '🇳🇱',
+    'ar': '🇸🇦',
+    'id': '🇮🇩',
+    'ko': '🇰🇷',
+    'ja': '🇯🇵',
   };
 
   /// Default language

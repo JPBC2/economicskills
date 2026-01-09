@@ -1,0 +1,34 @@
+{
+    "@@locale": "ja",
+    "appTitle": "Economic skills",
+    "@appTitle": {
+        "description": "The title of the application"
+    },
+    "homeWelcome": "Economic Skillsへようこそ",
+    "@homeWelcome": {
+        "description": "Welcome message on home screen"
+    },
+    "changeLanguage": "言語を変更",
+    "@changeLanguage": {
+        "description": "Button text to change language"
+    },
+    "sheetsExercisesTitle": "インタラクティブ演習",
+    "sheetsExercisesDesc": "GoogleスプレッドシートとPythonのインタラクティブ演習を通じて経済概念をマスターしましょう。リアルタイム評価と即時フィードバックで応用経済理論の問題に取り組みます。",
+    "elasticityExerciseBtn": "弾力性演習へ移動",
+    "comingSoonTitle": "近日公開:",
+    "comingSoonSheets": "インタラクティブなGoogleスプレッドシート統合",
+    "comingSoonEvaluation": "リアルタイム入力評価",
+    "comingSoonProgress": "進捗追跡",
+    "comingSoonCourse": "コース管理",
+    "navDashboard": "ダッシュボード",
+    "navContent": "コンテンツ",
+    "navAccount": "アカウント",
+    "navSignIn": "サインイン",
+    "navSignOut": "サインアウト",
+    "navTheme": "テーマ",
+    "navLanguage": "言語",
+    "featureInDevelopment": "この機能は開発中です。",
+    "signOutSuccess": "正常にサインアウトしました！",
+    "signOutError": "サインアウトエラー",
+    "switchThemeTooltip": "テーマを切り替え（ダーク / ライト）"
+}

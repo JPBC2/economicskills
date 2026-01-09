@@ -60,7 +60,7 @@ class LandingScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 24),
                     Text(
-                      'Bridge the gap between theory and practice. Solve real-world economic problems using live Google Sheets integration and get instant feedback.',
+                      'Bridge the gap between theory and practice. Solve real-world economic problems using interactive Google Sheets and Python exercises with instant feedback.',
                       style: theme.textTheme.titleMedium?.copyWith(
                         color: colorScheme.onSurfaceVariant,
                         height: 1.6,
@@ -141,6 +141,12 @@ class LandingScreen extends StatelessWidget {
                           Icons.table_chart,
                           'Google Sheets Integration',
                           'Work in the environment you know. Our seamless integration brings the power of spreadsheets to your learning.',
+                        ),
+                        _buildFeatureCard(
+                          theme,
+                          Icons.code,
+                          'Python Exercises',
+                          'Write Python code to analyze economic data. Build real-world skills with hands-on coding challenges.',
                         ),
                         _buildFeatureCard(
                           theme,

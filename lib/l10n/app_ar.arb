@@ -1,0 +1,34 @@
+{
+    "@@locale": "ar",
+    "appTitle": "Economic skills",
+    "@appTitle": {
+        "description": "The title of the application"
+    },
+    "homeWelcome": "مرحباً بكم في المهارات الاقتصادية",
+    "@homeWelcome": {
+        "description": "Welcome message on home screen"
+    },
+    "changeLanguage": "تغيير اللغة",
+    "@changeLanguage": {
+        "description": "Button text to change language"
+    },
+    "sheetsExercisesTitle": "تمارين تفاعلية",
+    "sheetsExercisesDesc": "أتقن المفاهيم الاقتصادية من خلال الممارسة العملية مع تمارين Google Sheets و Python التفاعلية. اعمل على مسائل النظرية الاقتصادية التطبيقية مع التقييم الفوري والتغذية الراجعة الفورية.",
+    "elasticityExerciseBtn": "انتقل إلى تمرين المرونة",
+    "comingSoonTitle": "قريباً:",
+    "comingSoonSheets": "تكامل جداول بيانات Google التفاعلية",
+    "comingSoonEvaluation": "تقييم المدخلات في الوقت الفعلي",
+    "comingSoonProgress": "تتبع التقدم",
+    "comingSoonCourse": "إدارة الدورات",
+    "navDashboard": "لوحة التحكم",
+    "navContent": "المحتوى",
+    "navAccount": "الحساب",
+    "navSignIn": "تسجيل الدخول",
+    "navSignOut": "تسجيل الخروج",
+    "navTheme": "المظهر",
+    "navLanguage": "اللغة",
+    "featureInDevelopment": "هذه الميزة قيد التطوير.",
+    "signOutSuccess": "تم تسجيل الخروج بنجاح!",
+    "signOutError": "خطأ في تسجيل الخروج",
+    "switchThemeTooltip": "تبديل المظهر (داكن / فاتح)"
+}

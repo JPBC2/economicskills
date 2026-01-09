@@ -18,11 +18,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get changeLanguage => '更改语言';
 
   @override
-  String get sheetsExercisesTitle => 'Google Sheets 互动练习';
+  String get sheetsExercisesTitle => '互动练习';
 
   @override
   String get sheetsExercisesDesc =>
-      '这里将集成您的 Google Sheets 练习。学生可以通过实时评估来完成应用经济理论问题。';
+      '通过我们的Google Sheets和Python互动练习，掌握经济学概念。完成应用经济理论问题，获得实时评估和即时反馈。';
 
   @override
   String get elasticityExerciseBtn => '前往弹性练习';

@@ -1,0 +1,34 @@
+{
+    "@@locale": "ko",
+    "appTitle": "Economic skills",
+    "@appTitle": {
+        "description": "The title of the application"
+    },
+    "homeWelcome": "Economic Skills에 오신 것을 환영합니다",
+    "@homeWelcome": {
+        "description": "Welcome message on home screen"
+    },
+    "changeLanguage": "언어 변경",
+    "@changeLanguage": {
+        "description": "Button text to change language"
+    },
+    "sheetsExercisesTitle": "대화형 연습",
+    "sheetsExercisesDesc": "Google 스프레드시트와 Python 대화형 연습을 통해 경제 개념을 마스터하세요. 실시간 평가와 즉각적인 피드백으로 응용 경제 이론 문제를 풀어보세요.",
+    "elasticityExerciseBtn": "탄력성 연습으로 이동",
+    "comingSoonTitle": "곧 제공:",
+    "comingSoonSheets": "대화형 Google 스프레드시트 통합",
+    "comingSoonEvaluation": "실시간 입력 평가",
+    "comingSoonProgress": "진행 상황 추적",
+    "comingSoonCourse": "과정 관리",
+    "navDashboard": "대시보드",
+    "navContent": "콘텐츠",
+    "navAccount": "계정",
+    "navSignIn": "로그인",
+    "navSignOut": "로그아웃",
+    "navTheme": "테마",
+    "navLanguage": "언어",
+    "featureInDevelopment": "이 기능은 개발 중입니다.",
+    "signOutSuccess": "성공적으로 로그아웃되었습니다!",
+    "signOutError": "로그아웃 오류",
+    "switchThemeTooltip": "테마 전환 (다크 / 라이트)"
+}

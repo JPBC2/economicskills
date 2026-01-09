@@ -18,11 +18,11 @@ class AppLocalizationsFr extends AppLocalizations {
   String get changeLanguage => 'Changer de langue';
 
   @override
-  String get sheetsExercisesTitle => 'Exercices interactifs Google Sheets';
+  String get sheetsExercisesTitle => 'Exercices Interactifs';
 
   @override
   String get sheetsExercisesDesc =>
-      'C\'est ici que vos exercices Google Sheets seront intégrés. Les étudiants pourront travailler sur des problèmes de théorie économique appliquée avec une évaluation en temps réel.';
+      'Maîtrisez les concepts économiques grâce à la pratique avec nos exercices interactifs Google Sheets et Python. Travaillez sur des problèmes de théorie économique appliquée avec une évaluation en temps réel et un retour instantané.';
 
   @override
   String get elasticityExerciseBtn => 'Aller à l\'exercice d\'élasticité';

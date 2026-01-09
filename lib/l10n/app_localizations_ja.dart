@@ -1,0 +1,77 @@
+// ignore: unused_import
+import 'package:intl/intl.dart' as intl;
+import 'app_localizations.dart';
+
+// ignore_for_file: type=lint
+
+/// The translations for Japanese (`ja`).
+class AppLocalizationsJa extends AppLocalizations {
+  AppLocalizationsJa([String locale = 'ja']) : super(locale);
+
+  @override
+  String get appTitle => 'Economic skills';
+
+  @override
+  String get homeWelcome => 'Economic Skillsへようこそ';
+
+  @override
+  String get changeLanguage => '言語を変更';
+
+  @override
+  String get sheetsExercisesTitle => 'インタラクティブ演習';
+
+  @override
+  String get sheetsExercisesDesc =>
+      'GoogleスプレッドシートとPythonのインタラクティブ演習を通じて経済概念をマスターしましょう。リアルタイム評価と即時フィードバックで応用経済理論の問題に取り組みます。';
+
+  @override
+  String get elasticityExerciseBtn => '弾力性演習へ移動';
+
+  @override
+  String get comingSoonTitle => '近日公開:';
+
+  @override
+  String get comingSoonSheets => 'インタラクティブなGoogleスプレッドシート統合';
+
+  @override
+  String get comingSoonEvaluation => 'リアルタイム入力評価';
+
+  @override
+  String get comingSoonProgress => '進捗追跡';
+
+  @override
+  String get comingSoonCourse => 'コース管理';
+
+  @override
+  String get navDashboard => 'ダッシュボード';
+
+  @override
+  String get navContent => 'コンテンツ';
+
+  @override
+  String get navAccount => 'アカウント';
+
+  @override
+  String get navSignIn => 'サインイン';
+
+  @override
+  String get navSignOut => 'サインアウト';
+
+  @override
+  String get navTheme => 'テーマ';
+
+  @override
+  String get navLanguage => '言語';
+
+  @override
+  String get featureInDevelopment => 'この機能は開発中です。';
+
+  @override
+  String get signOutSuccess => '正常にサインアウトしました！';
+
+  @override
+  String get signOutError => 'サインアウトエラー';
+
+  @override
+  String get switchThemeTooltip => 'テーマを切り替え（ダーク / ライト）';
+}

@@ -30,7 +30,7 @@ class TopNav extends ConsumerWidget implements PreferredSizeWidget {
     final Color buttonTextColor = isDark ? AppColors.textOnDark : AppColors.textOnLight;
     final Color appBarColor = isDark ? AppColors.appBarDark : AppColors.appBarLight;
 
-    // Language items - 11 supported languages
+    // Language items - 15 supported languages
     final List<Map<String, dynamic>> languages = [
       {'code': 'en', 'label': 'English'},
       {'code': 'es', 'label': 'Español'},
@@ -43,6 +43,10 @@ class TopNav extends ConsumerWidget implements PreferredSizeWidget {
       {'code': 'ro', 'label': 'Română'},
       {'code': 'de', 'label': 'Deutsch'},
       {'code': 'nl', 'label': 'Nederlands'},
+      {'code': 'ar', 'label': 'العربية'},
+      {'code': 'id', 'label': 'Bahasa Indonesia'},
+      {'code': 'ko', 'label': '한국어'},
+      {'code': 'ja', 'label': '日本語'},
     ];
 
     return AppBar(
@@ -271,14 +275,19 @@ class TopNav extends ConsumerWidget implements PreferredSizeWidget {
       if (context.mounted) {
         context.showSnackBar(l10n.signOutSuccess);
         
-        // Smart redirect: stay on public pages, redirect from protected pages
-        if (isOnPublicPage) {
-          // Refresh the current page state by replacing with same route
-          context.go(currentPath);
-        } else {
-          // Redirect to home from protected pages
-          context.go('/');
-        }
+        // Use post-frame callback to ensure navigation happens after popup closes
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (context.mounted) {
+            // Smart redirect: stay on public pages, redirect from protected pages
+            if (isOnPublicPage) {
+              // Refresh the current page state by replacing with same route
+              context.go(currentPath);
+            } else {
+              // Redirect to home from protected pages
+              context.go('/');
+            }
+          }
+        });
       }
     } catch (error) {
       if (context.mounted) {
