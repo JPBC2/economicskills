@@ -479,11 +479,20 @@ class _CourseHierarchyTreeState extends State<CourseHierarchyTree> {
                       TextButton.icon(
                         onPressed: () => _navigateToEditor(SectionEditorScreen(
                           exercise: exercise,
-                          sectionType: 'both',
+                          sectionType: 'r',
                         )),
-                        icon: Icon(Icons.splitscreen, size: 18, color: Colors.blue.shade700),
-                        label: Text('Add Both (Spreadsheet + Python)',
+                        icon: Icon(Icons.analytics, size: 18, color: Colors.blue.shade700),
+                        label: Text('Add R Section',
                           style: TextStyle(color: Colors.blue.shade700)),
+                      ),
+                      TextButton.icon(
+                        onPressed: () => _navigateToEditor(SectionEditorScreen(
+                          exercise: exercise,
+                          sectionType: 'all',
+                        )),
+                        icon: Icon(Icons.splitscreen, size: 18, color: Colors.teal.shade700),
+                        label: Text('Add Spreadsheet + Python + R',
+                          style: TextStyle(color: Colors.teal.shade700)),
                       ),
                     ],
                   ),
@@ -499,18 +508,34 @@ class _CourseHierarchyTreeState extends State<CourseHierarchyTree> {
   Widget _buildSectionTile(Section section, Exercise exercise) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final hasBoth = section.supportsSpreadsheet && section.supportsPython;
-    final isPythonOnly = section.supportsPython && !section.supportsSpreadsheet;
+    final hasAll = section.supportsSpreadsheet && section.supportsPython && section.supportsR;
+    final hasBoth = section.supportsSpreadsheet && section.supportsPython && !section.supportsR;
+    final isROnly = section.supportsR && !section.supportsSpreadsheet && !section.supportsPython;
+    final isPythonOnly = section.supportsPython && !section.supportsSpreadsheet && !section.supportsR;
+
+    // Choose icon based on tool support
+    IconData icon;
+    Color iconColor;
+    if (hasAll) {
+      icon = Icons.splitscreen;
+      iconColor = Colors.teal.shade400;
+    } else if (hasBoth) {
+      icon = Icons.splitscreen;
+      iconColor = Colors.blue.shade400;
+    } else if (isROnly) {
+      icon = Icons.analytics;
+      iconColor = Colors.blue.shade400;
+    } else if (isPythonOnly) {
+      icon = Icons.code;
+      iconColor = Colors.deepPurple.shade400;
+    } else {
+      icon = Icons.table_chart;
+      iconColor = Colors.green.shade400;
+    }
 
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 8),
-      leading: hasBoth
-          ? Icon(Icons.splitscreen, size: 20, color: Colors.blue.shade400)
-          : Icon(
-              isPythonOnly ? Icons.code : Icons.table_chart,
-              size: 20,
-              color: isPythonOnly ? Colors.deepPurple.shade400 : Colors.green.shade400,
-            ),
+      leading: Icon(icon, size: 20, color: iconColor),
       title: Text(
         section.title,
         style: const TextStyle(fontWeight: FontWeight.w500),

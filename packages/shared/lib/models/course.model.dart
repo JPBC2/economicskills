@@ -260,15 +260,19 @@ class Section {
   // Exercise type support flags
   final bool supportsSpreadsheet;
   final bool supportsPython;
-  final String sectionType; // 'python', 'spreadsheet', or 'both'
+  final bool supportsR;
+  final String sectionType; // 'python', 'spreadsheet', 'r', 'both', or 'all'
 
   // Tool-specific instructions, hints, and XP rewards
   final String? instructionsSpreadsheet;
   final String? instructionsPython;
+  final String? instructionsR;
   final String? hintSpreadsheet;
   final String? hintPython;
+  final String? hintR;
   final int xpRewardSpreadsheet;
   final int xpRewardPython;
+  final int xpRewardR;
 
   // Language-specific template and solution spreadsheet IDs
   final Map<String, String?> templateSpreadsheets;
@@ -278,6 +282,11 @@ class Section {
   final Map<String, String?> pythonStarterCode;
   final String? pythonSolutionCode;
   final Map<String, dynamic>? pythonValidationConfig;
+
+  // R exercise fields
+  final Map<String, String?> rStarterCode;
+  final String? rSolutionCode;
+  final Map<String, dynamic>? rValidationConfig;
 
   Section({
     required this.id,
@@ -293,44 +302,60 @@ class Section {
     required this.updatedAt,
     this.supportsSpreadsheet = true,
     this.supportsPython = false,
+    this.supportsR = false,
     this.sectionType = 'spreadsheet',
     this.instructionsSpreadsheet,
     this.instructionsPython,
+    this.instructionsR,
     this.hintSpreadsheet,
     this.hintPython,
+    this.hintR,
     this.xpRewardSpreadsheet = 10,
     this.xpRewardPython = 10,
+    this.xpRewardR = 10,
     this.templateSpreadsheets = const {},
     this.solutionSpreadsheets = const {},
     this.pythonStarterCode = const {},
     this.pythonSolutionCode,
     this.pythonValidationConfig,
+    this.rStarterCode = const {},
+    this.rSolutionCode,
+    this.rValidationConfig,
   });
 
   /// Get instructions for a specific tool, falling back to shared instructions
   String? getInstructionsForTool(String tool) {
-    if (tool == 'python') {
-      return instructionsPython ?? instructions;
-    } else {
-      return instructionsSpreadsheet ?? instructions;
+    switch (tool) {
+      case 'python':
+        return instructionsPython ?? instructions;
+      case 'r':
+        return instructionsR ?? instructions;
+      default:
+        return instructionsSpreadsheet ?? instructions;
     }
   }
 
   /// Get hint for a specific tool, falling back to shared hint
   String? getHintForTool(String tool) {
-    if (tool == 'python') {
-      return hintPython ?? hint;
-    } else {
-      return hintSpreadsheet ?? hint;
+    switch (tool) {
+      case 'python':
+        return hintPython ?? hint;
+      case 'r':
+        return hintR ?? hint;
+      default:
+        return hintSpreadsheet ?? hint;
     }
   }
 
   /// Get XP reward for a specific tool, falling back to shared XP reward
   int getXpRewardForTool(String tool) {
-    if (tool == 'python') {
-      return xpRewardPython > 0 ? xpRewardPython : xpReward;
-    } else {
-      return xpRewardSpreadsheet > 0 ? xpRewardSpreadsheet : xpReward;
+    switch (tool) {
+      case 'python':
+        return xpRewardPython > 0 ? xpRewardPython : xpReward;
+      case 'r':
+        return xpRewardR > 0 ? xpRewardR : xpReward;
+      default:
+        return xpRewardSpreadsheet > 0 ? xpRewardSpreadsheet : xpReward;
     }
   }
 
@@ -351,16 +376,23 @@ class Section {
     return pythonStarterCode[langCode] ?? pythonStarterCode['en'];
   }
 
+  /// Get R starter code for a specific language, falling back to English
+  String? getRStarterCodeForLanguage(String langCode) {
+    return rStarterCode[langCode] ?? rStarterCode['en'];
+  }
+
   factory Section.fromJson(Map<String, dynamic> json) {
     // Parse language-specific templates and solutions
     final templates = <String, String?>{};
     final solutions = <String, String?>{};
     final pythonStarter = <String, String?>{};
+    final rStarter = <String, String?>{};
 
     for (final lang in ['en', 'es', 'zh', 'ru', 'fr', 'pt', 'it', 'ca', 'ro', 'de', 'nl']) {
       templates[lang] = json['template_spreadsheet_$lang'] as String?;
       solutions[lang] = json['solution_spreadsheet_$lang'] as String?;
       pythonStarter[lang] = json['python_starter_code_$lang'] as String?;
+      rStarter[lang] = json['r_starter_code_$lang'] as String?;
     }
 
     return Section(
@@ -377,19 +409,26 @@ class Section {
       updatedAt: DateTime.parse(json['updated_at'] as String),
       supportsSpreadsheet: json['supports_spreadsheet'] as bool? ?? true,
       supportsPython: json['supports_python'] as bool? ?? false,
+      supportsR: json['supports_r'] as bool? ?? false,
       sectionType: json['section_type'] as String? ?? 'spreadsheet',
       // Tool-specific fields
       instructionsSpreadsheet: json['instructions_spreadsheet'] as String?,
       instructionsPython: json['instructions_python'] as String?,
+      instructionsR: json['instructions_r'] as String?,
       hintSpreadsheet: json['hint_spreadsheet'] as String?,
       hintPython: json['hint_python'] as String?,
+      hintR: json['hint_r'] as String?,
       xpRewardSpreadsheet: json['xp_reward_spreadsheet'] as int? ?? 10,
       xpRewardPython: json['xp_reward_python'] as int? ?? 10,
+      xpRewardR: json['xp_reward_r'] as int? ?? 10,
       templateSpreadsheets: templates,
       solutionSpreadsheets: solutions,
       pythonStarterCode: pythonStarter,
       pythonSolutionCode: json['python_solution_code'] as String?,
       pythonValidationConfig: json['python_validation_config'] as Map<String, dynamic>?,
+      rStarterCode: rStarter,
+      rSolutionCode: json['r_solution_code'] as String?,
+      rValidationConfig: json['r_validation_config'] as Map<String, dynamic>?,
     );
   }
 

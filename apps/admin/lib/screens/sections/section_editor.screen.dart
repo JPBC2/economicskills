@@ -37,24 +37,33 @@ class _SectionEditorScreenState extends State<SectionEditorScreen> {
   // Tool-specific controllers
   final _instructionsSpreadsheetController = TextEditingController();
   final _instructionsPythonController = TextEditingController();
+  final _instructionsRController = TextEditingController();
   final _hintSpreadsheetController = TextEditingController();
   final _hintPythonController = TextEditingController();
+  final _hintRController = TextEditingController();
   final _xpRewardSpreadsheetController = TextEditingController(text: '10');
   final _xpRewardPythonController = TextEditingController(text: '10');
+  final _xpRewardRController = TextEditingController(text: '10');
+  
+  // R-specific controllers
+  final _rSolutionCodeController = TextEditingController();
+  final _rValidationConfigController = TextEditingController();
 
   bool _isSaving = false;
   bool _isLoading = true;
   String? _extractedTemplateId;
   String? _extractedSolutionId;
 
-  // Tool support flags (both can be true)
+  // Tool support flags (all can be true)
   bool _supportsSpreadsheet = true;
   bool _supportsPython = false;
+  bool _supportsR = false;
 
   // Collapsible section states
   bool _detailsExpanded = true;
   bool _spreadsheetExpanded = true;
   bool _pythonExpanded = true;
+  bool _rExpanded = true;
   
   // Supported languages for template URLs
   static const _languages = [
@@ -80,6 +89,10 @@ class _SectionEditorScreenState extends State<SectionEditorScreen> {
   Map<String, TextEditingController> _pythonStarterCodeControllers = {};
   String _selectedPythonLang = 'en';
   
+  // Language-specific R starter code
+  Map<String, TextEditingController> _rStarterCodeControllers = {};
+  String _selectedRLang = 'en';
+  
   Map<String, Map<String, String>> _translations = {};
   late final TranslationService _translationService;
 
@@ -90,6 +103,9 @@ class _SectionEditorScreenState extends State<SectionEditorScreen> {
 
   /// Check if Python tool is enabled
   bool get hasPython => _supportsPython;
+  
+  /// Check if R tool is enabled
+  bool get hasR => _supportsR;
 
   @override
   void initState() {
@@ -102,18 +118,30 @@ class _SectionEditorScreenState extends State<SectionEditorScreen> {
       _templateControllers[code] = TextEditingController();
       _solutionControllers[code] = TextEditingController();
       _pythonStarterCodeControllers[code] = TextEditingController();
+      _rStarterCodeControllers[code] = TextEditingController();
     }
 
     // Set initial tool support based on sectionType parameter
     if (widget.sectionType == 'python') {
       _supportsSpreadsheet = false;
       _supportsPython = true;
+      _supportsR = false;
+    } else if (widget.sectionType == 'r') {
+      _supportsSpreadsheet = false;
+      _supportsPython = false;
+      _supportsR = true;
     } else if (widget.sectionType == 'both') {
       _supportsSpreadsheet = true;
       _supportsPython = true;
+      _supportsR = false;
+    } else if (widget.sectionType == 'all') {
+      _supportsSpreadsheet = true;
+      _supportsPython = true;
+      _supportsR = true;
     } else {
       _supportsSpreadsheet = true;
       _supportsPython = false;
+      _supportsR = false;
     }
 
     if (widget.section != null) {
@@ -123,6 +151,7 @@ class _SectionEditorScreenState extends State<SectionEditorScreen> {
       // Load tool support flags from existing section
       _supportsSpreadsheet = widget.section!.supportsSpreadsheet;
       _supportsPython = widget.section!.supportsPython;
+      _supportsR = widget.section!.supportsR;
 
       // Load legacy template URL (backward compatibility)
       if (widget.section!.templateSpreadsheetId != null) {
@@ -175,14 +204,46 @@ class _SectionEditorScreenState extends State<SectionEditorScreen> {
       if (widget.section!.instructionsPython != null) {
         _instructionsPythonController.text = widget.section!.instructionsPython!;
       }
+      if (widget.section!.instructionsR != null) {
+        _instructionsRController.text = widget.section!.instructionsR!;
+      }
       if (widget.section!.hintSpreadsheet != null) {
         _hintSpreadsheetController.text = widget.section!.hintSpreadsheet!;
       }
       if (widget.section!.hintPython != null) {
         _hintPythonController.text = widget.section!.hintPython!;
       }
+      if (widget.section!.hintR != null) {
+        _hintRController.text = widget.section!.hintR!;
+      }
       _xpRewardSpreadsheetController.text = widget.section!.xpRewardSpreadsheet.toString();
       _xpRewardPythonController.text = widget.section!.xpRewardPython.toString();
+      _xpRewardRController.text = widget.section!.xpRewardR.toString();
+      
+      // Load R solution code
+      if (widget.section!.rSolutionCode != null) {
+        _rSolutionCodeController.text = widget.section!.rSolutionCode!;
+      }
+      
+      // Load R starter code for each language
+      for (final lang in _languages) {
+        final code = lang['code'] as String;
+        final starterCode = widget.section!.rStarterCode[code];
+        if (starterCode != null && starterCode.isNotEmpty) {
+          _rStarterCodeControllers[code]!.text = starterCode;
+        }
+      }
+      
+      // Load R validation config
+      if (widget.section!.rValidationConfig != null) {
+        try {
+          final jsonString = const JsonEncoder.withIndent('  ')
+              .convert(widget.section!.rValidationConfig);
+          _rValidationConfigController.text = jsonString;
+        } catch (e) {
+          _rValidationConfigController.text = '';
+        }
+      }
 
       _loadTranslations();
       _loadValidationRule(); // Load existing validation rule
@@ -311,9 +372,9 @@ class _SectionEditorScreenState extends State<SectionEditorScreen> {
     }
     
     // Check if at least one tool is selected
-    if (!_supportsSpreadsheet && !_supportsPython) {
+    if (!_supportsSpreadsheet && !_supportsPython && !_supportsR) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enable at least one tool (Spreadsheet or Python)'), backgroundColor: Colors.red),
+        const SnackBar(content: Text('Please enable at least one tool (Spreadsheet, Python, or R)'), backgroundColor: Colors.red),
       );
       return;
     }
@@ -342,6 +403,19 @@ class _SectionEditorScreenState extends State<SectionEditorScreen> {
         return;
       }
     }
+    
+    // Validate R validation config JSON if provided
+    Map<String, dynamic>? rValidationConfig;
+    if (_supportsR && _rValidationConfigController.text.trim().isNotEmpty) {
+      try {
+        rValidationConfig = jsonDecode(_rValidationConfigController.text.trim()) as Map<String, dynamic>;
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Invalid JSON in R Validation Config'), backgroundColor: Colors.red),
+        );
+        return;
+      }
+    }
 
     setState(() => _isSaving = true);
 
@@ -352,8 +426,12 @@ class _SectionEditorScreenState extends State<SectionEditorScreen> {
       
       // Determine section_type for backwards compatibility
       String sectionType;
-      if (_supportsSpreadsheet && _supportsPython) {
+      if (_supportsSpreadsheet && _supportsPython && _supportsR) {
+        sectionType = 'all';
+      } else if (_supportsSpreadsheet && _supportsPython) {
         sectionType = 'both';
+      } else if (_supportsR) {
+        sectionType = 'r';
       } else if (_supportsPython) {
         sectionType = 'python';
       } else {
@@ -378,6 +456,10 @@ class _SectionEditorScreenState extends State<SectionEditorScreen> {
         'hint_python': _hintPythonController.text.trim().isEmpty ? null : _hintPythonController.text.trim(),
         'xp_reward_spreadsheet': int.tryParse(_xpRewardSpreadsheetController.text) ?? 10,
         'xp_reward_python': int.tryParse(_xpRewardPythonController.text) ?? 10,
+        'supports_r': _supportsR,
+        'instructions_r': _instructionsRController.text.trim().isEmpty ? null : _instructionsRController.text.trim(),
+        'hint_r': _hintRController.text.trim().isEmpty ? null : _hintRController.text.trim(),
+        'xp_reward_r': int.tryParse(_xpRewardRController.text) ?? 10,
       };
 
       // Add spreadsheet-specific fields if spreadsheet is enabled
@@ -409,6 +491,23 @@ class _SectionEditorScreenState extends State<SectionEditorScreen> {
 
         // Add Python validation config
         data['python_validation_config'] = validationConfig;
+      }
+      
+      // Add R-specific fields if R is enabled
+      if (_supportsR) {
+        data['r_solution_code'] = _rSolutionCodeController.text.trim().isEmpty
+            ? null
+            : _rSolutionCodeController.text.trim();
+        
+        // Add R starter code for each language
+        for (final lang in _languages) {
+          final code = lang['code'] as String;
+          final starterCode = _rStarterCodeControllers[code]?.text.trim();
+          data['r_starter_code_$code'] = (starterCode?.isEmpty ?? true) ? null : starterCode;
+        }
+        
+        // Add R validation config
+        data['r_validation_config'] = rValidationConfig;
       }
 
       String sectionId;
@@ -582,6 +681,24 @@ class _SectionEditorScreenState extends State<SectionEditorScreen> {
                                           ],
                                         ),
                                         subtitle: const Text('Code exercises'),
+                                        controlAffinity: ListTileControlAffinity.leading,
+                                        contentPadding: EdgeInsets.zero,
+                                      ),
+                                    ),
+                                    Expanded(
+                                      child: CheckboxListTile(
+                                        value: _supportsR,
+                                        onChanged: (value) {
+                                          setState(() => _supportsR = value ?? false);
+                                        },
+                                        title: Row(
+                                          children: [
+                                            Icon(Icons.analytics, color: Colors.blue.shade700, size: 20),
+                                            const SizedBox(width: 8),
+                                            const Text('R'),
+                                          ],
+                                        ),
+                                        subtitle: const Text('R exercises'),
                                         controlAffinity: ListTileControlAffinity.leading,
                                         contentPadding: EdgeInsets.zero,
                                       ),
@@ -774,6 +891,188 @@ class _SectionEditorScreenState extends State<SectionEditorScreen> {
                                             ),
                                           ],
                                         ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                            ),
+                          ),
+                        ],
+                        
+                        // R: Configuration (collapsible, shown if R is enabled)
+                        if (_supportsR) ...[
+                          const SizedBox(height: 16),
+                          Card(
+                            clipBehavior: Clip.antiAlias,
+                            child: ExpansionTile(
+                              initiallyExpanded: _rExpanded,
+                              onExpansionChanged: (expanded) => setState(() => _rExpanded = expanded),
+                              leading: Icon(Icons.analytics, color: Colors.blue.shade700),
+                              title: Text('R Configuration', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                              subtitle: Text('Instructions, hint, XP, starter code, and validation', style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant)),
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      // R Instructions
+                                      TextFormField(
+                                        controller: _instructionsRController,
+                                        maxLines: 5,
+                                        decoration: const InputDecoration(
+                                          labelText: 'Instructions (R)',
+                                          border: OutlineInputBorder(),
+                                          alignLabelWithHint: true,
+                                          hintText: 'Step-by-step instructions for completing the R exercise...',
+                                        ),
+                                      ),
+                                      const SizedBox(height: 16),
+                                      // R Hint
+                                      TextFormField(
+                                        controller: _hintRController,
+                                        maxLines: 3,
+                                        decoration: const InputDecoration(
+                                          labelText: 'Hint (R) - reduces XP by 30%',
+                                          border: OutlineInputBorder(),
+                                          alignLabelWithHint: true,
+                                          hintText: 'Help text shown when student clicks "Take a hint"...',
+                                        ),
+                                      ),
+                                      const SizedBox(height: 16),
+                                      // R XP Reward
+                                      TextFormField(
+                                        controller: _xpRewardRController,
+                                        decoration: const InputDecoration(
+                                          labelText: 'XP Reward (R)',
+                                          border: OutlineInputBorder(),
+                                          prefixIcon: Icon(Icons.star, color: Colors.amber),
+                                        ),
+                                        keyboardType: TextInputType.number,
+                                      ),
+                                      const SizedBox(height: 24),
+                                      const Divider(),
+                                      const SizedBox(height: 16),
+                                      // R Starter Code (multilingual)
+                                      Text('Starter Code', style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        'The initial R code students see when they start the exercise. Include comments with TODO instructions.',
+                                        style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
+                                      ),
+                                      const SizedBox(height: 16),
+                                      // Language selector for R starter code
+                                      Wrap(
+                                        spacing: 8,
+                                        runSpacing: 8,
+                                        children: _languages.map((lang) {
+                                          final code = lang['code'] as String;
+                                          final label = lang['label'] as String;
+                                          final hasCode = _rStarterCodeControllers[code]?.text.trim().isNotEmpty ?? false;
+                                          return ChoiceChip(
+                                            label: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Text(label),
+                                                if (hasCode) ...[
+                                                  const SizedBox(width: 4),
+                                                  Icon(Icons.check, size: 14, color: Colors.blue.shade700),
+                                                ],
+                                              ],
+                                            ),
+                                            selected: _selectedRLang == code,
+                                            onSelected: (_) => setState(() => _selectedRLang = code),
+                                          );
+                                        }).toList(),
+                                      ),
+                                      const SizedBox(height: 16),
+                                      TextFormField(
+                                        controller: _rStarterCodeControllers[_selectedRLang],
+                                        maxLines: 15,
+                                        style: const TextStyle(fontFamily: 'monospace', fontSize: 13),
+                                        decoration: InputDecoration(
+                                          labelText: 'Starter Code (${_languages.firstWhere((l) => l['code'] == _selectedRLang)['label']})',
+                                          border: const OutlineInputBorder(),
+                                          alignLabelWithHint: true,
+                                          hintText: '# Load libraries\nlibrary(dplyr)\nlibrary(ggplot2)\n\n# TODO: Load the data\n# df <- read.csv(...)\n\n# TODO: Calculate the result\n# result <- ...',
+                                          hintStyle: TextStyle(color: Colors.grey.shade400, fontFamily: 'monospace'),
+                                        ),
+                                        onChanged: (_) => setState(() {}),
+                                      ),
+                                      const SizedBox(height: 24),
+                                      const Divider(),
+                                      const SizedBox(height: 16),
+                                      // R Solution Code
+                                      Text('Solution Code', style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        'The correct R code. Shown when "Show Answer" is clicked (-50% XP).',
+                                        style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
+                                      ),
+                                      const SizedBox(height: 16),
+                                      TextFormField(
+                                        controller: _rSolutionCodeController,
+                                        maxLines: 12,
+                                        style: const TextStyle(fontFamily: 'monospace', fontSize: 13),
+                                        decoration: InputDecoration(
+                                          labelText: 'Solution Code',
+                                          border: const OutlineInputBorder(),
+                                          alignLabelWithHint: true,
+                                          hintText: '# Complete R solution...\nlibrary(dplyr)\n\ndf <- read.csv(...)\nresult <- df %>% summarize(mean_value = mean(column))',
+                                          hintStyle: TextStyle(color: Colors.grey.shade400, fontFamily: 'monospace'),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 24),
+                                      const Divider(),
+                                      const SizedBox(height: 16),
+                                      // R Validation Config
+                                      Text('Validation Configuration', style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        'JSON configuration for validating student R code. Defines what variables, values, or outputs to check.',
+                                        style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
+                                      ),
+                                      const SizedBox(height: 16),
+                                      TextFormField(
+                                        controller: _rValidationConfigController,
+                                        maxLines: 12,
+                                        style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
+                                        decoration: InputDecoration(
+                                          labelText: 'Validation Config (JSON)',
+                                          border: const OutlineInputBorder(),
+                                          alignLabelWithHint: true,
+                                          hintText: '''{
+  "type": "variable_exists",
+  "variable": "result",
+  "expected": 42.5
+}''',
+                                          hintStyle: TextStyle(color: Colors.grey.shade400, fontFamily: 'monospace'),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 12),
+                                      // R Validation type help
+                                      ExpansionTile(
+                                        title: Text('Validation Types Reference', style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.primary)),
+                                        tilePadding: EdgeInsets.zero,
+                                        childrenPadding: const EdgeInsets.only(bottom: 8),
+                                        children: [
+                                          Container(
+                                            padding: const EdgeInsets.all(12),
+                                            decoration: BoxDecoration(
+                                              color: Colors.grey.shade100,
+                                              borderRadius: BorderRadius.circular(8),
+                                            ),
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                Text('• output_contains: Check if output contains expected strings', style: theme.textTheme.bodySmall),
+                                                Text('• variable_exists: Check if a variable exists', style: theme.textTheme.bodySmall),
+                                                Text('• variable_equals: Check if a variable equals expected value', style: theme.textTheme.bodySmall),
+                                                Text('• function_result: Check if a function returns expected result', style: theme.textTheme.bodySmall),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ],
                                   ),
