@@ -312,8 +312,11 @@ class _RAssignmentScreenState extends State<RAssignmentScreen> {
 
           const SizedBox(height: 24),
 
-          // R exercise card (placeholder)
-          _buildRPanel(theme, colorScheme),
+          // R exercise panel with fixed height for mobile (needed for Expanded to work)
+          SizedBox(
+            height: 600, // Fixed height for mobile layout
+            child: _buildRPanel(theme, colorScheme),
+          ),
         ],
       ),
     );
