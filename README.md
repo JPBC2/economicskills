@@ -47,13 +47,29 @@ economicskills/
 └── docs/                   # Documentation
 ```
 
+### Content Hierarchy
+
+```
+Course → Unit → Lesson → Exercise → Section → Assignment → Task
+```
+
+| Level | Description |
+|-------|-------------|
+| **Course** | Subject area (e.g., Microeconomics) |
+| **Unit** | Topic group (~10 per course) |
+| **Lesson** | Single learning session with video |
+| **Exercise** | Practical application of lesson |
+| **Section** | Learning objective container |
+| **Assignment** | Tool-specific implementation (Spreadsheet, Python, R) |
+| **Task** | Individual step with XP reward |
+
 ### Tech Stack
 
 | Layer | Technology |
 |-------|------------|
 | **Frontend** | Flutter (Web + Windows Desktop) |
 | **Backend** | Supabase (PostgreSQL + Auth + Storage) |
-| **Exercises** | Google Sheets API, Python (in-browser) |
+| **Exercises** | Google Sheets API, Python (Pyodide), R (WebR) |
 | **Deployment** | GitHub Pages |
 
 ---

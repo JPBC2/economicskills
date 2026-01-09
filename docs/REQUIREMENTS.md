@@ -400,8 +400,12 @@ The course structure defines the hierarchy of learning content and manages cours
 - **Course** → Contains multiple Units (~10 units per course)
 - **Unit** → Contains multiple Lessons (~3 lessons per unit)
 - **Lesson** → Contains explanatory content + 1 Exercise
-- **Exercise** → Contains 1-3 Sections/Spreadsheets
-- **Section** → Represents one interactive spreadsheet
+- **Exercise** → Contains 1-3 Sections
+- **Section** → Topic container representing a learning objective
+- **Assignment** → Tool-specific implementation within a Section (Spreadsheet, Python, or R)
+- **Task** → Individual step within an Assignment with its own instructions and XP reward
+
+> **Terminology Note:** Course, Unit, Lesson, Exercise, Section, Assignment, and Task are related terms in everyday speech, but have specific meanings in this application to avoid confusion during development.
 
 **FR-COURSE-003:** Each lesson SHALL contain:
 - Lesson title
@@ -548,6 +552,92 @@ CREATE POLICY "All users can view sections"
   ON public.sections FOR SELECT
   TO authenticated
   USING (TRUE);
+```
+
+**Table: public.assignments**
+
+```sql
+-- Assignment: Tool-specific implementation within a Section
+CREATE TABLE public.assignments (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  section_id UUID REFERENCES public.sections(id) ON DELETE CASCADE NOT NULL,
+  tool_type TEXT NOT NULL CHECK (tool_type IN ('spreadsheet', 'python', 'r')),
+  display_order INTEGER NOT NULL DEFAULT 1,
+  instructions TEXT,
+  hint TEXT,
+  xp_reward INTEGER DEFAULT 10,
+  -- Spreadsheet-specific fields
+  template_spreadsheet_id TEXT,
+  solution_spreadsheet_id TEXT,
+  validation_range TEXT,
+  -- Python/R-specific fields
+  starter_code TEXT,
+  solution_code TEXT,
+  validation_config JSONB,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(section_id, tool_type)
+);
+
+ALTER TABLE public.assignments ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "All users can view assignments"
+  ON public.assignments FOR SELECT
+  TO authenticated
+  USING (TRUE);
+```
+
+**Table: public.tasks**
+
+```sql
+-- Task: Sequential step within an Assignment with individual XP
+CREATE TABLE public.tasks (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  assignment_id UUID REFERENCES public.assignments(id) ON DELETE CASCADE NOT NULL,
+  display_order INTEGER NOT NULL,
+  title TEXT NOT NULL,
+  instructions TEXT NOT NULL,
+  hint TEXT,
+  xp_reward INTEGER DEFAULT 5,
+  validation_config JSONB NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE public.tasks ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "All users can view tasks"
+  ON public.tasks FOR SELECT
+  TO authenticated
+  USING (TRUE);
+```
+
+**Table: public.user_task_progress**
+
+```sql
+-- Track user progress per task
+CREATE TABLE public.user_task_progress (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+  task_id UUID REFERENCES public.tasks(id) ON DELETE CASCADE NOT NULL,
+  is_completed BOOLEAN DEFAULT FALSE,
+  completed_at TIMESTAMPTZ,
+  xp_earned INTEGER DEFAULT 0,
+  attempt_count INTEGER DEFAULT 0,
+  UNIQUE(user_id, task_id)
+);
+
+ALTER TABLE public.user_task_progress ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view own task progress"
+  ON public.user_task_progress FOR SELECT
+  TO authenticated
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can update own task progress"
+  ON public.user_task_progress FOR UPDATE
+  TO authenticated
+  USING (auth.uid() = user_id);
 ```
 
 ### 3.4 Google Sheets Integration
