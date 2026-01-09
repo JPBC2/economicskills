@@ -23,6 +23,8 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
   bool _isLoading = true;
   String? _error;
   Set<String> _completedSectionIds = {}; // Track completed sections for check marks
+  Map<String, String> _sectionCompletedWith = {}; // Track which tool(s) completed: 'spreadsheet', 'python', 'both'
+  Map<String, int> _sectionXpEarned = {}; // Track XP earned per section
 
   @override
   void initState() {
@@ -83,19 +85,28 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
 
       // Load user progress if authenticated
       Set<String> completedSections = {};
+      Map<String, String> completedWith = {};
+      Map<String, int> xpEarned = {};
       final user = supabase.auth.currentUser;
       if (user != null) {
         try {
           final progressResponse = await supabase
               .from('user_progress')
-              .select('section_id')
+              .select('section_id, completed_with, xp_earned')
               .eq('user_id', user.id)
               .eq('is_completed', true);
 
           if (progressResponse is List) {
-            completedSections = progressResponse
-                .map((p) => p['section_id'] as String)
-                .toSet();
+            for (final p in progressResponse) {
+              final sectionId = p['section_id'] as String;
+              completedSections.add(sectionId);
+              if (p['completed_with'] != null) {
+                completedWith[sectionId] = p['completed_with'] as String;
+              }
+              if (p['xp_earned'] != null) {
+                xpEarned[sectionId] = p['xp_earned'] as int;
+              }
+            }
           }
         } catch (e) {
           print('Error loading user progress: $e');
@@ -106,6 +117,8 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
         _course = course;
         _units = unitsList.map((u) => Unit.fromJson(u as Map<String, dynamic>)).toList();
         _completedSectionIds = completedSections;
+        _sectionCompletedWith = completedWith;
+        _sectionXpEarned = xpEarned;
         _isLoading = false;
       });
     } catch (e, stackTrace) {
@@ -274,6 +287,72 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
   }
 
   /// Build a check mark icon for completed items
+  /// Build XP chip with color coding based on completion status
+  /// - Default: Not completed (grey)
+  /// - Green: Spreadsheet assignment completed
+  /// - Purple: Python assignment completed
+  /// - Gold/Yellow: Both assignments completed
+  Widget _buildXpChip(Section section, ColorScheme colorScheme) {
+    final completedWith = _sectionCompletedWith[section.id];
+    final xpEarned = _sectionXpEarned[section.id] ?? 0;
+
+    // Calculate total possible XP (sum of both tools if both supported)
+    int totalPossibleXp = 0;
+    if (section.supportsSpreadsheet) {
+      totalPossibleXp += section.getXpRewardForTool('spreadsheet');
+    }
+    if (section.supportsPython) {
+      totalPossibleXp += section.getXpRewardForTool('python');
+    }
+    // Fallback to legacy xpReward if tool-specific not set
+    if (totalPossibleXp == 0) {
+      totalPossibleXp = section.xpReward;
+    }
+
+    // Determine color and text based on completion status
+    Color chipColor;
+    Color textColor;
+    String xpText;
+
+    if (completedWith == 'both') {
+      // Both completed - gold/yellow
+      chipColor = Colors.amber.shade100;
+      textColor = Colors.amber.shade900;
+      xpText = '$xpEarned/$totalPossibleXp XP';
+    } else if (completedWith == 'spreadsheet') {
+      // Spreadsheet completed - green
+      chipColor = Colors.green.shade100;
+      textColor = Colors.green.shade800;
+      xpText = '$xpEarned/$totalPossibleXp XP';
+    } else if (completedWith == 'python') {
+      // Python completed - purple
+      chipColor = Colors.deepPurple.shade100;
+      textColor = Colors.deepPurple.shade800;
+      xpText = '$xpEarned/$totalPossibleXp XP';
+    } else {
+      // Not completed - default
+      chipColor = colorScheme.surfaceContainerHighest;
+      textColor = colorScheme.onSurface;
+      xpText = '$totalPossibleXp XP';
+    }
+
+    // Add tool indicators if both are supported
+    List<Widget> chipContent = [
+      Text(xpText, style: TextStyle(fontSize: 11, color: textColor)),
+    ];
+
+    return Chip(
+      label: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: chipContent,
+      ),
+      backgroundColor: chipColor,
+      padding: EdgeInsets.zero,
+      labelPadding: const EdgeInsets.symmetric(horizontal: 8),
+      visualDensity: VisualDensity.compact,
+    );
+  }
+
   Widget _buildCheckMark() {
     return Container(
       padding: const EdgeInsets.all(2),
@@ -460,13 +539,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Chip(
-            label: Text('${section.xpReward} XP', style: TextStyle(fontSize: 11, color: colorScheme.onSurface)),
-            backgroundColor: colorScheme.surfaceContainerHighest,
-            padding: EdgeInsets.zero,
-            labelPadding: const EdgeInsets.symmetric(horizontal: 8),
-            visualDensity: VisualDensity.compact,
-          ),
+          _buildXpChip(section, colorScheme),
           const SizedBox(width: 8),
           FilledButton.tonal(
             onPressed: () {

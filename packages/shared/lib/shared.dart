@@ -5,6 +5,7 @@ library shared;
 
 // Models
 export 'models/course.model.dart';
+export 'models/assignment.model.dart';
 export 'models/user.model.dart';
 export 'models/translation.model.dart';
 export 'models/profile.model.dart';

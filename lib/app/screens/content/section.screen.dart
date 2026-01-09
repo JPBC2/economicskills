@@ -43,13 +43,33 @@ class _SectionScreenState extends State<SectionScreen> {
   // Panel layout state
   double _leftPanelWidth = 0.35;
   bool _isLeftPanelCollapsed = false;
-  bool _showHint = false;
-  bool _showAnswer = false;  // Track if user has requested the solution
   bool _exerciseExpanded = true;
   bool _instructionsExpanded = true;
 
   // Exercise tool selection
   String _selectedTool = 'spreadsheet'; // 'spreadsheet' or 'python'
+
+  // Per-tool hint state (separate for each assignment)
+  bool _showHintSpreadsheet = false;  // Is hint panel visible
+  bool _showHintPython = false;
+  bool _hintUsedSpreadsheet = false;  // Has hint been used (affects XP - once set, stays set)
+  bool _hintUsedPython = false;
+
+  // Per-tool answer state (separate for each assignment)
+  bool _showAnswerSpreadsheet = false;  // Is answer being shown
+  bool _showAnswerPython = false;
+  bool _answerUsedSpreadsheet = false;  // Has answer been used (affects XP - once set, stays set)
+  bool _answerUsedPython = false;
+
+  // Per-tool progress tracking
+  bool _spreadsheetCompleted = false;
+  bool _pythonCompleted = false;
+  int _spreadsheetXpEarned = 0;
+  int _pythonXpEarned = 0;
+
+  // Preserve Python code across tab switches
+  String? _savedPythonCode;
+  String? _savedPythonOutput;
 
   // Scroll controller for mobile spreadsheet
   final ScrollController _spreadsheetScrollController = ScrollController();
@@ -81,6 +101,133 @@ class _SectionScreenState extends State<SectionScreen> {
   int _getXpRewardForCurrentTool() {
     if (_section == null) return 0;
     return _section!.getXpRewardForTool(_effectiveTool);
+  }
+
+  /// Get whether hint is currently shown for current tool
+  bool get _showHintForCurrentTool => _effectiveTool == 'python' ? _showHintPython : _showHintSpreadsheet;
+
+  /// Set whether hint is shown for current tool
+  void _setShowHintForCurrentTool(bool value) {
+    if (_effectiveTool == 'python') {
+      _showHintPython = value;
+      if (value) _hintUsedPython = true; // Mark hint as used once shown
+    } else {
+      _showHintSpreadsheet = value;
+      if (value) _hintUsedSpreadsheet = true;
+    }
+  }
+
+  /// Get whether hint has been used for current tool (affects XP)
+  bool get _hintUsedForCurrentTool => _effectiveTool == 'python' ? _hintUsedPython : _hintUsedSpreadsheet;
+
+  /// Get whether answer is currently shown for current tool
+  bool get _showAnswerForCurrentTool => _effectiveTool == 'python' ? _showAnswerPython : _showAnswerSpreadsheet;
+
+  /// Set whether answer is shown for current tool
+  void _setShowAnswerForCurrentTool(bool value) {
+    if (_effectiveTool == 'python') {
+      _showAnswerPython = value;
+      if (value) _answerUsedPython = true; // Mark answer as used once shown
+    } else {
+      _showAnswerSpreadsheet = value;
+      if (value) _answerUsedSpreadsheet = true;
+    }
+  }
+
+  /// Get whether answer has been used for current tool (affects XP)
+  bool get _answerUsedForCurrentTool => _effectiveTool == 'python' ? _answerUsedPython : _answerUsedSpreadsheet;
+
+  /// Get completion status for current tool
+  bool get _currentToolCompleted => _effectiveTool == 'python' ? _pythonCompleted : _spreadsheetCompleted;
+
+  /// Get XP earned for current tool
+  int get _currentToolXpEarned => _effectiveTool == 'python' ? _pythonXpEarned : _spreadsheetXpEarned;
+
+  /// Get total XP possible for this section (sum of both tools if both supported)
+  int get _totalPossibleXp {
+    if (_section == null) return 0;
+    int total = 0;
+    if (_section!.supportsSpreadsheet) {
+      total += _section!.getXpRewardForTool('spreadsheet');
+    }
+    if (_section!.supportsPython) {
+      total += _section!.getXpRewardForTool('python');
+    }
+    return total;
+  }
+
+  /// Get total XP earned from this section (both tools)
+  int get _totalXpEarned => _spreadsheetXpEarned + _pythonXpEarned;
+
+  /// Switch to a different tool, hiding hints and preserving Python code state
+  void _switchToTool(String tool) {
+    if (tool == _selectedTool) return;
+
+    // Hide hint for current tool when switching
+    if (_effectiveTool == 'spreadsheet') {
+      _showHintSpreadsheet = false;
+    } else {
+      _showHintPython = false;
+    }
+
+    // Save Python code if switching away from Python
+    if (_effectiveTool == 'python' && _pythonExerciseKey.currentState != null) {
+      _savedPythonCode = _pythonExerciseKey.currentState!.getCurrentCode();
+      _savedPythonOutput = _pythonExerciseKey.currentState!.getCurrentOutput();
+    }
+
+    setState(() {
+      _selectedTool = tool;
+    });
+  }
+
+  /// Calculate display XP (with penalties) for current tool
+  int _getDisplayXpForCurrentTool() {
+    final baseXp = _getXpRewardForCurrentTool();
+    if (_answerUsedForCurrentTool) {
+      return (baseXp * 0.5).floor();
+    } else if (_hintUsedForCurrentTool) {
+      return (baseXp * 0.7).floor();
+    }
+    return baseXp;
+  }
+
+  /// Build XP chip with per-tool state and color coding
+  Widget _buildXpChip(ColorScheme colorScheme) {
+    final displayXp = _getDisplayXpForCurrentTool();
+    final isCompleted = _currentToolCompleted;
+    final xpEarned = _currentToolXpEarned;
+
+    // Color coding:
+    // - Green: Spreadsheet completed
+    // - Purple: Python completed
+    // - Yellow/Gold: Both completed (when viewing either)
+    // - Default: Not completed
+    Color chipColor;
+    Color textColor;
+    String xpText;
+
+    if (isCompleted) {
+      chipColor = _effectiveTool == 'python' ? Colors.deepPurple.shade100 : Colors.green.shade100;
+      textColor = _effectiveTool == 'python' ? Colors.deepPurple.shade800 : Colors.green.shade800;
+      xpText = '$xpEarned XP earned';
+    } else {
+      chipColor = colorScheme.surfaceContainerHighest;
+      textColor = colorScheme.onSurface;
+      xpText = '$displayXp XP';
+    }
+
+    return Chip(
+      avatar: Icon(Icons.star, size: 14, color: isCompleted ? Colors.amber.shade600 : Colors.amber.shade600),
+      label: Text(
+        xpText,
+        style: TextStyle(fontSize: 12, color: textColor),
+      ),
+      backgroundColor: chipColor,
+      padding: EdgeInsets.zero,
+      labelPadding: const EdgeInsets.symmetric(horizontal: 6),
+      visualDensity: VisualDensity.compact,
+    );
   }
 
   @override
@@ -464,7 +611,7 @@ class _SectionScreenState extends State<SectionScreen> {
 
     // If showing answer, validate the solution spreadsheet; otherwise validate user's spreadsheet
     String? spreadsheetIdToValidate;
-    if (_showAnswer && solutionId != null && solutionId.isNotEmpty) {
+    if (_showAnswerSpreadsheet && solutionId != null && solutionId.isNotEmpty) {
       spreadsheetIdToValidate = solutionId;
     } else if (_userSpreadsheet != null) {
       spreadsheetIdToValidate = _userSpreadsheet!.spreadsheetId;
@@ -481,8 +628,8 @@ class _SectionScreenState extends State<SectionScreen> {
       final result = await _spreadsheetService.validateSpreadsheet(
         spreadsheetId: spreadsheetIdToValidate,
         sectionId: _section!.id,
-        hintUsed: _showHint,
-        answerUsed: _showAnswer, // Pass answer flag for XP penalty
+        hintUsed: _hintUsedSpreadsheet,  // Use per-tool hint state
+        answerUsed: _answerUsedSpreadsheet, // Pass answer flag for XP penalty
       );
 
       setState(() {
@@ -493,6 +640,9 @@ class _SectionScreenState extends State<SectionScreen> {
             attemptCount: (_progress?.attemptCount ?? 0) + 1,
             xpEarned: result.xpEarned,
           );
+          // Track per-tool completion
+          _spreadsheetCompleted = true;
+          _spreadsheetXpEarned = result.xpEarned;
         }
       });
     } catch (e) {
@@ -706,21 +856,7 @@ class _SectionScreenState extends State<SectionScreen> {
                 theme: theme,
                 colorScheme: colorScheme,
                 trailing: _getXpRewardForCurrentTool() > 0
-                    ? Chip(
-                        avatar: Icon(Icons.star, size: 14, color: Colors.amber.shade600),
-                        label: Text(
-                          _showAnswer
-                            ? '${(_getXpRewardForCurrentTool() * 0.5).floor()} XP'
-                            : _showHint
-                              ? '${(_getXpRewardForCurrentTool() * 0.7).floor()} XP'
-                              : '${_getXpRewardForCurrentTool()} XP',
-                          style: TextStyle(fontSize: 12, color: colorScheme.onSurface),
-                        ),
-                        backgroundColor: colorScheme.surfaceContainerHighest,
-                        padding: EdgeInsets.zero,
-                        labelPadding: const EdgeInsets.symmetric(horizontal: 6),
-                        visualDensity: VisualDensity.compact,
-                      )
+                    ? _buildXpChip(colorScheme)
                     : null,
                 child: Text(
                   _getInstructionsForCurrentTool()!,
@@ -741,6 +877,41 @@ class _SectionScreenState extends State<SectionScreen> {
             ],
 
             const SizedBox(height: 24),
+
+            // Tool selector tabs (if both tools are supported)
+            if ((_section?.supportsSpreadsheet ?? false) && (_section?.supportsPython ?? false)) ...[
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                decoration: BoxDecoration(
+                  color: colorScheme.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: _buildToolTab(
+                        icon: Icons.table_chart,
+                        label: 'Google Sheets',
+                        isSelected: _effectiveTool == 'spreadsheet',
+                        onTap: () => _switchToTool('spreadsheet'),
+                        colorScheme: colorScheme,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _buildToolTab(
+                        icon: Icons.code,
+                        label: 'Python',
+                        isSelected: _effectiveTool == 'python',
+                        onTap: () => _switchToTool('python'),
+                        colorScheme: colorScheme,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
 
             // Exercise content - respect tool selection
             _buildMobileExerciseCard(theme, colorScheme),
@@ -785,10 +956,18 @@ class _SectionScreenState extends State<SectionScreen> {
                 key: _pythonExerciseKey,
                 section: _section!,
                 languageCode: languageCode,
-                showAnswer: _showAnswer,
+                showAnswer: _showAnswerPython,
+                initialCode: _savedPythonCode,
+                initialOutput: _savedPythonOutput,
+                hintUsed: _hintUsedPython,
+                answerUsed: _answerUsedPython,
                 onComplete: (passed, xpEarned) async {
                   if (passed) {
                     await _awardXPAndComplete(xpEarned, 'python');
+                    setState(() {
+                      _pythonCompleted = true;
+                      _pythonXpEarned = xpEarned;
+                    });
                   }
                 },
               ),
@@ -902,21 +1081,7 @@ class _SectionScreenState extends State<SectionScreen> {
                 theme: theme,
                 colorScheme: colorScheme,
                 trailing: _getXpRewardForCurrentTool() > 0
-                    ? Chip(
-                        avatar: Icon(Icons.star, size: 14, color: Colors.amber.shade600),
-                        label: Text(
-                          _showAnswer
-                            ? '${(_getXpRewardForCurrentTool() * 0.5).floor()} XP'
-                            : _showHint
-                              ? '${(_getXpRewardForCurrentTool() * 0.7).floor()} XP'
-                              : '${_getXpRewardForCurrentTool()} XP',
-                          style: TextStyle(fontSize: 12, color: colorScheme.onSurface),
-                        ),
-                        backgroundColor: colorScheme.surfaceContainerHighest,
-                        padding: EdgeInsets.zero,
-                        labelPadding: const EdgeInsets.symmetric(horizontal: 6),
-                        visualDensity: VisualDensity.compact,
-                      )
+                    ? _buildXpChip(colorScheme)
                     : null,
                 child: Text(
                   _getInstructionsForCurrentTool()!,
@@ -998,7 +1163,7 @@ class _SectionScreenState extends State<SectionScreen> {
                     icon: Icons.table_chart,
                     label: 'Google Sheets',
                     isSelected: _effectiveTool == 'spreadsheet',
-                    onTap: () => setState(() => _selectedTool = 'spreadsheet'),
+                    onTap: () => _switchToTool('spreadsheet'),
                     colorScheme: colorScheme,
                   ),
                   const SizedBox(width: 8),
@@ -1006,7 +1171,7 @@ class _SectionScreenState extends State<SectionScreen> {
                     icon: Icons.code,
                     label: 'Python',
                     isSelected: _effectiveTool == 'python',
-                    onTap: () => setState(() => _selectedTool = 'python'),
+                    onTap: () => _switchToTool('python'),
                     colorScheme: colorScheme,
                   ),
                 ],
@@ -1114,11 +1279,11 @@ class _SectionScreenState extends State<SectionScreen> {
         ? _extractSpreadsheetId(solutionSpreadsheetUrl)
         : null;
 
-    // If _showAnswer is true and we have a solution, show solution spreadsheet
+    // If spreadsheet answer is shown and we have a solution, show solution spreadsheet
     String? spreadsheetIdToShow;
     bool isEditable = false;
 
-    if (_showAnswer && solutionId != null && solutionId.isNotEmpty) {
+    if (_showAnswerSpreadsheet && solutionId != null && solutionId.isNotEmpty) {
       spreadsheetIdToShow = solutionId;
       isEditable = true; // Solution spreadsheet should be editable
     } else {
@@ -1133,7 +1298,7 @@ class _SectionScreenState extends State<SectionScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // Banner when viewing solution
-            if (_showAnswer && solutionId != null && solutionId.isNotEmpty)
+            if (_showAnswerSpreadsheet && solutionId != null && solutionId.isNotEmpty)
               Container(
                 margin: const EdgeInsets.only(bottom: 8),
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -1346,15 +1511,23 @@ class _SectionScreenState extends State<SectionScreen> {
   }
 
   Widget _buildHintSection(ThemeData theme, ColorScheme colorScheme) {
+    final isHintUsed = _hintUsedForCurrentTool;
+    final isHintShown = _showHintForCurrentTool;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Hint button
+        // Hint button - show different text based on whether hint was already used for this tool
         OutlinedButton.icon(
-          onPressed: () => setState(() => _showHint = !_showHint),
-          icon: Icon(_showHint ? Icons.lightbulb : Icons.lightbulb_outline, 
+          onPressed: () => setState(() => _setShowHintForCurrentTool(!isHintShown)),
+          icon: Icon(isHintShown ? Icons.lightbulb : Icons.lightbulb_outline,
                      color: Colors.amber.shade700),
-          label: Text('Take a hint (-30% XP)', style: TextStyle(color: colorScheme.onSurface)),
+          label: Text(
+            isHintUsed
+              ? (isHintShown ? 'Hide hint' : 'Show hint')
+              : 'Take a hint (-30% XP)',
+            style: TextStyle(color: colorScheme.onSurface),
+          ),
           style: OutlinedButton.styleFrom(
             side: BorderSide(color: colorScheme.outline),
           ),
@@ -1402,7 +1575,7 @@ class _SectionScreenState extends State<SectionScreen> {
               ],
             ),
           ),
-          crossFadeState: _showHint ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+          crossFadeState: _showHintForCurrentTool ? CrossFadeState.showSecond : CrossFadeState.showFirst,
           duration: const Duration(milliseconds: 200),
         ),
       ],
@@ -1412,10 +1585,26 @@ class _SectionScreenState extends State<SectionScreen> {
   Widget _buildAnswerSection(ThemeData theme, ColorScheme colorScheme) {
     final userLang = Localizations.localeOf(context).languageCode;
     final solutionSpreadsheetUrl = _section?.getSolutionForLanguage(userLang);
-    final hasSolution = (solutionSpreadsheetUrl != null && solutionSpreadsheetUrl.isNotEmpty) ||
-                        (_section?.pythonSolutionCode != null && _section!.pythonSolutionCode!.isNotEmpty);
-    
-    if (!hasSolution) return const SizedBox.shrink();
+    final hasPythonSolution = _section?.pythonSolutionCode != null && _section!.pythonSolutionCode!.isNotEmpty;
+    final hasSpreadsheetSolution = solutionSpreadsheetUrl != null && solutionSpreadsheetUrl.isNotEmpty;
+
+    // Check if current tool has a solution
+    final currentToolHasSolution = _effectiveTool == 'python' ? hasPythonSolution : hasSpreadsheetSolution;
+    if (!currentToolHasSolution) return const SizedBox.shrink();
+
+    final isAnswerShown = _showAnswerForCurrentTool;
+    final isAnswerUsed = _answerUsedForCurrentTool;
+
+    // Button text logic:
+    // - First time: "Show answer (-50% XP)"
+    // - After answer used: "Reload solution" (no XP penalty shown)
+    // - When answer is currently shown: add "Hide answer" option
+    String buttonText;
+    if (isAnswerUsed) {
+      buttonText = isAnswerShown ? 'Reload solution' : 'Show solution';
+    } else {
+      buttonText = 'Show answer (-50% XP)';
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1423,26 +1612,24 @@ class _SectionScreenState extends State<SectionScreen> {
         // Show answer button
         OutlinedButton.icon(
           onPressed: () {
-            if (_showAnswer) {
-              // Already showing answer - reload the solution
+            if (isAnswerShown && _effectiveTool == 'python') {
+              // Already showing answer for Python - reload the solution
               _pythonExerciseKey.currentState?.reloadSolution();
             } else {
-              // First time showing answer
-              setState(() => _showAnswer = true);
+              // Show answer (marks as used on first show)
+              setState(() => _setShowAnswerForCurrentTool(true));
             }
           },
-          icon: Icon(_showAnswer ? Icons.refresh : Icons.visibility_outlined, 
+          icon: Icon(isAnswerShown ? Icons.refresh : Icons.visibility_outlined,
                      color: Colors.deepPurple.shade600),
-          label: Text(
-            _showAnswer ? 'Reload solution (-50% XP)' : 'Show answer (-50% XP)', 
-            style: TextStyle(color: colorScheme.onSurface)),
+          label: Text(buttonText, style: TextStyle(color: colorScheme.onSurface)),
           style: OutlinedButton.styleFrom(
             side: BorderSide(color: colorScheme.outline),
           ),
         ),
         // Note: For spreadsheet, the solution replaces the template in the right pane
-        // No expandable section here - the right pane will show the solution when _showAnswer is true
-        if (_showAnswer && solutionSpreadsheetUrl != null && solutionSpreadsheetUrl.isNotEmpty)
+        // No expandable section here - the right pane will show the solution when answer is shown
+        if (isAnswerShown && _effectiveTool == 'spreadsheet' && hasSpreadsheetSolution)
           Container(
             margin: const EdgeInsets.only(top: 12),
             padding: const EdgeInsets.all(12),
@@ -1578,12 +1765,12 @@ class _SectionScreenState extends State<SectionScreen> {
         ? _extractSpreadsheetId(solutionSpreadsheetUrl)
         : null;
 
-    // If _showAnswer is true and we have a solution, show solution spreadsheet
+    // If spreadsheet answer is shown and we have a solution, show solution spreadsheet
     // Otherwise show user's spreadsheet or template
     String? spreadsheetIdToShow;
     bool isEditable = false;
 
-    if (_showAnswer && solutionId != null && solutionId.isNotEmpty) {
+    if (_showAnswerSpreadsheet && solutionId != null && solutionId.isNotEmpty) {
       // Show the solution spreadsheet (editable copy)
       spreadsheetIdToShow = solutionId;
       isEditable = true;
@@ -1597,7 +1784,7 @@ class _SectionScreenState extends State<SectionScreen> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         // Banner when viewing solution
-        if (_showAnswer && solutionId != null && solutionId.isNotEmpty)
+        if (_showAnswerSpreadsheet && solutionId != null && solutionId.isNotEmpty)
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             color: Colors.deepPurple.shade100,
@@ -1649,11 +1836,19 @@ class _SectionScreenState extends State<SectionScreen> {
       key: _pythonExerciseKey,
       section: _section!,
       languageCode: languageCode,
-      showAnswer: _showAnswer,  // Pass answer state to show solution tab
+      showAnswer: _showAnswerPython,  // Pass answer state to show solution tab
+      initialCode: _savedPythonCode,
+      initialOutput: _savedPythonOutput,
+      hintUsed: _hintUsedPython,
+      answerUsed: _answerUsedPython,
       onComplete: (passed, xpEarned) async {
         if (passed) {
           // Award XP and mark as completed
           await _awardXPAndComplete(xpEarned, 'python');
+          setState(() {
+            _pythonCompleted = true;
+            _pythonXpEarned = xpEarned;
+          });
         }
       },
     );

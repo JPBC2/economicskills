@@ -11,6 +11,9 @@ import 'package:economicskills/app/screens/content/section.screen.dart';
 import 'package:economicskills/app/screens/content/lesson.screen.dart';
 import 'package:economicskills/app/screens/dashboard.screen.dart';
 import 'package:economicskills/app/screens/exercises/elasticity.dart';
+import 'package:economicskills/app/screens/assignments/spreadsheet_assignment.screen.dart';
+import 'package:economicskills/app/screens/assignments/python_assignment.screen.dart';
+import 'package:economicskills/app/screens/assignments/r_assignment.screen.dart';
 
 /// Global router configuration using go_router
 final appRouter = GoRouter(
@@ -101,11 +104,24 @@ final appRouter = GoRouter(
     ),
 
     // Sections (exercise screens) - accepts slug or ID
+    // Routes to tool-specific assignment screens based on URL suffix
     GoRoute(
       path: '/sections/:sectionSlug',
       name: 'section',
       builder: (context, state) {
         final sectionSlug = state.pathParameters['sectionSlug'] ?? '';
+        
+        // Route to tool-specific assignment screens based on suffix
+        if (sectionSlug.endsWith('-spreadsheet')) {
+          return SpreadsheetAssignmentScreen(sectionSlug: sectionSlug);
+        } else if (sectionSlug.endsWith('-python')) {
+          return PythonAssignmentScreen(sectionSlug: sectionSlug);
+        } else if (sectionSlug.endsWith('-r')) {
+          return RAssignmentScreen(sectionSlug: sectionSlug);
+        }
+        
+        // Default: Use legacy SectionScreen for backwards compatibility
+        // This handles sections without a tool suffix
         return SectionScreen(sectionSlug: sectionSlug);
       },
     ),

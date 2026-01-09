@@ -20,6 +20,10 @@ class PythonExerciseWidget extends StatefulWidget {
   final Function(bool passed, int xpEarned) onComplete;
   final bool showAnswer;  // Whether to show the solution tab
   final VoidCallback? onShowAnswer;  // Callback when user clicks Show Answer
+  final String? initialCode;  // Restore code from previous session
+  final String? initialOutput;  // Restore output from previous session
+  final bool hintUsed;  // Whether hint was used (for XP calculation)
+  final bool answerUsed;  // Whether answer was used (for XP calculation)
 
   const PythonExerciseWidget({
     super.key,
@@ -28,6 +32,10 @@ class PythonExerciseWidget extends StatefulWidget {
     required this.onComplete,
     this.showAnswer = false,
     this.onShowAnswer,
+    this.initialCode,
+    this.initialOutput,
+    this.hintUsed = false,
+    this.answerUsed = false,
   });
 
   @override
@@ -90,6 +98,12 @@ class PythonExerciseWidgetState extends State<PythonExerciseWidget> with SingleT
     _tabController.animateTo(1);
   }
 
+  /// Get current code in the editor
+  String getCurrentCode() => _codeController.text;
+
+  /// Get current output
+  String getCurrentOutput() => _output;
+
   /// Load solution code if available
   void _loadSolutionCode() {
     final solutionCode = widget.section.pythonSolutionCode;
@@ -98,8 +112,18 @@ class PythonExerciseWidgetState extends State<PythonExerciseWidget> with SingleT
     }
   }
 
-  /// Load the starter code for the current language
+  /// Load the starter code for the current language, or restore from initial code
   void _loadStarterCode() {
+    // If we have initial code (restored from tab switch), use that
+    if (widget.initialCode != null && widget.initialCode!.isNotEmpty) {
+      _codeController.text = widget.initialCode!;
+      if (widget.initialOutput != null) {
+        _output = widget.initialOutput!;
+      }
+      return;
+    }
+
+    // Otherwise load the starter code
     final starterCode = widget.section.getPythonStarterCodeForLanguage(widget.languageCode);
     if (starterCode != null) {
       _codeController.text = starterCode;
@@ -229,10 +253,11 @@ class PythonExerciseWidgetState extends State<PythonExerciseWidget> with SingleT
 
       if (validation.passed) {
         // Calculate XP with penalties (answer -50% takes precedence over hint -30%)
-        final baseXP = widget.section.xpReward;
-        final xpEarned = widget.showAnswer 
-            ? (baseXP * 0.5).round() 
-            : _hintUsed ? (baseXP * 0.7).round() : baseXP;
+        // Use widget.answerUsed and widget.hintUsed which come from parent's per-tool state
+        final baseXP = widget.section.getXpRewardForTool('python');
+        final xpEarned = widget.answerUsed
+            ? (baseXP * 0.5).round()
+            : widget.hintUsed ? (baseXP * 0.7).round() : baseXP;
 
         widget.onComplete(true, xpEarned);
 
@@ -290,7 +315,7 @@ class PythonExerciseWidgetState extends State<PythonExerciseWidget> with SingleT
     );
   }
 
-  /// Reset the code to starter code
+  /// Reset the code to starter code (force reload, ignoring initial code)
   void _resetCode() {
     showDialog(
       context: context,
@@ -304,7 +329,11 @@ class PythonExerciseWidgetState extends State<PythonExerciseWidget> with SingleT
           ),
           TextButton(
             onPressed: () {
-              _loadStarterCode();
+              // Force reload starter code from section, not from initial code
+              final starterCode = widget.section.getPythonStarterCodeForLanguage(widget.languageCode);
+              if (starterCode != null) {
+                _codeController.text = starterCode;
+              }
               setState(() {
                 _output = '';
                 _error = null;
