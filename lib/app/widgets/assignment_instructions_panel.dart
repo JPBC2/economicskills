@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:shared/shared.dart';
 
 /// Progress state for an assignment (loaded from/saved to database)
@@ -442,7 +443,7 @@ class _AssignmentInstructionsPanelState extends State<AssignmentInstructionsPane
       label: Text(label, style: TextStyle(color: color, fontSize: 12)),
       onPressed: () {
         // Navigate to other tool
-        // context.go('/sections/$slug-$tool');
+        context.go('/sections/$slug-$tool');
       },
       backgroundColor: color.withValues(alpha: 0.1),
       side: BorderSide(color: color.withValues(alpha: 0.3)),
