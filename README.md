@@ -1,61 +1,117 @@
 # Economic Skills
 
 [![Development Status](https://img.shields.io/badge/status-in%20active%20development-blue.svg)](https://github.com/JPBC2/economicskills)
+[![Flutter](https://img.shields.io/badge/Flutter-3.x-02569B?logo=flutter)](https://flutter.dev)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-> An interactive web application for learning economics through hands-on Google Sheets exercises.
+> **Master economics through interactive Google Sheets and Python exercises.**
 
-**Live Demo:** [https://jpbc2.github.io/economicskills/](https://jpbc2.github.io/economicskills/)
-
----
-
-## Overview
-
-Economic Skills is a Flutter-based educational platform designed to teach economics through interactive, practical exercises using Google Sheets. Developed for the Introduction to Economic Theory course at Acatlán School of Higher Studies (FES Acatlán), UNAM, BA in International Relations program.
-
-The application combines economic theory with real-world application, enabling students to learn concepts through hands-on spreadsheet exercises and interactive visualizations.
-
-## Key Features
-
-- **Interactive Learning**: Hands-on Google Sheets exercises for applied economic theory
-- **Cross-Platform**: Web-based Flutter application accessible from any modern browser
-- **Data-Driven**: Real-time data integration with PostgreSQL backend
-- **Automated Workflows**: Google Apps Script integration for enhanced functionality
-- **Student-Focused**: Designed specifically for undergraduate education
-
-## Tech Stack
-
-- **Frontend**: Flutter (Web)
-- **Backend**: PostgreSQL
-- **Integration**: Google Sheets, Google Apps Script
-- **Deployment**: GitHub Pages
-
-## Project Status
-
-🚧 **In Active Development**
-
-<!-- ## Screenshots
-
-[Screenshots and demo GIFs will be added here]
-
-![App Screenshot](docs/images/screenshot-1.png)
-![Interactive Exercise Demo](docs/images/demo.gif)
-
--->
-
-## Documentation
-
-For detailed technical specifications, architecture, and development guidelines, please refer to:
-
-📄 **[Technical Documentation](docs/REQUIREMENTS.md)** - Complete Software Requirements Specification (SRS)
-
-<!-- 
-Additional documentation:
-- Setup & Installation Guide: [`/docs/setup.md`](docs/setup.md)
-- Development Guide: [`/docs/development.md`](docs/development.md)
-- Deployment Guide: [`/docs/deployment.md`](docs/deployment.md)
-- API Documentation: [`/docs/api.md`](docs/api.md)
--->
+🌐 **Live Demo:** [https://jpbc2.github.io/economicskills/](https://jpbc2.github.io/economicskills/)
 
 ---
 
-**Repository**: [https://github.com/JPBC2/economicskills](https://github.com/JPBC2/economicskills)
+## 📖 Overview
+
+**Economic Skills** is an educational platform that bridges the gap between economic theory and real-world application. Developed for the Introduction to Economic Theory course at FES Acatlán (UNAM), it enables students to learn through hands-on exercises using **Google Sheets** and **Python**.
+
+The platform includes:
+- **Web Application** — Student-facing learning platform
+- **Admin CMS** — Windows desktop app for content management (courses, units, lessons, exercises)
+
+---
+
+## ✨ Features
+
+| Feature | Description |
+|---------|-------------|
+| 📊 **Google Sheets Exercises** | Solve economic problems in live spreadsheets with real-time validation |
+| 🐍 **Python Exercises** | Write code to analyze economic data with instant feedback |
+| 🌍 **15 Languages** | Full localization support (EN, ES, FR, ZH, RU, PT, IT, CA, RO, DE, NL, AR, ID, KO, JA) |
+| 🎨 **Dark/Light Theme** | Toggle between themes for comfortable learning |
+| 📱 **Responsive Design** | Works seamlessly on desktop, tablet, and mobile |
+| 🔐 **Google OAuth** | Secure authentication via Google accounts |
+| 📈 **Progress Tracking** | Monitor student progress through courses and exercises |
+
+---
+
+## 🏗️ Architecture
+
+```
+economicskills/
+├── lib/                    # Web application (Flutter)
+├── apps/
+│   └── admin/              # Admin CMS (Flutter Desktop - Windows)
+├── packages/
+│   └── shared/             # Shared models and services
+├── supabase/               # Database migrations and functions
+└── docs/                   # Documentation
+```
+
+### Tech Stack
+
+| Layer | Technology |
+|-------|------------|
+| **Frontend** | Flutter (Web + Windows Desktop) |
+| **Backend** | Supabase (PostgreSQL + Auth + Storage) |
+| **Exercises** | Google Sheets API, Python (in-browser) |
+| **Deployment** | GitHub Pages |
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+- Flutter SDK 3.x
+- Dart SDK
+- Visual Studio 2022 (for Windows Admin CMS)
+
+### Run the Web App
+```bash
+flutter pub get
+flutter run -d chrome --web-port 3000
+```
+
+### Run the Admin CMS (Windows)
+```bash
+cd apps/admin
+flutter run -d windows
+```
+
+---
+
+## 📚 Documentation
+
+| Document | Description |
+|----------|-------------|
+| [Technical Requirements](docs/REQUIREMENTS.md) | Complete Software Requirements Specification |
+| [Development Guide](docs/DEVELOPMENT.md) | Setup, coding standards, and workflows |
+| [Admin CMS Guide](docs/ADMIN_CMS_GUIDE.md) | How to manage content via the Admin app |
+| [Google Cloud Setup](docs/GOOGLE_CLOUD_SETUP.md) | OAuth and API configuration |
+
+---
+
+## 🌐 Supported Languages
+
+<table>
+<tr>
+<td>🇺🇸 English</td><td>🇪🇸 Español</td><td>🇫🇷 Français</td><td>🇨🇳 中文</td><td>🇷🇺 Русский</td>
+</tr>
+<tr>
+<td>🇧🇷 Português</td><td>🇮🇹 Italiano</td><td>🏴󠁥󠁳󠁣󠁴󠁿 Català</td><td>🇷🇴 Română</td><td>🇩🇪 Deutsch</td>
+</tr>
+<tr>
+<td>🇳🇱 Nederlands</td><td>🇸🇦 العربية</td><td>🇮🇩 Indonesia</td><td>🇰🇷 한국어</td><td>🇯🇵 日本語</td>
+</tr>
+</table>
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License.
+
+---
+
+<p align="center">
+  <strong>Repository:</strong> <a href="https://github.com/JPBC2/economicskills">github.com/JPBC2/economicskills</a>
+</p>
