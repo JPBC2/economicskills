@@ -365,7 +365,7 @@ class _AssignmentInstructionsPanelState extends State<AssignmentInstructionsPane
     final hasSolution = switch (widget.tool) {
       'spreadsheet' => widget.section.getSolutionForLanguage('en') != null,
       'python' => widget.section.pythonSolutionCode != null && widget.section.pythonSolutionCode!.isNotEmpty,
-      'r' => false, // TODO: Add R solution support
+      'r' => widget.section.rSolutionCode != null && widget.section.rSolutionCode!.isNotEmpty,
       _ => false,
     };
 
