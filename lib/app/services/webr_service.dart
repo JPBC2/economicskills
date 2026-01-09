@@ -217,9 +217,22 @@ class WebRService {
     final completer = Completer<String>();
     
     try {
-      // Use Function constructor to evaluate JavaScript
-      final func = JSFunction('return $script');
-      final result = func.callAsFunction();
+      // Use js_interop_unsafe to call eval on window
+      final windowObj = web.window as JSObject;
+      
+      // Wrap script to return a Promise that we can await
+      final wrappedScript = '''
+        (async function() {
+          try {
+            return await (async function() { return $script })();
+          } catch(e) {
+            throw e;
+          }
+        })()
+      ''';
+      
+      // Call eval on window using callMethod from js_interop_unsafe
+      final result = windowObj.callMethod('eval'.toJS, wrappedScript.toJS);
       
       if (result != null && result.isA<JSPromise>()) {
         final awaited = await (result as JSPromise).toDart;
