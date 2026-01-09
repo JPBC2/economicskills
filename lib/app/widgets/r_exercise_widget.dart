@@ -345,6 +345,55 @@ class RExerciseWidgetState extends State<RExerciseWidget> with SingleTickerProvi
       );
     }
     
+    // Show error state if WebR failed to initialize
+    if (!_webR.isReady && _error != null) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.error_outline, size: 48, color: colorScheme.error),
+              const SizedBox(height: 16),
+              Text(
+                'R Environment Failed to Load',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'WebR requires loading WASM files which may fail on some browsers or networks.',
+                textAlign: TextAlign.center,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                _error!,
+                textAlign: TextAlign.center,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: colorScheme.error,
+                ),
+              ),
+              const SizedBox(height: 24),
+              FilledButton.icon(
+                onPressed: () {
+                  setState(() {
+                    _error = null;
+                  });
+                  _initializeWebR();
+                },
+                icon: const Icon(Icons.refresh),
+                label: const Text('Retry'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+    
     // Check if we should show solution tab
     final hasSolution = widget.section.rSolutionCode != null &&
                         widget.section.rSolutionCode!.isNotEmpty;
