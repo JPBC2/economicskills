@@ -57,16 +57,11 @@ class _SectionScreenState extends State<SectionScreen> {
   // Key to access PythonExerciseWidget for solution reload
   final GlobalKey<PythonExerciseWidgetState> _pythonExerciseKey = GlobalKey<PythonExerciseWidgetState>();
 
-  /// Get the effective tool for current section (respects URL suffix and tool availability)
+  /// Get the effective tool for current section (respects URL suffix directly)
+  /// The URL suffix (-spreadsheet or -python) determines the tool, not database flags
   String get _effectiveTool {
-    final supportsSpreadsheet = _section?.supportsSpreadsheet ?? true;
-    final supportsPython = _section?.supportsPython ?? false;
-
-    if (!supportsSpreadsheet && supportsPython) {
-      return 'python';
-    } else if (supportsSpreadsheet && !supportsPython) {
-      return 'spreadsheet';
-    }
+    // Trust the _selectedTool which is set from the URL suffix
+    // This allows sections to be accessed via either tool URL even if DB flags differ
     return _selectedTool;
   }
 
@@ -757,21 +752,8 @@ class _SectionScreenState extends State<SectionScreen> {
 
   /// Build mobile exercise card based on the selected/effective tool
   Widget _buildMobileExerciseCard(ThemeData theme, ColorScheme colorScheme) {
-    final supportsSpreadsheet = _section?.supportsSpreadsheet ?? true;
-    final supportsPython = _section?.supportsPython ?? false;
-
-    // Auto-select the only available tool if only one is supported
-    final String effectiveTool;
-    if (!supportsSpreadsheet && supportsPython) {
-      effectiveTool = 'python';
-    } else if (supportsSpreadsheet && !supportsPython) {
-      effectiveTool = 'spreadsheet';
-    } else {
-      effectiveTool = _selectedTool;
-    }
-
-    // Return the appropriate card based on the effective tool
-    if (effectiveTool == 'python' && supportsPython) {
+    // Return the appropriate card based on the URL-requested tool
+    if (_effectiveTool == 'python') {
       return _buildMobilePythonCard(theme, colorScheme);
     } else {
       return _buildSpreadsheetCard(theme, colorScheme);
@@ -997,22 +979,12 @@ class _SectionScreenState extends State<SectionScreen> {
     final supportsPython = _section?.supportsPython ?? false;
     final showTabs = supportsSpreadsheet && supportsPython;
 
-    // Auto-select the only available tool if only one is supported
-    final String effectiveTool;
-    if (!supportsSpreadsheet && supportsPython) {
-      effectiveTool = 'python';
-    } else if (supportsSpreadsheet && !supportsPython) {
-      effectiveTool = 'spreadsheet';
-    } else {
-      effectiveTool = _selectedTool;
-    }
-
     return Container(
       color: colorScheme.surfaceContainerLowest,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Tool selector tabs (if both tools are supported)
+          // Tool selector tabs (if both tools are supported in DB)
           if (showTabs)
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -1025,7 +997,7 @@ class _SectionScreenState extends State<SectionScreen> {
                   _buildToolTab(
                     icon: Icons.table_chart,
                     label: 'Google Sheets',
-                    isSelected: effectiveTool == 'spreadsheet',
+                    isSelected: _effectiveTool == 'spreadsheet',
                     onTap: () => setState(() => _selectedTool = 'spreadsheet'),
                     colorScheme: colorScheme,
                   ),
@@ -1033,7 +1005,7 @@ class _SectionScreenState extends State<SectionScreen> {
                   _buildToolTab(
                     icon: Icons.code,
                     label: 'Python',
-                    isSelected: effectiveTool == 'python',
+                    isSelected: _effectiveTool == 'python',
                     onTap: () => setState(() => _selectedTool = 'python'),
                     colorScheme: colorScheme,
                   ),
@@ -1041,15 +1013,15 @@ class _SectionScreenState extends State<SectionScreen> {
               ),
             ),
 
-          // Exercise content area
+          // Exercise content area - respects URL suffix directly
           Expanded(
-            child: effectiveTool == 'python' && supportsPython
+            child: _effectiveTool == 'python'
                 ? _buildPythonExercise(theme, colorScheme)
                 : _buildSpreadsheetExercise(theme, colorScheme),
           ),
 
           // Bottom action bar (only for spreadsheet)
-          if (isAuthenticated && effectiveTool == 'spreadsheet')
+          if (isAuthenticated && _effectiveTool == 'spreadsheet')
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(

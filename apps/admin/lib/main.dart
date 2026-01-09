@@ -19,8 +19,20 @@ void main() async {
 
 final supabase = Supabase.instance.client;
 
-/// Theme mode provider for light/dark toggle
-final themeModeProvider = StateProvider<ThemeMode>((ref) => ThemeMode.system);
+/// Theme mode notifier for light/dark toggle
+class ThemeModeNotifier extends Notifier<ThemeMode> {
+  @override
+  ThemeMode build() => ThemeMode.system;
+
+  void setThemeMode(ThemeMode mode) {
+    state = mode;
+  }
+}
+
+/// Theme mode provider
+final themeModeProvider = NotifierProvider<ThemeModeNotifier, ThemeMode>(
+  ThemeModeNotifier.new,
+);
 
 class AdminApp extends ConsumerWidget {
   const AdminApp({super.key});
