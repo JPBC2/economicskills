@@ -19,17 +19,22 @@ void main() async {
 
 final supabase = Supabase.instance.client;
 
-class AdminApp extends StatelessWidget {
+/// Theme mode provider for light/dark toggle
+final themeModeProvider = StateProvider<ThemeMode>((ref) => ThemeMode.system);
+
+class AdminApp extends ConsumerWidget {
   const AdminApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final themeMode = ref.watch(themeModeProvider);
+
     return MaterialApp(
       title: 'EconomicSkills Admin',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
-      themeMode: ThemeMode.system,
+      themeMode: themeMode,
       home: const AuthGate(),
       builder: (context, child) {
         // Wrap all pages with keyboard navigation shortcuts (Alt+Left = Back)

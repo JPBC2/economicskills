@@ -57,6 +57,37 @@ class _SectionScreenState extends State<SectionScreen> {
   // Key to access PythonExerciseWidget for solution reload
   final GlobalKey<PythonExerciseWidgetState> _pythonExerciseKey = GlobalKey<PythonExerciseWidgetState>();
 
+  /// Get the effective tool for current section (respects URL suffix and tool availability)
+  String get _effectiveTool {
+    final supportsSpreadsheet = _section?.supportsSpreadsheet ?? true;
+    final supportsPython = _section?.supportsPython ?? false;
+
+    if (!supportsSpreadsheet && supportsPython) {
+      return 'python';
+    } else if (supportsSpreadsheet && !supportsPython) {
+      return 'spreadsheet';
+    }
+    return _selectedTool;
+  }
+
+  /// Get instructions for the currently selected tool
+  String? _getInstructionsForCurrentTool() {
+    if (_section == null) return null;
+    return _section!.getInstructionsForTool(_effectiveTool);
+  }
+
+  /// Get hint for the currently selected tool
+  String? _getHintForCurrentTool() {
+    if (_section == null) return null;
+    return _section!.getHintForTool(_effectiveTool);
+  }
+
+  /// Get XP reward for the currently selected tool
+  int _getXpRewardForCurrentTool() {
+    if (_section == null) return 0;
+    return _section!.getXpRewardForTool(_effectiveTool);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -671,23 +702,23 @@ class _SectionScreenState extends State<SectionScreen> {
             ),
             const SizedBox(height: 16),
 
-            // Instructions section (collapsible)
-            if (_section!.instructions != null && _section!.instructions!.isNotEmpty)
+            // Instructions section (collapsible) - uses tool-specific instructions
+            if (_getInstructionsForCurrentTool() != null && _getInstructionsForCurrentTool()!.isNotEmpty)
               _buildCollapsibleSection(
                 title: 'Instructions',
                 isExpanded: _instructionsExpanded,
                 onToggle: () => setState(() => _instructionsExpanded = !_instructionsExpanded),
                 theme: theme,
                 colorScheme: colorScheme,
-                trailing: _section!.xpReward > 0
+                trailing: _getXpRewardForCurrentTool() > 0
                     ? Chip(
                         avatar: Icon(Icons.star, size: 14, color: Colors.amber.shade600),
                         label: Text(
-                          _showAnswer 
-                            ? '${(_section!.xpReward * 0.5).floor()} XP'
-                            : _showHint 
-                              ? '${(_section!.xpReward * 0.7).floor()} XP'
-                              : '${_section!.xpReward} XP',
+                          _showAnswer
+                            ? '${(_getXpRewardForCurrentTool() * 0.5).floor()} XP'
+                            : _showHint
+                              ? '${(_getXpRewardForCurrentTool() * 0.7).floor()} XP'
+                              : '${_getXpRewardForCurrentTool()} XP',
                           style: TextStyle(fontSize: 12, color: colorScheme.onSurface),
                         ),
                         backgroundColor: colorScheme.surfaceContainerHighest,
@@ -697,13 +728,13 @@ class _SectionScreenState extends State<SectionScreen> {
                       )
                     : null,
                 child: Text(
-                  _section!.instructions!,
+                  _getInstructionsForCurrentTool()!,
                   style: theme.textTheme.bodyMedium?.copyWith(height: 1.6, color: colorScheme.onSurface),
                 ),
               ),
 
-            // Take a hint button
-            if (_section!.hint != null && _section!.hint!.isNotEmpty && isAuthenticated) ...[
+            // Take a hint button - uses tool-specific hint
+            if (_getHintForCurrentTool() != null && _getHintForCurrentTool()!.isNotEmpty && isAuthenticated) ...[
               const SizedBox(height: 24),
               _buildHintSection(theme, colorScheme),
             ],
@@ -880,23 +911,23 @@ class _SectionScreenState extends State<SectionScreen> {
             ),
             const SizedBox(height: 16),
 
-            // Instructions section (collapsible)
-            if (_section!.instructions != null && _section!.instructions!.isNotEmpty)
+            // Instructions section (collapsible) - uses tool-specific instructions
+            if (_getInstructionsForCurrentTool() != null && _getInstructionsForCurrentTool()!.isNotEmpty)
               _buildCollapsibleSection(
                 title: 'Instructions',
                 isExpanded: _instructionsExpanded,
                 onToggle: () => setState(() => _instructionsExpanded = !_instructionsExpanded),
                 theme: theme,
                 colorScheme: colorScheme,
-                trailing: _section!.xpReward > 0
+                trailing: _getXpRewardForCurrentTool() > 0
                     ? Chip(
                         avatar: Icon(Icons.star, size: 14, color: Colors.amber.shade600),
                         label: Text(
-                          _showAnswer 
-                            ? '${(_section!.xpReward * 0.5).floor()} XP'
-                            : _showHint 
-                              ? '${(_section!.xpReward * 0.7).floor()} XP'
-                              : '${_section!.xpReward} XP',
+                          _showAnswer
+                            ? '${(_getXpRewardForCurrentTool() * 0.5).floor()} XP'
+                            : _showHint
+                              ? '${(_getXpRewardForCurrentTool() * 0.7).floor()} XP'
+                              : '${_getXpRewardForCurrentTool()} XP',
                           style: TextStyle(fontSize: 12, color: colorScheme.onSurface),
                         ),
                         backgroundColor: colorScheme.surfaceContainerHighest,
@@ -906,13 +937,13 @@ class _SectionScreenState extends State<SectionScreen> {
                       )
                     : null,
                 child: Text(
-                  _section!.instructions!,
+                  _getInstructionsForCurrentTool()!,
                   style: theme.textTheme.bodyMedium?.copyWith(height: 1.6, color: colorScheme.onSurface),
                 ),
               ),
 
-            // Take a hint button
-            if (_section!.hint != null && _section!.hint!.isNotEmpty && isAuthenticated) ...[
+            // Take a hint button - uses tool-specific hint
+            if (_getHintForCurrentTool() != null && _getHintForCurrentTool()!.isNotEmpty && isAuthenticated) ...[
               const SizedBox(height: 24),
               _buildHintSection(theme, colorScheme),
             ],
@@ -1388,9 +1419,9 @@ class _SectionScreenState extends State<SectionScreen> {
                 // const SizedBox(height: 12),
                 // const Divider(height: 1),
                 // const SizedBox(height: 12),
-                // Hint text
+                // Hint text - uses tool-specific hint
                 Text(
-                  _section!.hint!,
+                  _getHintForCurrentTool()!,
                   style: theme.textTheme.bodyMedium?.copyWith(
                     height: 1.6,
                     color: Colors.amber.shade900,

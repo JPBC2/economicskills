@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared/shared.dart';
 import '../main.dart';
 import 'courses/courses_list.screen.dart';
 
-class DashboardScreen extends StatefulWidget {
+class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
 
   @override
-  State<DashboardScreen> createState() => _DashboardScreenState();
+  ConsumerState<DashboardScreen> createState() => _DashboardScreenState();
 }
 
-class _DashboardScreenState extends State<DashboardScreen> {
+class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   int _selectedIndex = 0;
 
   final List<NavigationRailDestination> _destinations = const [
@@ -58,6 +59,72 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
+  /// Build theme toggle button with 3 states: System, Light, Dark
+  Widget _buildThemeToggle(ThemeData theme, ColorScheme colorScheme) {
+    final currentMode = ref.watch(themeModeProvider);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _buildThemeButton(
+            icon: Icons.brightness_auto,
+            tooltip: 'System',
+            isSelected: currentMode == ThemeMode.system,
+            onTap: () => ref.read(themeModeProvider.notifier).state = ThemeMode.system,
+            colorScheme: colorScheme,
+          ),
+          _buildThemeButton(
+            icon: Icons.light_mode,
+            tooltip: 'Light',
+            isSelected: currentMode == ThemeMode.light,
+            onTap: () => ref.read(themeModeProvider.notifier).state = ThemeMode.light,
+            colorScheme: colorScheme,
+          ),
+          _buildThemeButton(
+            icon: Icons.dark_mode,
+            tooltip: 'Dark',
+            isSelected: currentMode == ThemeMode.dark,
+            onTap: () => ref.read(themeModeProvider.notifier).state = ThemeMode.dark,
+            colorScheme: colorScheme,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildThemeButton({
+    required IconData icon,
+    required String tooltip,
+    required bool isSelected,
+    required VoidCallback onTap,
+    required ColorScheme colorScheme,
+  }) {
+    return Tooltip(
+      message: tooltip,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: isSelected ? colorScheme.primaryContainer : Colors.transparent,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Icon(
+            icon,
+            size: 18,
+            color: isSelected ? colorScheme.onPrimaryContainer : colorScheme.onSurfaceVariant,
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -99,6 +166,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
+                      // Theme toggle button
+                      _buildThemeToggle(theme, colorScheme),
+                      const SizedBox(height: 16),
                       CircleAvatar(
                         child: Text(user?.email?.substring(0, 1).toUpperCase() ?? 'A'),
                       ),

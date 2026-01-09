@@ -249,18 +249,26 @@ class Section {
   final String exerciseId;
   final String title;
   final String? explanation;
-  final String? instructions;
-  final String? hint;
+  final String? instructions; // Legacy/shared instructions
+  final String? hint; // Legacy/shared hint
   final int displayOrder;
   final String? templateSpreadsheetId;
-  final int xpReward;
+  final int xpReward; // Legacy/shared XP reward
   final DateTime createdAt;
   final DateTime updatedAt;
 
   // Exercise type support flags
   final bool supportsSpreadsheet;
   final bool supportsPython;
-  final String sectionType; // 'python' or 'spreadsheet'
+  final String sectionType; // 'python', 'spreadsheet', or 'both'
+
+  // Tool-specific instructions, hints, and XP rewards
+  final String? instructionsSpreadsheet;
+  final String? instructionsPython;
+  final String? hintSpreadsheet;
+  final String? hintPython;
+  final int xpRewardSpreadsheet;
+  final int xpRewardPython;
 
   // Language-specific template and solution spreadsheet IDs
   final Map<String, String?> templateSpreadsheets;
@@ -286,12 +294,45 @@ class Section {
     this.supportsSpreadsheet = true,
     this.supportsPython = false,
     this.sectionType = 'spreadsheet',
+    this.instructionsSpreadsheet,
+    this.instructionsPython,
+    this.hintSpreadsheet,
+    this.hintPython,
+    this.xpRewardSpreadsheet = 10,
+    this.xpRewardPython = 10,
     this.templateSpreadsheets = const {},
     this.solutionSpreadsheets = const {},
     this.pythonStarterCode = const {},
     this.pythonSolutionCode,
     this.pythonValidationConfig,
   });
+
+  /// Get instructions for a specific tool, falling back to shared instructions
+  String? getInstructionsForTool(String tool) {
+    if (tool == 'python') {
+      return instructionsPython ?? instructions;
+    } else {
+      return instructionsSpreadsheet ?? instructions;
+    }
+  }
+
+  /// Get hint for a specific tool, falling back to shared hint
+  String? getHintForTool(String tool) {
+    if (tool == 'python') {
+      return hintPython ?? hint;
+    } else {
+      return hintSpreadsheet ?? hint;
+    }
+  }
+
+  /// Get XP reward for a specific tool, falling back to shared XP reward
+  int getXpRewardForTool(String tool) {
+    if (tool == 'python') {
+      return xpRewardPython > 0 ? xpRewardPython : xpReward;
+    } else {
+      return xpRewardSpreadsheet > 0 ? xpRewardSpreadsheet : xpReward;
+    }
+  }
 
   /// Get template spreadsheet ID for a specific language, falling back to English then default
   String? getTemplateForLanguage(String langCode) {
@@ -337,6 +378,13 @@ class Section {
       supportsSpreadsheet: json['supports_spreadsheet'] as bool? ?? true,
       supportsPython: json['supports_python'] as bool? ?? false,
       sectionType: json['section_type'] as String? ?? 'spreadsheet',
+      // Tool-specific fields
+      instructionsSpreadsheet: json['instructions_spreadsheet'] as String?,
+      instructionsPython: json['instructions_python'] as String?,
+      hintSpreadsheet: json['hint_spreadsheet'] as String?,
+      hintPython: json['hint_python'] as String?,
+      xpRewardSpreadsheet: json['xp_reward_spreadsheet'] as int? ?? 10,
+      xpRewardPython: json['xp_reward_python'] as int? ?? 10,
       templateSpreadsheets: templates,
       solutionSpreadsheets: solutions,
       pythonStarterCode: pythonStarter,
@@ -359,6 +407,13 @@ class Section {
       'supports_spreadsheet': supportsSpreadsheet,
       'supports_python': supportsPython,
       'section_type': sectionType,
+      // Tool-specific fields
+      'instructions_spreadsheet': instructionsSpreadsheet,
+      'instructions_python': instructionsPython,
+      'hint_spreadsheet': hintSpreadsheet,
+      'hint_python': hintPython,
+      'xp_reward_spreadsheet': xpRewardSpreadsheet,
+      'xp_reward_python': xpRewardPython,
       'python_solution_code': pythonSolutionCode,
       'python_validation_config': pythonValidationConfig,
     };

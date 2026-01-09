@@ -456,6 +456,7 @@ class _CourseHierarchyTreeState extends State<CourseHierarchyTree> {
                   alignment: Alignment.centerLeft,
                   child: Wrap(
                     spacing: 8,
+                    runSpacing: 8,
                     children: [
                       TextButton.icon(
                         onPressed: () => _navigateToEditor(SectionEditorScreen(
@@ -463,7 +464,7 @@ class _CourseHierarchyTreeState extends State<CourseHierarchyTree> {
                           sectionType: 'spreadsheet',
                         )),
                         icon: Icon(Icons.table_chart, size: 18, color: Colors.green.shade700),
-                        label: Text('Add Spreadsheet Section', 
+                        label: Text('Add Spreadsheet Section',
                           style: TextStyle(color: Colors.green.shade700)),
                       ),
                       TextButton.icon(
@@ -474,6 +475,15 @@ class _CourseHierarchyTreeState extends State<CourseHierarchyTree> {
                         icon: Icon(Icons.code, size: 18, color: Colors.deepPurple.shade700),
                         label: Text('Add Python Section',
                           style: TextStyle(color: Colors.deepPurple.shade700)),
+                      ),
+                      TextButton.icon(
+                        onPressed: () => _navigateToEditor(SectionEditorScreen(
+                          exercise: exercise,
+                          sectionType: 'both',
+                        )),
+                        icon: Icon(Icons.splitscreen, size: 18, color: Colors.blue.shade700),
+                        label: Text('Add Both (Spreadsheet + Python)',
+                          style: TextStyle(color: Colors.blue.shade700)),
                       ),
                     ],
                   ),
@@ -489,15 +499,18 @@ class _CourseHierarchyTreeState extends State<CourseHierarchyTree> {
   Widget _buildSectionTile(Section section, Exercise exercise) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final isPython = section.sectionType == 'python';
-    
+    final hasBoth = section.supportsSpreadsheet && section.supportsPython;
+    final isPythonOnly = section.supportsPython && !section.supportsSpreadsheet;
+
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 8),
-      leading: Icon(
-        isPython ? Icons.code : Icons.table_chart,
-        size: 20, 
-        color: isPython ? Colors.deepPurple.shade400 : Colors.green.shade400,
-      ),
+      leading: hasBoth
+          ? Icon(Icons.splitscreen, size: 20, color: Colors.blue.shade400)
+          : Icon(
+              isPythonOnly ? Icons.code : Icons.table_chart,
+              size: 20,
+              color: isPythonOnly ? Colors.deepPurple.shade400 : Colors.green.shade400,
+            ),
       title: Text(
         section.title,
         style: const TextStyle(fontWeight: FontWeight.w500),

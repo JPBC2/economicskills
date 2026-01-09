@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:shared/models/course.model.dart';
 import '../services/pyodide_service.dart';
+import 'package:flutter_code_editor/flutter_code_editor.dart';
+import 'package:highlight/languages/python.dart';
+import 'package:flutter_highlight/themes/atom-one-dark.dart';
+import 'package:flutter_highlight/themes/atom-one-light.dart';
 
 /// Widget for interactive Python code exercises
 ///
@@ -31,8 +35,8 @@ class PythonExerciseWidget extends StatefulWidget {
 }
 
 class PythonExerciseWidgetState extends State<PythonExerciseWidget> with SingleTickerProviderStateMixin {
-  final TextEditingController _codeController = TextEditingController();
-  final TextEditingController _solutionController = TextEditingController();
+  late CodeController _codeController;
+  late CodeController _solutionController;
   final PyodideService _pyodideService = PyodideService();
   late TabController _tabController;
 
@@ -48,6 +52,13 @@ class PythonExerciseWidgetState extends State<PythonExerciseWidget> with SingleT
   @override
   void initState() {
     super.initState();
+    // Initialize code controllers with Python syntax highlighting
+    _codeController = CodeController(
+      language: python,
+    );
+    _solutionController = CodeController(
+      language: python,
+    );
     // Initialize tab controller with 2 tabs: User Code, Solution
     _tabController = TabController(length: 2, vsync: this);
     _loadStarterCode();
@@ -445,55 +456,64 @@ class PythonExerciseWidgetState extends State<PythonExerciseWidget> with SingleT
     );
   }
 
-  /// Build code editor (simple TextField for now, can be replaced with CodeMirror)
+  /// Build code editor with Python syntax highlighting
   Widget _buildCodeEditor() {
     final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = isDark ? atomOneDarkTheme : atomOneLightTheme;
+    
     return Container(
       decoration: BoxDecoration(
         border: Border.all(color: colorScheme.outline),
         borderRadius: BorderRadius.circular(8),
-        color: colorScheme.surfaceContainer,
       ),
-      child: TextField(
-        controller: _codeController,
-        maxLines: null,
-        expands: true,
-        style: const TextStyle(
-          fontFamily: 'monospace',
-          fontSize: 14,
-        ),
-        decoration: const InputDecoration(
-          contentPadding: EdgeInsets.all(16),
-          border: InputBorder.none,
-          hintText: '# Write your Python code here...',
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: CodeTheme(
+          data: CodeThemeData(styles: theme),
+          child: CodeField(
+            controller: _codeController,
+            textStyle: const TextStyle(
+              fontFamily: 'monospace',
+              fontSize: 14,
+            ),
+            lineNumberStyle: const LineNumberStyle(
+              width: 48,
+              textAlign: TextAlign.right,
+            ),
+            expands: true,
+          ),
         ),
       ),
     );
   }
 
-  /// Build solution code editor (editable)
+  /// Build solution code editor with Python syntax highlighting
   Widget _buildSolutionEditor() {
-    final colorScheme = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = isDark ? atomOneDarkTheme : atomOneLightTheme;
+    
     return Container(
       decoration: BoxDecoration(
         border: Border.all(color: isDark ? Colors.deepPurple.shade300 : Colors.deepPurple.shade200),
         borderRadius: BorderRadius.circular(8),
-        color: isDark ? Colors.deepPurple.shade900.withValues(alpha: 0.3) : Colors.deepPurple.shade50,
       ),
-      child: TextField(
-        controller: _solutionController,
-        maxLines: null,
-        expands: true,
-        style: const TextStyle(
-          fontFamily: 'monospace',
-          fontSize: 14,
-        ),
-        decoration: InputDecoration(
-          contentPadding: const EdgeInsets.all(16),
-          border: InputBorder.none,
-          hintText: '# Solution code...',
-          hintStyle: TextStyle(color: Colors.deepPurple.shade300),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: CodeTheme(
+          data: CodeThemeData(styles: theme),
+          child: CodeField(
+            controller: _solutionController,
+            textStyle: const TextStyle(
+              fontFamily: 'monospace',
+              fontSize: 14,
+            ),
+            lineNumberStyle: const LineNumberStyle(
+              width: 48,
+              textAlign: TextAlign.right,
+            ),
+            expands: true,
+          ),
         ),
       ),
     );

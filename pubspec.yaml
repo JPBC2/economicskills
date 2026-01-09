@@ -57,6 +57,11 @@ dependencies:
     path: ./packages/shared
   web: ^1.1.1
   pointer_interceptor: ^0.10.1+2
+  
+  # Code editor with syntax highlighting
+  flutter_code_editor: ^0.3.2
+  highlight: ^0.7.0
+  flutter_highlight: ^0.7.0
 
 dev_dependencies:
   flutter_test:

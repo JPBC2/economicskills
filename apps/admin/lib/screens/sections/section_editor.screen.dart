@@ -34,6 +34,14 @@ class _SectionEditorScreenState extends State<SectionEditorScreen> {
   final _pythonSolutionCodeController = TextEditingController();
   final _pythonValidationConfigController = TextEditingController();
 
+  // Tool-specific controllers
+  final _instructionsSpreadsheetController = TextEditingController();
+  final _instructionsPythonController = TextEditingController();
+  final _hintSpreadsheetController = TextEditingController();
+  final _hintPythonController = TextEditingController();
+  final _xpRewardSpreadsheetController = TextEditingController(text: '10');
+  final _xpRewardPythonController = TextEditingController(text: '10');
+
   bool _isSaving = false;
   bool _isLoading = true;
   String? _extractedTemplateId;
@@ -42,6 +50,11 @@ class _SectionEditorScreenState extends State<SectionEditorScreen> {
   // Tool support flags (both can be true)
   bool _supportsSpreadsheet = true;
   bool _supportsPython = false;
+
+  // Collapsible section states
+  bool _detailsExpanded = true;
+  bool _spreadsheetExpanded = true;
+  bool _pythonExpanded = true;
   
   // Supported languages for template URLs
   static const _languages = [
@@ -155,6 +168,22 @@ class _SectionEditorScreenState extends State<SectionEditorScreen> {
         }
       }
 
+      // Load tool-specific fields
+      if (widget.section!.instructionsSpreadsheet != null) {
+        _instructionsSpreadsheetController.text = widget.section!.instructionsSpreadsheet!;
+      }
+      if (widget.section!.instructionsPython != null) {
+        _instructionsPythonController.text = widget.section!.instructionsPython!;
+      }
+      if (widget.section!.hintSpreadsheet != null) {
+        _hintSpreadsheetController.text = widget.section!.hintSpreadsheet!;
+      }
+      if (widget.section!.hintPython != null) {
+        _hintPythonController.text = widget.section!.hintPython!;
+      }
+      _xpRewardSpreadsheetController.text = widget.section!.xpRewardSpreadsheet.toString();
+      _xpRewardPythonController.text = widget.section!.xpRewardPython.toString();
+
       _loadTranslations();
       _loadValidationRule(); // Load existing validation rule
     } else {
@@ -236,6 +265,13 @@ class _SectionEditorScreenState extends State<SectionEditorScreen> {
     _validationRangeController.dispose();
     _pythonSolutionCodeController.dispose();
     _pythonValidationConfigController.dispose();
+    // Dispose tool-specific controllers
+    _instructionsSpreadsheetController.dispose();
+    _instructionsPythonController.dispose();
+    _hintSpreadsheetController.dispose();
+    _hintPythonController.dispose();
+    _xpRewardSpreadsheetController.dispose();
+    _xpRewardPythonController.dispose();
     for (final controller in _templateControllers.values) {
       controller.dispose();
     }
@@ -335,6 +371,13 @@ class _SectionEditorScreenState extends State<SectionEditorScreen> {
         'section_type': sectionType,
         'supports_python': _supportsPython,
         'supports_spreadsheet': _supportsSpreadsheet,
+        // Tool-specific Instructions, Hint, and XP fields
+        'instructions_spreadsheet': _instructionsSpreadsheetController.text.trim().isEmpty ? null : _instructionsSpreadsheetController.text.trim(),
+        'instructions_python': _instructionsPythonController.text.trim().isEmpty ? null : _instructionsPythonController.text.trim(),
+        'hint_spreadsheet': _hintSpreadsheetController.text.trim().isEmpty ? null : _hintSpreadsheetController.text.trim(),
+        'hint_python': _hintPythonController.text.trim().isEmpty ? null : _hintPythonController.text.trim(),
+        'xp_reward_spreadsheet': int.tryParse(_xpRewardSpreadsheetController.text) ?? 10,
+        'xp_reward_python': int.tryParse(_xpRewardPythonController.text) ?? 10,
       };
 
       // Add spreadsheet-specific fields if spreadsheet is enabled
@@ -551,324 +594,338 @@ class _SectionEditorScreenState extends State<SectionEditorScreen> {
                         ),
                         const SizedBox(height: 24),
                         
-                        // Section Details (Title, Explanation, Instructions, Hint)
+                        // Section Details (Title, Explanation) - collapsible
                         Card(
-                          child: Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text('Section Details', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                                const SizedBox(height: 16),
-                                TranslationTabs(
-                                  fields: const [
-                                    TranslationField(key: 'title', label: 'Title', isRequired: true, hint: 'e.g., Cashflows'),
-                                    TranslationField(key: 'explanation', label: 'Explanation', maxLines: 4, isResizable: true, hint: 'Brief explanation of the topic'),
-                                    TranslationField(key: 'instructions', label: 'Instructions', maxLines: 6, isResizable: true, hint: 'Step-by-step instructions for students'),
-                                    TranslationField(key: 'hint', label: 'Hint', maxLines: 4, isResizable: true, hint: 'Help text shown when student clicks "Take a hint" (reduces XP by 30%)'),
-                                  ],
-                                  translations: _translations,
-                                  onChanged: (t) => setState(() => _translations = t),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        
-                        // Settings (Display Order, XP Reward) - moved here after Hint
-                        Card(
-                          child: Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text('Settings', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                                const SizedBox(height: 16),
-                                Row(
+                          clipBehavior: Clip.antiAlias,
+                          child: ExpansionTile(
+                            initiallyExpanded: _detailsExpanded,
+                            onExpansionChanged: (expanded) => setState(() => _detailsExpanded = expanded),
+                            leading: Icon(Icons.info_outline, color: colorScheme.primary),
+                            title: Text('Section Details', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                            subtitle: Text('Title, explanation, and display order', style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant)),
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Expanded(
-                                      child: TextFormField(
-                                        controller: _displayOrderController, 
-                                        decoration: const InputDecoration(
-                                          labelText: 'Display Order', 
-                                          border: OutlineInputBorder(),
-                                        ), 
-                                        keyboardType: TextInputType.number,
-                                      ),
+                                    TranslationTabs(
+                                      fields: const [
+                                        TranslationField(key: 'title', label: 'Title', isRequired: true, hint: 'e.g., Cashflows'),
+                                        TranslationField(key: 'explanation', label: 'Explanation', maxLines: 4, isResizable: true, hint: 'Brief explanation of the topic'),
+                                      ],
+                                      translations: _translations,
+                                      onChanged: (t) => setState(() => _translations = t),
                                     ),
-                                    const SizedBox(width: 16),
-                                    Expanded(
-                                      child: TextFormField(
-                                        controller: _xpRewardController, 
-                                        decoration: const InputDecoration(
-                                          labelText: 'XP Reward', 
-                                          border: OutlineInputBorder(), 
-                                          prefixIcon: Icon(Icons.star),
-                                        ), 
-                                        keyboardType: TextInputType.number,
+                                    const SizedBox(height: 16),
+                                    TextFormField(
+                                      controller: _displayOrderController,
+                                      decoration: const InputDecoration(
+                                        labelText: 'Display Order',
+                                        border: OutlineInputBorder(),
                                       ),
+                                      keyboardType: TextInputType.number,
                                     ),
                                   ],
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
                         ),
                         
-                        // SPREADSHEET: Template & Solution Spreadsheets (shown if spreadsheet is enabled)
+                        // SPREADSHEET: Configuration (collapsible, shown if spreadsheet is enabled)
                         if (_supportsSpreadsheet) ...[
                           const SizedBox(height: 16),
                           Card(
-                            child: Padding(
-                              padding: const EdgeInsets.all(16),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
+                            clipBehavior: Clip.antiAlias,
+                            child: ExpansionTile(
+                              initiallyExpanded: _spreadsheetExpanded,
+                              onExpansionChanged: (expanded) => setState(() => _spreadsheetExpanded = expanded),
+                              leading: Icon(Icons.table_chart, color: Colors.green.shade700),
+                              title: Text('Spreadsheet Configuration', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                              subtitle: Text('Instructions, hint, XP, templates, and validation', style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant)),
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Icon(Icons.table_chart, color: Colors.green.shade700),
-                                      const SizedBox(width: 8),
-                                      Text('Template & Solution Spreadsheets', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    'Configure spreadsheet templates for each language.',
-                                    style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
-                                  ),
-                                  const SizedBox(height: 16),
-                                  // Language selector
-                                  Wrap(
-                                    spacing: 8,
-                                    runSpacing: 8,
-                                    children: _languages.map((lang) {
-                                      final code = lang['code'] as String;
-                                      final label = lang['label'] as String;
-                                      final hasTemplate = _extractSpreadsheetId(_templateControllers[code]?.text ?? '') != null;
-                                      return ChoiceChip(
-                                        label: Row(
-                                          mainAxisSize: MainAxisSize.min,
+                                      // Spreadsheet Instructions
+                                      TextFormField(
+                                        controller: _instructionsSpreadsheetController,
+                                        maxLines: 5,
+                                        decoration: const InputDecoration(
+                                          labelText: 'Instructions (Spreadsheet)',
+                                          border: OutlineInputBorder(),
+                                          alignLabelWithHint: true,
+                                          hintText: 'Step-by-step instructions for completing the spreadsheet exercise...',
+                                        ),
+                                      ),
+                                      const SizedBox(height: 16),
+                                      // Spreadsheet Hint
+                                      TextFormField(
+                                        controller: _hintSpreadsheetController,
+                                        maxLines: 3,
+                                        decoration: const InputDecoration(
+                                          labelText: 'Hint (Spreadsheet) - reduces XP by 30%',
+                                          border: OutlineInputBorder(),
+                                          alignLabelWithHint: true,
+                                          hintText: 'Help text shown when student clicks "Take a hint"...',
+                                        ),
+                                      ),
+                                      const SizedBox(height: 16),
+                                      // Spreadsheet XP Reward
+                                      TextFormField(
+                                        controller: _xpRewardSpreadsheetController,
+                                        decoration: const InputDecoration(
+                                          labelText: 'XP Reward (Spreadsheet)',
+                                          border: OutlineInputBorder(),
+                                          prefixIcon: Icon(Icons.star, color: Colors.amber),
+                                        ),
+                                        keyboardType: TextInputType.number,
+                                      ),
+                                      const SizedBox(height: 24),
+                                      const Divider(),
+                                      const SizedBox(height: 16),
+                                      // Template & Solution Spreadsheets header
+                                      Text('Template & Solution Spreadsheets', style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        'Configure spreadsheet templates for each language.',
+                                        style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
+                                      ),
+                                      const SizedBox(height: 16),
+                                      // Language selector
+                                      Wrap(
+                                        spacing: 8,
+                                        runSpacing: 8,
+                                        children: _languages.map((lang) {
+                                          final code = lang['code'] as String;
+                                          final label = lang['label'] as String;
+                                          final hasTemplate = _extractSpreadsheetId(_templateControllers[code]?.text ?? '') != null;
+                                          return ChoiceChip(
+                                            label: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Text(label),
+                                                if (hasTemplate) ...[
+                                                  const SizedBox(width: 4),
+                                                  Icon(Icons.check, size: 14, color: Colors.green.shade700),
+                                                ],
+                                              ],
+                                            ),
+                                            selected: _selectedSpreadsheetLang == code,
+                                            onSelected: (_) => setState(() => _selectedSpreadsheetLang = code),
+                                          );
+                                        }).toList(),
+                                      ),
+                                      const SizedBox(height: 16),
+                                      TextFormField(
+                                        controller: _templateControllers[_selectedSpreadsheetLang],
+                                        decoration: InputDecoration(
+                                          labelText: 'Template Spreadsheet URL (${_languages.firstWhere((l) => l['code'] == _selectedSpreadsheetLang)['label']})',
+                                          border: const OutlineInputBorder(),
+                                          prefixIcon: const Icon(Icons.link),
+                                        ),
+                                        onChanged: (_) => setState(() {}),
+                                      ),
+                                      const SizedBox(height: 16),
+                                      TextFormField(
+                                        controller: _solutionControllers[_selectedSpreadsheetLang],
+                                        decoration: InputDecoration(
+                                          labelText: 'Solution Spreadsheet URL (${_languages.firstWhere((l) => l['code'] == _selectedSpreadsheetLang)['label']}) - Optional',
+                                          border: const OutlineInputBorder(),
+                                          prefixIcon: const Icon(Icons.verified),
+                                        ),
+                                        onChanged: (_) => setState(() {}),
+                                      ),
+                                      const SizedBox(height: 24),
+                                      const Divider(),
+                                      const SizedBox(height: 16),
+                                      // Validation Settings
+                                      Text('Validation Settings', style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
+                                      const SizedBox(height: 16),
+                                      TextFormField(
+                                        controller: _validationRangeController,
+                                        decoration: const InputDecoration(
+                                          labelText: 'Validation Range',
+                                          border: OutlineInputBorder(),
+                                          prefixIcon: Icon(Icons.grid_on),
+                                          hintText: 'e.g., O3:O102',
+                                        ),
+                                      ),
+                                      const SizedBox(height: 16),
+                                      // Warning card
+                                      Container(
+                                        padding: const EdgeInsets.all(12),
+                                        decoration: BoxDecoration(
+                                          color: Colors.amber.withValues(alpha: 0.1),
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                        child: Row(
                                           children: [
-                                            Text(label),
-                                            if (hasTemplate) ...[
-                                              const SizedBox(width: 4),
-                                              Icon(Icons.check, size: 14, color: Colors.green.shade700),
-                                            ],
+                                            Icon(Icons.warning_amber, size: 20, color: Colors.amber.shade700),
+                                            const SizedBox(width: 12),
+                                            Expanded(
+                                              child: Text(
+                                                'Share the template spreadsheet with your service account email.',
+                                                style: theme.textTheme.bodySmall?.copyWith(color: Colors.amber.shade900),
+                                              ),
+                                            ),
                                           ],
                                         ),
-                                        selected: _selectedSpreadsheetLang == code,
-                                        onSelected: (_) => setState(() => _selectedSpreadsheetLang = code),
-                                      );
-                                    }).toList(),
-                                  ),
-                                  const SizedBox(height: 16),
-                                  TextFormField(
-                                    controller: _templateControllers[_selectedSpreadsheetLang],
-                                    decoration: InputDecoration(
-                                      labelText: 'Template Spreadsheet URL (${_languages.firstWhere((l) => l['code'] == _selectedSpreadsheetLang)['label']})',
-                                      border: const OutlineInputBorder(),
-                                      prefixIcon: const Icon(Icons.link),
-                                    ),
-                                    onChanged: (_) => setState(() {}),
-                                  ),
-                                  const SizedBox(height: 16),
-                                  TextFormField(
-                                    controller: _solutionControllers[_selectedSpreadsheetLang],
-                                    decoration: InputDecoration(
-                                      labelText: 'Solution Spreadsheet URL (${_languages.firstWhere((l) => l['code'] == _selectedSpreadsheetLang)['label']}) - Optional',
-                                      border: const OutlineInputBorder(),
-                                      prefixIcon: const Icon(Icons.verified),
-                                    ),
-                                    onChanged: (_) => setState(() {}),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          // Validation Settings
-                          Card(
-                            child: Padding(
-                              padding: const EdgeInsets.all(16),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: [
-                                      Icon(Icons.check_circle_outline, color: Colors.blue.shade700),
-                                      const SizedBox(width: 8),
-                                      Text('Validation Settings', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                                      ),
                                     ],
                                   ),
-                                  const SizedBox(height: 16),
-                                  TextFormField(
-                                    controller: _validationRangeController,
-                                    decoration: const InputDecoration(
-                                      labelText: 'Validation Range',
-                                      border: OutlineInputBorder(),
-                                      prefixIcon: Icon(Icons.grid_on),
-                                      hintText: 'e.g., O3:O102',
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          // Warning card for spreadsheet sections
-                          Card(
-                            color: Colors.amber.withValues(alpha: 0.1),
-                            child: Padding(
-                              padding: const EdgeInsets.all(16),
-                              child: Row(
-                                children: [
-                                  Icon(Icons.warning_amber, size: 20, color: Colors.amber.shade700),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Text(
-                                      'Share the template spreadsheet with your service account email.',
-                                      style: theme.textTheme.bodySmall?.copyWith(color: Colors.amber.shade900),
-                                    ),
-                                  ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
                           ),
                         ],
                         
-                        // PYTHON: Starter Code, Solution Code, and Validation Config (shown if Python is enabled)
+                        // PYTHON: Configuration (collapsible, shown if Python is enabled)
                         if (_supportsPython) ...[
                           const SizedBox(height: 16),
-                          // Python Starter Code (multilingual)
                           Card(
-                            child: Padding(
-                              padding: const EdgeInsets.all(16),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
+                            clipBehavior: Clip.antiAlias,
+                            child: ExpansionTile(
+                              initiallyExpanded: _pythonExpanded,
+                              onExpansionChanged: (expanded) => setState(() => _pythonExpanded = expanded),
+                              leading: Icon(Icons.code, color: Colors.deepPurple.shade700),
+                              title: Text('Python Configuration', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                              subtitle: Text('Instructions, hint, XP, starter code, and validation', style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant)),
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Icon(Icons.play_arrow, color: Colors.deepPurple.shade700),
-                                      const SizedBox(width: 8),
-                                      Text('Python Starter Code', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    'The initial code students see when they start the exercise. Include comments with TODO instructions.',
-                                    style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
-                                  ),
-                                  const SizedBox(height: 16),
-                                  // Language selector for Python starter code
-                                  Wrap(
-                                    spacing: 8,
-                                    runSpacing: 8,
-                                    children: _languages.map((lang) {
-                                      final code = lang['code'] as String;
-                                      final label = lang['label'] as String;
-                                      final hasCode = _pythonStarterCodeControllers[code]?.text.trim().isNotEmpty ?? false;
-                                      return ChoiceChip(
-                                        label: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            Text(label),
-                                            if (hasCode) ...[
-                                              const SizedBox(width: 4),
-                                              Icon(Icons.check, size: 14, color: Colors.deepPurple.shade700),
-                                            ],
-                                          ],
+                                      // Python Instructions
+                                      TextFormField(
+                                        controller: _instructionsPythonController,
+                                        maxLines: 5,
+                                        decoration: const InputDecoration(
+                                          labelText: 'Instructions (Python)',
+                                          border: OutlineInputBorder(),
+                                          alignLabelWithHint: true,
+                                          hintText: 'Step-by-step instructions for completing the Python exercise...',
                                         ),
-                                        selected: _selectedPythonLang == code,
-                                        onSelected: (_) => setState(() => _selectedPythonLang = code),
-                                      );
-                                    }).toList(),
-                                  ),
-                                  const SizedBox(height: 16),
-                                  TextFormField(
-                                    controller: _pythonStarterCodeControllers[_selectedPythonLang],
-                                    maxLines: 15,
-                                    style: const TextStyle(fontFamily: 'monospace', fontSize: 13),
-                                    decoration: InputDecoration(
-                                      labelText: 'Starter Code (${_languages.firstWhere((l) => l['code'] == _selectedPythonLang)['label']})',
-                                      border: const OutlineInputBorder(),
-                                      alignLabelWithHint: true,
-                                      hintText: '# Import libraries\nimport pandas as pd\n\n# TODO: Load the data\n# df = pd.read_csv(...)\n\n# TODO: Calculate the result\n# result = ...',
-                                      hintStyle: TextStyle(color: Colors.grey.shade400, fontFamily: 'monospace'),
-                                    ),
-                                    onChanged: (_) => setState(() {}),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          // Python Solution Code
-                          Card(
-                            child: Padding(
-                              padding: const EdgeInsets.all(16),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: [
-                                      Icon(Icons.check_circle, color: Colors.deepPurple.shade700),
-                                      const SizedBox(width: 8),
-                                      Text('Python Solution Code', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    'The correct Python code. Shown when "Show Answer" is clicked (-50% XP).',
-                                    style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
-                                  ),
-                                  const SizedBox(height: 16),
-                                  TextFormField(
-                                    controller: _pythonSolutionCodeController,
-                                    maxLines: 12,
-                                    style: const TextStyle(fontFamily: 'monospace', fontSize: 13),
-                                    decoration: InputDecoration(
-                                      labelText: 'Solution Code',
-                                      border: const OutlineInputBorder(),
-                                      alignLabelWithHint: true,
-                                      hintText: '# Complete Python solution...\nimport pandas as pd\n\ndf = pd.read_csv(...)\nresult = df["column"].mean()',
-                                      hintStyle: TextStyle(color: Colors.grey.shade400, fontFamily: 'monospace'),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          // Python Validation Config
-                          Card(
-                            child: Padding(
-                              padding: const EdgeInsets.all(16),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: [
-                                      Icon(Icons.rule, color: Colors.deepPurple.shade700),
-                                      const SizedBox(width: 8),
-                                      Text('Validation Configuration', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    'JSON configuration for validating student code. Defines what variables, values, or outputs to check.',
-                                    style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
-                                  ),
-                                  const SizedBox(height: 16),
-                                  TextFormField(
-                                    controller: _pythonValidationConfigController,
-                                    maxLines: 12,
-                                    style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
-                                    decoration: InputDecoration(
-                                      labelText: 'Validation Config (JSON)',
-                                      border: const OutlineInputBorder(),
-                                      alignLabelWithHint: true,
-                                      hintText: '''{
+                                      ),
+                                      const SizedBox(height: 16),
+                                      // Python Hint
+                                      TextFormField(
+                                        controller: _hintPythonController,
+                                        maxLines: 3,
+                                        decoration: const InputDecoration(
+                                          labelText: 'Hint (Python) - reduces XP by 30%',
+                                          border: OutlineInputBorder(),
+                                          alignLabelWithHint: true,
+                                          hintText: 'Help text shown when student clicks "Take a hint"...',
+                                        ),
+                                      ),
+                                      const SizedBox(height: 16),
+                                      // Python XP Reward
+                                      TextFormField(
+                                        controller: _xpRewardPythonController,
+                                        decoration: const InputDecoration(
+                                          labelText: 'XP Reward (Python)',
+                                          border: OutlineInputBorder(),
+                                          prefixIcon: Icon(Icons.star, color: Colors.amber),
+                                        ),
+                                        keyboardType: TextInputType.number,
+                                      ),
+                                      const SizedBox(height: 24),
+                                      const Divider(),
+                                      const SizedBox(height: 16),
+                                      // Python Starter Code (multilingual)
+                                      Text('Starter Code', style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        'The initial code students see when they start the exercise. Include comments with TODO instructions.',
+                                        style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
+                                      ),
+                                      const SizedBox(height: 16),
+                                      // Language selector for Python starter code
+                                      Wrap(
+                                        spacing: 8,
+                                        runSpacing: 8,
+                                        children: _languages.map((lang) {
+                                          final code = lang['code'] as String;
+                                          final label = lang['label'] as String;
+                                          final hasCode = _pythonStarterCodeControllers[code]?.text.trim().isNotEmpty ?? false;
+                                          return ChoiceChip(
+                                            label: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Text(label),
+                                                if (hasCode) ...[
+                                                  const SizedBox(width: 4),
+                                                  Icon(Icons.check, size: 14, color: Colors.deepPurple.shade700),
+                                                ],
+                                              ],
+                                            ),
+                                            selected: _selectedPythonLang == code,
+                                            onSelected: (_) => setState(() => _selectedPythonLang = code),
+                                          );
+                                        }).toList(),
+                                      ),
+                                      const SizedBox(height: 16),
+                                      TextFormField(
+                                        controller: _pythonStarterCodeControllers[_selectedPythonLang],
+                                        maxLines: 15,
+                                        style: const TextStyle(fontFamily: 'monospace', fontSize: 13),
+                                        decoration: InputDecoration(
+                                          labelText: 'Starter Code (${_languages.firstWhere((l) => l['code'] == _selectedPythonLang)['label']})',
+                                          border: const OutlineInputBorder(),
+                                          alignLabelWithHint: true,
+                                          hintText: '# Import libraries\nimport pandas as pd\n\n# TODO: Load the data\n# df = pd.read_csv(...)\n\n# TODO: Calculate the result\n# result = ...',
+                                          hintStyle: TextStyle(color: Colors.grey.shade400, fontFamily: 'monospace'),
+                                        ),
+                                        onChanged: (_) => setState(() {}),
+                                      ),
+                                      const SizedBox(height: 24),
+                                      const Divider(),
+                                      const SizedBox(height: 16),
+                                      // Python Solution Code
+                                      Text('Solution Code', style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        'The correct Python code. Shown when "Show Answer" is clicked (-50% XP).',
+                                        style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
+                                      ),
+                                      const SizedBox(height: 16),
+                                      TextFormField(
+                                        controller: _pythonSolutionCodeController,
+                                        maxLines: 12,
+                                        style: const TextStyle(fontFamily: 'monospace', fontSize: 13),
+                                        decoration: InputDecoration(
+                                          labelText: 'Solution Code',
+                                          border: const OutlineInputBorder(),
+                                          alignLabelWithHint: true,
+                                          hintText: '# Complete Python solution...\nimport pandas as pd\n\ndf = pd.read_csv(...)\nresult = df["column"].mean()',
+                                          hintStyle: TextStyle(color: Colors.grey.shade400, fontFamily: 'monospace'),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 24),
+                                      const Divider(),
+                                      const SizedBox(height: 16),
+                                      // Python Validation Config
+                                      Text('Validation Configuration', style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        'JSON configuration for validating student code. Defines what variables, values, or outputs to check.',
+                                        style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
+                                      ),
+                                      const SizedBox(height: 16),
+                                      TextFormField(
+                                        controller: _pythonValidationConfigController,
+                                        maxLines: 12,
+                                        style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
+                                        decoration: InputDecoration(
+                                          labelText: 'Validation Config (JSON)',
+                                          border: const OutlineInputBorder(),
+                                          alignLabelWithHint: true,
+                                          hintText: '''{
   "validation_type": "simple",
   "steps": [
     {
@@ -888,41 +945,43 @@ class _SectionEditorScreenState extends State<SectionEditorScreen> {
     }
   ]
 }''',
-                                      hintStyle: TextStyle(color: Colors.grey.shade400, fontFamily: 'monospace'),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 12),
-                                  // Validation type help
-                                  ExpansionTile(
-                                    title: Text('Validation Types Reference', style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.primary)),
-                                    tilePadding: EdgeInsets.zero,
-                                    childrenPadding: const EdgeInsets.only(bottom: 8),
-                                    children: [
-                                      Container(
-                                        padding: const EdgeInsets.all(12),
-                                        decoration: BoxDecoration(
-                                          color: Colors.grey.shade100,
-                                          borderRadius: BorderRadius.circular(8),
+                                          hintStyle: TextStyle(color: Colors.grey.shade400, fontFamily: 'monospace'),
                                         ),
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Text('• variable_exists: Check if a variable exists with expected type', style: theme.textTheme.bodySmall),
-                                            Text('• variable_value: Check if a variable equals expected value (±tolerance)', style: theme.textTheme.bodySmall),
-                                            Text('• column_exists: Check if a DataFrame has a specific column', style: theme.textTheme.bodySmall),
-                                            Text('• output_contains: Check if print output matches a regex pattern', style: theme.textTheme.bodySmall),
-                                          ],
-                                        ),
+                                      ),
+                                      const SizedBox(height: 12),
+                                      // Validation type help
+                                      ExpansionTile(
+                                        title: Text('Validation Types Reference', style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.primary)),
+                                        tilePadding: EdgeInsets.zero,
+                                        childrenPadding: const EdgeInsets.only(bottom: 8),
+                                        children: [
+                                          Container(
+                                            padding: const EdgeInsets.all(12),
+                                            decoration: BoxDecoration(
+                                              color: Colors.grey.shade100,
+                                              borderRadius: BorderRadius.circular(8),
+                                            ),
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                Text('• variable_exists: Check if a variable exists with expected type', style: theme.textTheme.bodySmall),
+                                                Text('• variable_value: Check if a variable equals expected value (±tolerance)', style: theme.textTheme.bodySmall),
+                                                Text('• column_exists: Check if a DataFrame has a specific column', style: theme.textTheme.bodySmall),
+                                                Text('• output_contains: Check if print output matches a regex pattern', style: theme.textTheme.bodySmall),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ],
                                   ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
                           ),
-                          const SizedBox(height: 16),
                           // Test in Browser button
-                          if (isEditing)
+                          if (isEditing) ...[
+                            const SizedBox(height: 16),
                             Card(
                               child: Padding(
                                 padding: const EdgeInsets.all(16),
@@ -983,6 +1042,7 @@ class _SectionEditorScreenState extends State<SectionEditorScreen> {
                                 ),
                               ),
                             ),
+                          ],
                         ],
                       ],
                     ),
