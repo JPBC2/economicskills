@@ -571,25 +571,12 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
     // Adjust colors for dark theme to improve contrast
     // Python (deepPurple) needs much more lightness in dark mode
     // Google Sheets (green) needs moderate lightness increase
-    Color iconColor;
-    Color buttonColor;
-    if (isDark) {
-      if (tool == 'python') {
-        iconColor = Colors.deepPurple.shade200;
-        buttonColor = Colors.deepPurple.shade200;
-      } else if (tool == 'spreadsheet') {
-        iconColor = Colors.green.shade400;
-        buttonColor = Colors.green.shade300;
-      } else {
-        // R and others - moderate increase
-        iconColor = color;
-        buttonColor = color;
-      }
-    } else {
-      iconColor = color;
-      buttonColor = color;
-    }
-
+    
+    // In dark theme, lighten the color for better contrast
+    // Python (purple) needs extra lightness to be readable
+    final double lightness = (tool == 'python' && isDark) ? 0.7 : (isDark ? 0.4 : 0.0);
+    final displayColor = isDark ? Color.lerp(color, Colors.white, lightness)! : color;
+    
     return Padding(
       padding: const EdgeInsets.only(left: 96, right: 16, top: 4, bottom: 4),
       child: Row(
@@ -598,10 +585,10 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
           Container(
             padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
-              color: color.withValues(alpha: isCompleted ? 0.2 : 0.1),
+              color: displayColor.withValues(alpha: isCompleted ? 0.2 : 0.1),
               borderRadius: BorderRadius.circular(4),
             ),
-            child: Icon(icon, size: 16, color: iconColor),
+            child: Icon(icon, size: 16, color: displayColor),
           ),
           const SizedBox(width: 8),
           // Tool label
@@ -617,14 +604,14 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
             decoration: BoxDecoration(
-              color: isCompleted ? color.withValues(alpha: 0.15) : colorScheme.surfaceContainerHighest,
+              color: isCompleted ? displayColor.withValues(alpha: 0.15) : colorScheme.surfaceContainerHighest,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Text(
               isCompleted ? '${xpEarned ?? xpPossible} XP' : '$xpPossible XP',
               style: TextStyle(
                 fontSize: 11,
-                color: isCompleted ? (isDark ? buttonColor : color) : colorScheme.onSurfaceVariant,
+                color: isCompleted ? displayColor : colorScheme.onSurfaceVariant,
                 fontWeight: isCompleted ? FontWeight.w600 : FontWeight.normal,
               ),
             ),
@@ -635,20 +622,34 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
             Container(
               padding: const EdgeInsets.all(2),
               decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.15),
+                color: displayColor.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: Icon(Icons.check, color: isDark ? buttonColor : color, size: 14),
+              child: Icon(Icons.check, color: displayColor, size: 14),
             )
           else
             SizedBox(
               height: 28,
               child: FilledButton.tonal(
                 onPressed: () => context.go('/sections/$slug-$tool'),
-                style: FilledButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  backgroundColor: color.withValues(alpha: 0.1),
-                  foregroundColor: buttonColor,
+                style: ButtonStyle(
+                  padding: MaterialStateProperty.all(const EdgeInsets.symmetric(horizontal: 12)),
+                  backgroundColor: MaterialStateProperty.all(displayColor.withValues(alpha: 0.1)),
+                  foregroundColor: MaterialStateProperty.resolveWith((states) {
+                    if (isDark) return displayColor;
+                    
+                    // In light theme:
+                    if (states.contains(MaterialState.hovered)) {
+                      // On hover: Make text white to contrast with dark background
+                      return Colors.white; 
+                    }
+                    // Default: Darker text for readability
+                    // User specifically requested darker green for Sheets
+                    if (tool == 'spreadsheet') return Colors.green.shade900;
+                    if (tool == 'python') return Colors.deepPurple.shade800;
+                    if (tool == 'r') return Colors.blue.shade900;
+                    return color;
+                  }),
                 ),
                 child: Text(isCompleted ? 'Review' : 'Start', style: const TextStyle(fontSize: 11)),
               ),

@@ -248,27 +248,46 @@ class _RAssignmentScreenState extends State<RAssignmentScreen> {
           width: _isLeftPanelCollapsed ? 48 : MediaQuery.of(context).size.width * _leftPanelWidth,
           child: _isLeftPanelCollapsed
               ? _buildCollapsedPanel(colorScheme)
-              : AssignmentInstructionsPanel(
-                  section: _section!,
-                  tool: 'r',
-                  progress: _progress,
-                  onProgressChanged: _onProgressChanged,
-                  courseSlug: _courseSlug,
-                  onBackPressed: () {
-                    if (_courseSlug != null) {
-                      context.go('/courses/$_courseSlug');
-                    } else {
-                      context.go('/');
-                    }
-                  },
-                  onShowAnswer: () {
-                    setState(() => _showAnswer = true);
-                  },
+              : Stack(
+                  children: [
+                    AssignmentInstructionsPanel(
+                      section: _section!,
+                      tool: 'r',
+                      progress: _progress,
+                      onProgressChanged: _onProgressChanged,
+                      courseSlug: _courseSlug,
+                      onBackPressed: () {
+                        if (_courseSlug != null) {
+                          context.go('/courses/$_courseSlug');
+                        } else {
+                          context.go('/');
+                        }
+                      },
+                      onShowAnswer: () {
+                        setState(() => _showAnswer = true);
+                      },
+                    ),
+                    // Collapse button
+                    Positioned(
+                      top: 12,
+                      right: 12,
+                      child: IconButton(
+                        onPressed: () => setState(() => _isLeftPanelCollapsed = true),
+                        icon: const Icon(Icons.chevron_left, size: 20),
+                        tooltip: 'Collapse panel',
+                        style: IconButton.styleFrom(
+                          backgroundColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                          padding: const EdgeInsets.all(8),
+                          minimumSize: const Size(32, 32),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
         ),
 
         // Resize handle
-        _buildResizeHandle(colorScheme),
+        if (!_isLeftPanelCollapsed) _buildResizeHandle(colorScheme),
 
         // Right panel - R exercise (placeholder)
         Expanded(

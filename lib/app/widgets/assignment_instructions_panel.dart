@@ -170,13 +170,19 @@ class _AssignmentInstructionsPanelState extends State<AssignmentInstructionsPane
   Widget _buildHeader(ThemeData theme, ColorScheme colorScheme) {
     final isDark = theme.brightness == Brightness.dark;
     
-    // In dark theme, use blue for all badges/buttons for better visibility
-    final toolColor = isDark ? Colors.blue : switch (widget.tool) {
+    // Determine base tool color
+    final baseColor = switch (widget.tool) {
       'spreadsheet' => Colors.green,
       'python' => Colors.deepPurple,
       'r' => Colors.blue,
       _ => colorScheme.primary,
     };
+
+    // In dark theme, user requested Blue for all badges
+    final effectiveColor = isDark ? Colors.blue : baseColor;
+    
+    // No extra lightness boost - use standard color
+    final displayColor = effectiveColor;
 
     final toolLabel = switch (widget.tool) {
       'spreadsheet' => 'Google Sheets',
@@ -207,26 +213,29 @@ class _AssignmentInstructionsPanelState extends State<AssignmentInstructionsPane
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Tool badge row with 'Also available' aligned right
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
+        Wrap(
+          alignment: WrapAlignment.spaceBetween,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 8,
+          runSpacing: 8,
           children: [
             // Current tool badge (left)
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
-                color: toolColor.withValues(alpha: 0.1),
+                color: displayColor.withValues(alpha: isDark ? 0.2 : 0.1),
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: toolColor.withValues(alpha: 0.3)),
+                border: Border.all(color: displayColor.withValues(alpha: isDark ? 0.5 : 0.3)),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(toolIcon, size: 16, color: toolColor),
+                  Icon(toolIcon, size: 16, color: displayColor),
                   const SizedBox(width: 6),
                   Text(
                     toolLabel,
                     style: TextStyle(
-                      color: toolColor,
+                      color: displayColor,
                       fontWeight: FontWeight.w600,
                       fontSize: 12,
                     ),
@@ -234,7 +243,7 @@ class _AssignmentInstructionsPanelState extends State<AssignmentInstructionsPane
                 ],
               ),
             ),
-            const Spacer(),
+            
             // Also available: other tools (right)
             if (toolCount > 1)
               Wrap(
@@ -477,10 +486,8 @@ class _AssignmentInstructionsPanelState extends State<AssignmentInstructionsPane
       _ => tool,
     };
     
-    // Use lighter color for dark mode for better contrast
-    // Extra boost for purple which is naturally darker
-    final double lightness = (tool == 'python' && isDark) ? 0.5 : 0.3;
-    final displayColor = isDark ? Color.lerp(color, Colors.white, lightness)! : color;
+    // No extra lightness boost - use standard color
+    final displayColor = color;
 
     return InkWell(
       onTap: () => context.go('/sections/$slug-$tool'),

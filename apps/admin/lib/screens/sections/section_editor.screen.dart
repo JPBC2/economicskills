@@ -1301,29 +1301,7 @@ class _SectionEditorScreenState extends State<SectionEditorScreen> {
                                         ],
                                       ),
                                     ),
-                                    OutlinedButton.icon(
-                                      onPressed: () async {
-                                        var slug = widget.section!.title.toLowerCase()
-                                            .replaceAll(RegExp(r'[^a-z0-9]+'), '-')
-                                            .replaceAll(RegExp(r'^-|-$'), '');
-                                        // Remove existing tool suffix before adding
-                                        if (slug.endsWith('-spreadsheet')) {
-                                          slug = slug.substring(0, slug.length - '-spreadsheet'.length);
-                                        } else if (slug.endsWith('-python')) {
-                                          slug = slug.substring(0, slug.length - '-python'.length);
-                                        } else if (slug.endsWith('-r')) {
-                                          slug = slug.substring(0, slug.length - '-r'.length);
-                                        }
-                                        final url = 'http://localhost:3000/#/sections/$slug-python';
-                                        if (await canLaunchUrl(Uri.parse(url))) {
-                                          await launchUrl(Uri.parse(url));
-                                        }
-                                      },
-                                      icon: Icon(Icons.code, color: Colors.deepPurple.shade700),
-                                      label: const Text('Test Python'),
-                                    ),
                                     if (_supportsSpreadsheet) ...[
-                                      const SizedBox(width: 8),
                                       OutlinedButton.icon(
                                         onPressed: () async {
                                           var slug = widget.section!.title.toLowerCase()
@@ -1343,6 +1321,30 @@ class _SectionEditorScreenState extends State<SectionEditorScreen> {
                                         },
                                         icon: Icon(Icons.table_chart, color: Colors.green.shade700),
                                         label: const Text('Test Spreadsheet'),
+                                      ),
+                                      const SizedBox(width: 8),
+                                    ],
+                                    if (_supportsPython) ...[
+                                      OutlinedButton.icon(
+                                        onPressed: () async {
+                                          var slug = widget.section!.title.toLowerCase()
+                                              .replaceAll(RegExp(r'[^a-z0-9]+'), '-')
+                                              .replaceAll(RegExp(r'^-|-$'), '');
+                                          // Remove existing tool suffix before adding
+                                          if (slug.endsWith('-spreadsheet')) {
+                                            slug = slug.substring(0, slug.length - '-spreadsheet'.length);
+                                          } else if (slug.endsWith('-python')) {
+                                            slug = slug.substring(0, slug.length - '-python'.length);
+                                          } else if (slug.endsWith('-r')) {
+                                            slug = slug.substring(0, slug.length - '-r'.length);
+                                          }
+                                          final url = 'http://localhost:3000/#/sections/$slug-python';
+                                          if (await canLaunchUrl(Uri.parse(url))) {
+                                            await launchUrl(Uri.parse(url));
+                                          }
+                                        },
+                                        icon: Icon(Icons.code, color: Colors.deepPurple.shade700),
+                                        label: const Text('Test Python'),
                                       ),
                                     ],
                                     if (_supportsR) ...[
