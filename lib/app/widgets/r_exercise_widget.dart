@@ -586,7 +586,6 @@ class RExerciseWidgetState extends State<RExerciseWidget> with SingleTickerProvi
             fontSize: 14,
             color: isDark ? Colors.white : Colors.black87,
           ),
-          minLines: 15,
           expands: true, // Allow expansion to fill available space
         ),
       ),
