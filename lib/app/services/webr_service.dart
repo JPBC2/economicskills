@@ -327,11 +327,13 @@ class WebRService {
     
     // Use capture.output to capture printed output from R
     // This handles tibbles, data frames, and other complex objects correctly
+    // IMPORTANT: Add newline before closing brace to handle code ending with comments
     final script = '''
       (async function() {
         try {
           // Wrap code in capture.output to capture print() output
-          const wrappedCode = 'paste(capture.output({ $escapedCode }), collapse = "\\\\n")';
+          // The \\n before the closing brace ensures comments don't consume it
+          const wrappedCode = 'paste(capture.output({ $escapedCode \\n}), collapse = "\\\\n")';
           const result = await window.webR.evalR(wrappedCode);
           const output = await result.toString();
           return output;
