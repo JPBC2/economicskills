@@ -68,10 +68,12 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     final colorScheme = theme.colorScheme;
     final screenWidth = MediaQuery.of(context).size.width;
     final isNarrow = screenWidth < 600;
+    // Use same breakpoint as TopNav for drawer visibility (768px)
+    final showDrawer = screenWidth <= 768;
 
     return Scaffold(
       appBar: const TopNav(),
-      drawer: isNarrow ? const DrawerNav() : null,
+      drawer: showDrawer ? const DrawerNav() : null,
       body: RefreshIndicator(
         onRefresh: _loadDashboardData,
         child: _isLoading
