@@ -652,10 +652,19 @@ class RExerciseWidgetState extends State<RExerciseWidget> with SingleTickerProvi
   Widget _buildOutputPanel() {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+    
+    // Theme-aware console colors
+    final backgroundColor = isDark ? Colors.grey.shade900 : Colors.grey.shade100;
+    final headerColor = isDark ? Colors.grey.shade800 : Colors.grey.shade200;
+    final textColor = isDark ? Colors.grey.shade400 : Colors.grey.shade600;
+    final outputColor = _error != null 
+        ? (isDark ? Colors.red.shade300 : Colors.red.shade700)
+        : (isDark ? Colors.green.shade300 : Colors.green.shade700);
     
     return Container(
       decoration: BoxDecoration(
-        color: Colors.grey.shade900,
+        color: backgroundColor,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -664,16 +673,16 @@ class RExerciseWidgetState extends State<RExerciseWidget> with SingleTickerProvi
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: Colors.grey.shade800,
+              color: headerColor,
             ),
             child: Row(
               children: [
-                Icon(Icons.terminal, size: 16, color: Colors.grey.shade400),
+                Icon(Icons.terminal, size: 16, color: textColor),
                 const SizedBox(width: 8),
                 Text(
                   'Console',
                   style: TextStyle(
-                    color: Colors.grey.shade400,
+                    color: textColor,
                     fontWeight: FontWeight.w500,
                     fontSize: 12,
                   ),
@@ -695,7 +704,7 @@ class RExerciseWidgetState extends State<RExerciseWidget> with SingleTickerProvi
                     style: TextStyle(
                       fontFamily: 'Fira Code',
                       fontSize: 13,
-                      color: _error != null ? Colors.red.shade300 : Colors.green.shade300,
+                      color: outputColor,
                     ),
                   ),
                   
