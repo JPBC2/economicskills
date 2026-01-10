@@ -443,7 +443,9 @@ class _AssignmentInstructionsPanelState extends State<AssignmentInstructionsPane
     };
     
     // Use lighter color for dark mode for better contrast
-    final displayColor = isDark ? Color.lerp(color, Colors.white, 0.3)! : color;
+    // Extra boost for purple which is naturally darker
+    final double lightness = (tool == 'python' && isDark) ? 0.5 : 0.3;
+    final displayColor = isDark ? Color.lerp(color, Colors.white, lightness)! : color;
 
     return ActionChip(
       avatar: Icon(icon, size: 16, color: displayColor),

@@ -240,25 +240,31 @@ class WebRService {
   Future<void> writeFile(String filename, String content) async {
     if (!isReady) return;
     
-    // Escape content for JavaScript
+    // Escape content for R string (escape backslashes, quotes, and preserve newlines)
     final escapedContent = content
         .replaceAll('\\', '\\\\')
-        .replaceAll("'", "\\'")
-        .replaceAll('\n', '\\n')
-        .replaceAll('\r', '');
+        .replaceAll('"', '\\"')
+        .replaceAll('\r\n', '\\n')
+        .replaceAll('\r', '\\n')
+        .replaceAll('\n', '\\n');
     
-    final script = '''
-      (async function() {
-        await window.webR.FS.writeFile('$filename', '$escapedContent');
-        return true;
-      })()
+    // Use R's writeLines to create the file
+    final rCode = '''
+      writeLines(c("${escapedContent.split('\\n').join('", "')}"), "$filename")
     ''';
     
     try {
-      await _evalJsAsync(script);
+      await _evalR(rCode);
+      print('WebR: Wrote file $filename');
     } catch (e) {
-      // File write errors are logged but non-fatal
-      print('WebR writeFile error: $e');
+      // Try alternative approach using cat
+      try {
+        final catCode = 'cat("$escapedContent", file="$filename")';
+        await _evalR(catCode);
+        print('WebR: Wrote file $filename via cat');
+      } catch (e2) {
+        print('WebR writeFile error: $e2');
+      }
     }
   }
   

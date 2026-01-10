@@ -577,18 +577,27 @@ class RExerciseWidgetState extends State<RExerciseWidget> with SingleTickerProvi
           bottom: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
         ),
       ),
-      child: CodeTheme(
-        data: CodeThemeData(styles: editorTheme),
+      child: Scrollbar(
+        thumbVisibility: true,
         child: SingleChildScrollView(
-          child: CodeField(
-            controller: _codeController,
-            textStyle: TextStyle(
-              fontFamily: 'Fira Code',
-              fontSize: 14,
-              color: isDark ? Colors.white : Colors.black87,
+          scrollDirection: Axis.horizontal,
+          child: IntrinsicWidth(
+            child: CodeTheme(
+              data: CodeThemeData(styles: editorTheme),
+              child: SingleChildScrollView(
+                scrollDirection: Axis.vertical,
+                child: CodeField(
+                  controller: _codeController,
+                  textStyle: TextStyle(
+                    fontFamily: 'Fira Code',
+                    fontSize: 14,
+                    color: isDark ? Colors.white : Colors.black87,
+                  ),
+                  minLines: 15,
+                  expands: false,
+                ),
+              ),
             ),
-            minLines: 15,
-            expands: false,
           ),
         ),
       ),
