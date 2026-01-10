@@ -24,9 +24,9 @@ class _DrawerNavState extends ConsumerState<DrawerNav> {
 
   final List<Map<String, dynamic>> _languages = [
     {'code': 'en', 'label': 'English'},
-    {'code': 'es', 'label': 'Español'},
     {'code': 'zh', 'label': '中文'},
     {'code': 'ru', 'label': 'Русский'},
+    {'code': 'es', 'label': 'Español'},
     {'code': 'fr', 'label': 'Français'},
     {'code': 'pt', 'label': 'Português'},
     {'code': 'it', 'label': 'Italiano'},
@@ -34,18 +34,18 @@ class _DrawerNavState extends ConsumerState<DrawerNav> {
     {'code': 'ro', 'label': 'Română'},
     {'code': 'de', 'label': 'Deutsch'},
     {'code': 'nl', 'label': 'Nederlands'},
-    {'code': 'ar', 'label': 'العربية'},
-    {'code': 'id', 'label': 'Bahasa Indonesia'},
-    {'code': 'ko', 'label': '한국어'},
-    {'code': 'ja', 'label': '日本語'},
     {'code': 'af', 'label': 'Afrikaans'},
+    {'code': 'ja', 'label': '日本語'},
+    {'code': 'ko', 'label': '한국어'},
+    {'code': 'id', 'label': 'Bahasa Indonesia'},
+    {'code': 'ms', 'label': 'Bahasa Melayu'},
+    {'code': 'tl', 'label': 'Tagalog'},
+    {'code': 'vi', 'label': 'Tiếng Việt'},
+    {'code': 'tr', 'label': 'Türkçe'},
+    {'code': 'ar', 'label': 'العربية'},
+    {'code': 'ur', 'label': 'اردو'},
     {'code': 'hi', 'label': 'हिन्दी'},
     {'code': 'bn', 'label': 'বাংলা'},
-    {'code': 'ur', 'label': 'اردو'},
-    {'code': 'tr', 'label': 'Türkçe'},
-    {'code': 'vi', 'label': 'Tiếng Việt'},
-    {'code': 'tl', 'label': 'Tagalog'},
-    {'code': 'ms', 'label': 'Bahasa Melayu'},
   ];
 
   Future<void> _signOut(BuildContext context, AppLocalizations l10n) async {

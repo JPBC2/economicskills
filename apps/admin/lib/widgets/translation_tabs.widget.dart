@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared/shared.dart';
 
 /// Reusable widget for translation tabs with fields
-/// Supports 6 languages: English, Spanish, French, Chinese, Russian, Portuguese
+/// Supports 23 languages with English fixed on the left
 class TranslationTabs extends StatefulWidget {
   /// Fields to display for translation (e.g., ['title', 'description'])
   final List<TranslationField> fields;
@@ -113,27 +113,55 @@ class _TranslationTabsState extends State<TranslationTabs> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Language selector
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            children: SupportedLanguages.codes.map((code) {
-              final isSelected = code == _selectedLanguage;
-              return Padding(
-                padding: const EdgeInsets.only(right: 8),
-                child: ChoiceChip(
-                  label: Text(SupportedLanguages.getDisplayName(code)),
-                  selected: isSelected,
-                  onSelected: (selected) {
-                    if (selected) {
-                      setState(() => _selectedLanguage = code);
-                      widget.onLanguageChanged?.call(code);
-                    }
-                  },
+        // Language selector with fixed English button
+        Row(
+          children: [
+            // Fixed English button (always visible, not scrollable)
+            ChoiceChip(
+              label: Text(SupportedLanguages.getDisplayName('en')),
+              selected: _selectedLanguage == 'en',
+              onSelected: (selected) {
+                if (selected) {
+                  setState(() => _selectedLanguage = 'en');
+                  widget.onLanguageChanged?.call('en');
+                }
+              },
+            ),
+            const SizedBox(width: 8),
+            // Vertical divider
+            Container(
+              height: 32,
+              width: 1,
+              color: colorScheme.outlineVariant,
+            ),
+            const SizedBox(width: 8),
+            // Scrollable other languages
+            Expanded(
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: SupportedLanguages.codes
+                      .where((code) => code != 'en')
+                      .map((code) {
+                    final isSelected = code == _selectedLanguage;
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: ChoiceChip(
+                        label: Text(SupportedLanguages.getDisplayName(code)),
+                        selected: isSelected,
+                        onSelected: (selected) {
+                          if (selected) {
+                            setState(() => _selectedLanguage = code);
+                            widget.onLanguageChanged?.call(code);
+                          }
+                        },
+                      ),
+                    );
+                  }).toList(),
                 ),
-              );
-            }).toList(),
-          ),
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: 24),
         // Fields for selected language

@@ -69,9 +69,10 @@ class ContentTranslation {
 /// Supported languages configuration
 class SupportedLanguages {
   /// Language codes in display order (23 languages)
+  /// English is first (fixed in CMS), then ordered by region/script similarity
   static const List<String> codes = [
-    'en', 'es', 'zh', 'ru', 'fr', 'pt', 'it', 'ca', 'ro', 'de', 'nl', 'ar', 'id', 'ko', 'ja',
-    'af', 'hi', 'bn', 'ur', 'tr', 'vi', 'tl', 'ms',
+    'en', 'de', 'nl', 'af', 'es', 'fr', 'pt', 'it', 'ca', 'ro', 'ru', 'zh',
+    'vi', 'ja', 'ko', 'id', 'ms', 'tl', 'hi', 'bn', 'ur', 'ar', 'tr',
   ];
 
   /// Language names in their native form

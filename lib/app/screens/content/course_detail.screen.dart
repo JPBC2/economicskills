@@ -23,9 +23,16 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
   List<Unit> _units = [];
   bool _isLoading = true;
   String? _error;
-  Set<String> _completedSectionIds = {}; // Track completed sections for check marks
-  Map<String, String> _sectionCompletedWith = {}; // Track which tool(s) completed: 'spreadsheet', 'python', 'both'
-  Map<String, int> _sectionXpEarned = {}; // Track XP earned per section
+  
+  // Per-tool completion tracking
+  Set<String> _completedSpreadsheet = {}; // Section IDs where spreadsheet is completed
+  Set<String> _completedPython = {};      // Section IDs where Python is completed
+  Set<String> _completedR = {};           // Section IDs where R is completed
+  
+  // Per-tool XP tracking
+  Map<String, int> _xpEarnedSpreadsheet = {};
+  Map<String, int> _xpEarnedPython = {};
+  Map<String, int> _xpEarnedR = {};
 
   @override
   void initState() {
@@ -85,29 +92,44 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
       final unitsList = unitsResponse;
 
       // Load user progress if authenticated
-      Set<String> completedSections = {};
-      Map<String, String> completedWith = {};
-      Map<String, int> xpEarned = {};
+      Set<String> completedSpreadsheet = {};
+      Set<String> completedPython = {};
+      Set<String> completedR = {};
+      Map<String, int> xpSpreadsheet = {};
+      Map<String, int> xpPython = {};
+      Map<String, int> xpR = {};
+      
       final user = supabase.auth.currentUser;
       if (user != null) {
         try {
           final progressResponse = await supabase
               .from('user_progress')
-              .select('section_id, completed_with, xp_earned')
-              .eq('user_id', user.id)
-              .eq('is_completed', true);
+              .select('section_id, completed_spreadsheet, completed_python, completed_r, xp_earned_spreadsheet, xp_earned_python, xp_earned_r')
+              .eq('user_id', user.id);
 
           for (final p in progressResponse) {
             final sectionId = p['section_id'] as String;
-            completedSections.add(sectionId);
-            if (p['completed_with'] != null) {
-              completedWith[sectionId] = p['completed_with'] as String;
+            
+            if (p['completed_spreadsheet'] == true) {
+              completedSpreadsheet.add(sectionId);
+              if (p['xp_earned_spreadsheet'] != null) {
+                xpSpreadsheet[sectionId] = p['xp_earned_spreadsheet'] as int;
+              }
             }
-            if (p['xp_earned'] != null) {
-              xpEarned[sectionId] = p['xp_earned'] as int;
+            if (p['completed_python'] == true) {
+              completedPython.add(sectionId);
+              if (p['xp_earned_python'] != null) {
+                xpPython[sectionId] = p['xp_earned_python'] as int;
+              }
+            }
+            if (p['completed_r'] == true) {
+              completedR.add(sectionId);
+              if (p['xp_earned_r'] != null) {
+                xpR[sectionId] = p['xp_earned_r'] as int;
+              }
             }
           }
-                } catch (e) {
+        } catch (e) {
           print('Error loading user progress: $e');
         }
       }
@@ -115,9 +137,12 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
       setState(() {
         _course = course;
         _units = unitsList.map((u) => Unit.fromJson(u as Map<String, dynamic>)).toList();
-        _completedSectionIds = completedSections;
-        _sectionCompletedWith = completedWith;
-        _sectionXpEarned = xpEarned;
+        _completedSpreadsheet = completedSpreadsheet;
+        _completedPython = completedPython;
+        _completedR = completedR;
+        _xpEarnedSpreadsheet = xpSpreadsheet;
+        _xpEarnedPython = xpPython;
+        _xpEarnedR = xpR;
         _isLoading = false;
       });
       
@@ -276,9 +301,11 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
     );
   }
 
-  /// Check if a section is completed
+  /// Check if a section is completed (ANY tool completed counts)
   bool _isSectionCompleted(Section section) {
-    return _completedSectionIds.contains(section.id);
+    return _completedSpreadsheet.contains(section.id) ||
+           _completedPython.contains(section.id) ||
+           _completedR.contains(section.id);
   }
 
   /// Check if all sections in an exercise are completed
@@ -295,73 +322,6 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
       return false;
     }
     return lesson.exercises!.every((exercise) => _isExerciseCompleted(exercise));
-  }
-
-  /// Build a check mark icon for completed items
-  /// Build XP chip with color coding based on completion status
-  /// - Default: Not completed (grey)
-  /// - Green: Spreadsheet assignment completed
-  /// - Purple: Python assignment completed
-  /// - Gold/Yellow: Both assignments completed
-  Widget _buildXpChip(Section section, ColorScheme colorScheme) {
-    final completedWith = _sectionCompletedWith[section.id];
-    final xpEarned = _sectionXpEarned[section.id] ?? 0;
-
-    // Calculate total possible XP (sum of both tools if both supported)
-    int totalPossibleXp = 0;
-    if (section.supportsSpreadsheet) {
-      totalPossibleXp += section.getXpRewardForTool('spreadsheet');
-    }
-    if (section.supportsPython) {
-      totalPossibleXp += section.getXpRewardForTool('python');
-    }
-    // Fallback to legacy xpReward if tool-specific not set
-    if (totalPossibleXp == 0) {
-      totalPossibleXp = section.xpReward;
-    }
-
-    // Determine color and text based on completion status
-    Color chipColor;
-    Color textColor;
-    String xpText;
-
-    if (completedWith == 'both') {
-      // Both completed - gold/yellow
-      chipColor = Colors.amber.shade100;
-      textColor = Colors.amber.shade900;
-      xpText = '$xpEarned/$totalPossibleXp XP';
-    } else if (completedWith == 'spreadsheet') {
-      // Spreadsheet completed - green
-      chipColor = Colors.green.shade100;
-      textColor = Colors.green.shade800;
-      xpText = '$xpEarned/$totalPossibleXp XP';
-    } else if (completedWith == 'python') {
-      // Python completed - purple
-      chipColor = Colors.deepPurple.shade100;
-      textColor = Colors.deepPurple.shade800;
-      xpText = '$xpEarned/$totalPossibleXp XP';
-    } else {
-      // Not completed - default
-      chipColor = colorScheme.surfaceContainerHighest;
-      textColor = colorScheme.onSurface;
-      xpText = '$totalPossibleXp XP';
-    }
-
-    // Add tool indicators if both are supported
-    List<Widget> chipContent = [
-      Text(xpText, style: TextStyle(fontSize: 11, color: textColor)),
-    ];
-
-    return Chip(
-      label: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: chipContent,
-      ),
-      backgroundColor: chipColor,
-      padding: EdgeInsets.zero,
-      labelPadding: const EdgeInsets.symmetric(horizontal: 8),
-      visualDensity: VisualDensity.compact,
-    );
   }
 
   Widget _buildCheckMark() {
@@ -521,54 +481,155 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
   Widget _buildSectionTile(Section section, ThemeData theme, ColorScheme colorScheme) {
     final isCompleted = _isSectionCompleted(section);
     final isAuthenticated = Supabase.instance.client.auth.currentUser != null;
+    
+    // Build slug for navigation
+    var slug = section.title.toLowerCase().replaceAll(' ', '-').replaceAll(RegExp(r'[^a-z0-9-]'), '');
 
-    return ListTile(
-      contentPadding: const EdgeInsets.only(left: 80, right: 16),
-      leading: Container(
-        padding: const EdgeInsets.all(6),
-        decoration: BoxDecoration(
-          color: isCompleted ? Colors.green.shade200 : Colors.green.shade100,
-          borderRadius: BorderRadius.circular(6),
-        ),
-        child: Icon(
-          isCompleted ? Icons.check : Icons.table_chart,
-          color: Colors.green.shade700,
-          size: 18,
-        ),
-      ),
-      title: Row(
-        children: [
-          Expanded(
-            child: Text(section.title, style: theme.textTheme.bodySmall),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Section header
+        Padding(
+          padding: const EdgeInsets.only(left: 80, right: 16, top: 8, bottom: 4),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  section.title,
+                  style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
+                ),
+              ),
+              if (isAuthenticated && isCompleted)
+                _buildCheckMark(),
+            ],
           ),
-          if (isAuthenticated && isCompleted) ...[
-            const SizedBox(width: 4),
-            _buildCheckMark(),
-          ],
-        ],
-      ),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
+        ),
+        // Assignment rows for each supported tool
+        if (section.supportsSpreadsheet)
+          _buildAssignmentRow(
+            section: section,
+            tool: 'spreadsheet',
+            slug: slug,
+            icon: Icons.table_chart,
+            color: Colors.green,
+            label: 'Google Sheets',
+            isCompleted: _completedSpreadsheet.contains(section.id),
+            xpEarned: _xpEarnedSpreadsheet[section.id],
+            xpPossible: section.getXpRewardForTool('spreadsheet'),
+            theme: theme,
+            colorScheme: colorScheme,
+          ),
+        if (section.supportsPython)
+          _buildAssignmentRow(
+            section: section,
+            tool: 'python',
+            slug: slug,
+            icon: Icons.code,
+            color: Colors.deepPurple,
+            label: 'Python',
+            isCompleted: _completedPython.contains(section.id),
+            xpEarned: _xpEarnedPython[section.id],
+            xpPossible: section.getXpRewardForTool('python'),
+            theme: theme,
+            colorScheme: colorScheme,
+          ),
+        if (section.supportsR)
+          _buildAssignmentRow(
+            section: section,
+            tool: 'r',
+            slug: slug,
+            icon: Icons.analytics,
+            color: Colors.blue,
+            label: 'R',
+            isCompleted: _completedR.contains(section.id),
+            xpEarned: _xpEarnedR[section.id],
+            xpPossible: section.getXpRewardForTool('r'),
+            theme: theme,
+            colorScheme: colorScheme,
+          ),
+        const SizedBox(height: 8),
+      ],
+    );
+  }
+
+  Widget _buildAssignmentRow({
+    required Section section,
+    required String tool,
+    required String slug,
+    required IconData icon,
+    required Color color,
+    required String label,
+    required bool isCompleted,
+    required int? xpEarned,
+    required int xpPossible,
+    required ThemeData theme,
+    required ColorScheme colorScheme,
+  }) {
+    final isAuthenticated = Supabase.instance.client.auth.currentUser != null;
+    
+    return Padding(
+      padding: const EdgeInsets.only(left: 96, right: 16, top: 4, bottom: 4),
+      child: Row(
         children: [
-          _buildXpChip(section, colorScheme),
+          // Tool icon
+          Container(
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: isCompleted ? 0.2 : 0.1),
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: Icon(icon, size: 16, color: color),
+          ),
           const SizedBox(width: 8),
-          FilledButton.tonal(
-            onPressed: () {
-              // Navigate using slug (title converted to URL-friendly format)
-              var slug = section.title.toLowerCase().replaceAll(' ', '-').replaceAll(RegExp(r'[^a-z0-9-]'), '');
-              // Remove existing tool suffixes to avoid double suffixes
-              if (slug.endsWith('-spreadsheet')) {
-                slug = slug.substring(0, slug.length - '-spreadsheet'.length);
-              } else if (slug.endsWith('-python')) {
-                slug = slug.substring(0, slug.length - '-python'.length);
-              }
-              // Add appropriate suffix based on what the section supports
-              final suffix = section.supportsSpreadsheet ? '-spreadsheet' : '-python';
-              context.go('/sections/$slug$suffix');
-            },
-            style: FilledButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 12)),
-            child: const Text('Start', style: TextStyle(fontSize: 12)),
+          // Tool label
+          Expanded(
+            child: Text(
+              label,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: isCompleted ? colorScheme.onSurfaceVariant : colorScheme.onSurface,
+              ),
+            ),
           ),
+          // XP chip
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+            decoration: BoxDecoration(
+              color: isCompleted ? color.withValues(alpha: 0.15) : colorScheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              isCompleted ? '${xpEarned ?? xpPossible} XP' : '$xpPossible XP',
+              style: TextStyle(
+                fontSize: 11,
+                color: isCompleted ? color : colorScheme.onSurfaceVariant,
+                fontWeight: isCompleted ? FontWeight.w600 : FontWeight.normal,
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          // Checkmark or Start button
+          if (isAuthenticated && isCompleted)
+            Container(
+              padding: const EdgeInsets.all(2),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(Icons.check, color: color, size: 14),
+            )
+          else
+            SizedBox(
+              height: 28,
+              child: FilledButton.tonal(
+                onPressed: () => context.go('/sections/$slug-$tool'),
+                style: FilledButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  backgroundColor: color.withValues(alpha: 0.1),
+                  foregroundColor: color,
+                ),
+                child: Text(isCompleted ? 'Review' : 'Start', style: const TextStyle(fontSize: 11)),
+              ),
+            ),
         ],
       ),
     );
