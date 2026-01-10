@@ -123,4 +123,19 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get landingBrowseCourses => '浏览课程';
+
+  @override
+  String get loginWelcome => '欢迎来到 Economic Skills';
+
+  @override
+  String get loginSubtitle => '通过 Google Sheets、Python 和 R 的互动练习学习应用经济学';
+
+  @override
+  String get loginSignInWith => '使用 Google 账户登录';
+
+  @override
+  String get loginSignInReason => '登录以保存您的进度并解锁所有功能。';
+
+  @override
+  String get loginContinueGoogle => '使用 Google 继续';
 }

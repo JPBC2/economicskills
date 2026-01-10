@@ -5,20 +5,28 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/intl.dart' as intl;
 
+import 'app_localizations_af.dart';
 import 'app_localizations_ar.dart';
+import 'app_localizations_bn.dart';
 import 'app_localizations_ca.dart';
 import 'app_localizations_de.dart';
 import 'app_localizations_en.dart';
 import 'app_localizations_es.dart';
 import 'app_localizations_fr.dart';
+import 'app_localizations_hi.dart';
 import 'app_localizations_id.dart';
 import 'app_localizations_it.dart';
 import 'app_localizations_ja.dart';
 import 'app_localizations_ko.dart';
+import 'app_localizations_ms.dart';
 import 'app_localizations_nl.dart';
 import 'app_localizations_pt.dart';
 import 'app_localizations_ro.dart';
 import 'app_localizations_ru.dart';
+import 'app_localizations_tl.dart';
+import 'app_localizations_tr.dart';
+import 'app_localizations_ur.dart';
+import 'app_localizations_vi.dart';
 import 'app_localizations_zh.dart';
 
 // ignore_for_file: type=lint
@@ -107,20 +115,28 @@ abstract class AppLocalizations {
 
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
+    Locale('af'),
     Locale('ar'),
+    Locale('bn'),
     Locale('ca'),
     Locale('de'),
     Locale('en'),
     Locale('es'),
     Locale('fr'),
+    Locale('hi'),
     Locale('id'),
     Locale('it'),
     Locale('ja'),
     Locale('ko'),
+    Locale('ms'),
     Locale('nl'),
     Locale('pt'),
     Locale('ro'),
     Locale('ru'),
+    Locale('tl'),
+    Locale('tr'),
+    Locale('ur'),
+    Locale('vi'),
     Locale('zh'),
   ];
 
@@ -351,6 +367,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Browse Courses'**
   String get landingBrowseCourses;
+
+  /// Login page welcome title
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome to Economic Skills'**
+  String get loginWelcome;
+
+  /// Login page subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Learn applied economics with interactive exercises in Google Sheets, Python, and R'**
+  String get loginSubtitle;
+
+  /// Login card title
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in with your Google account'**
+  String get loginSignInWith;
+
+  /// Reason to sign in
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to save your progress and unlock all features.'**
+  String get loginSignInReason;
+
+  /// Google sign in button text
+  ///
+  /// In en, this message translates to:
+  /// **'Continue with Google'**
+  String get loginContinueGoogle;
 }
 
 class _AppLocalizationsDelegate
@@ -364,20 +410,28 @@ class _AppLocalizationsDelegate
 
   @override
   bool isSupported(Locale locale) => <String>[
+    'af',
     'ar',
+    'bn',
     'ca',
     'de',
     'en',
     'es',
     'fr',
+    'hi',
     'id',
     'it',
     'ja',
     'ko',
+    'ms',
     'nl',
     'pt',
     'ro',
     'ru',
+    'tl',
+    'tr',
+    'ur',
+    'vi',
     'zh',
   ].contains(locale.languageCode);
 
@@ -388,8 +442,12 @@ class _AppLocalizationsDelegate
 AppLocalizations lookupAppLocalizations(Locale locale) {
   // Lookup logic when only language code is specified.
   switch (locale.languageCode) {
+    case 'af':
+      return AppLocalizationsAf();
     case 'ar':
       return AppLocalizationsAr();
+    case 'bn':
+      return AppLocalizationsBn();
     case 'ca':
       return AppLocalizationsCa();
     case 'de':
@@ -400,6 +458,8 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
       return AppLocalizationsEs();
     case 'fr':
       return AppLocalizationsFr();
+    case 'hi':
+      return AppLocalizationsHi();
     case 'id':
       return AppLocalizationsId();
     case 'it':
@@ -408,6 +468,8 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
       return AppLocalizationsJa();
     case 'ko':
       return AppLocalizationsKo();
+    case 'ms':
+      return AppLocalizationsMs();
     case 'nl':
       return AppLocalizationsNl();
     case 'pt':
@@ -416,6 +478,14 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
       return AppLocalizationsRo();
     case 'ru':
       return AppLocalizationsRu();
+    case 'tl':
+      return AppLocalizationsTl();
+    case 'tr':
+      return AppLocalizationsTr();
+    case 'ur':
+      return AppLocalizationsUr();
+    case 'vi':
+      return AppLocalizationsVi();
     case 'zh':
       return AppLocalizationsZh();
   }

@@ -47,5 +47,11 @@
     "landingFeature4Title": "التحقق الفوري",
     "landingFeature4Desc": "احصل على تغذية راجعة فورية على تمارينك. افهم أخطاءك وتعلم بشكل أسرع.",
     "landingCtaTitle": "هل أنت مستعد لبدء التعلم؟",
-    "landingBrowseCourses": "تصفح الدورات"
+    "landingBrowseCourses": "تصفح الدورات",
+
+    "loginWelcome": "مرحباً بك في Economic Skills",
+    "loginSubtitle": "تعلم الاقتصاد التطبيقي من خلال تمارين تفاعلية في Google Sheets و Python و R",
+    "loginSignInWith": "تسجيل الدخول باستخدام حساب Google",
+    "loginSignInReason": "سجّل الدخول لحفظ تقدمك وفتح جميع الميزات.",
+    "loginContinueGoogle": "المتابعة مع Google"
 }

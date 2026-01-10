@@ -47,5 +47,11 @@
     "landingFeature4Title": "Verifikasi Instan",
     "landingFeature4Desc": "Dapatkan umpan balik langsung pada latihan Anda. Pahami kesalahan Anda dan belajar lebih cepat.",
     "landingCtaTitle": "Siap untuk mulai belajar?",
-    "landingBrowseCourses": "Telusuri Kursus"
+    "landingBrowseCourses": "Telusuri Kursus",
+
+    "loginWelcome": "Selamat datang di Economic Skills",
+    "loginSubtitle": "Pelajari ekonomi terapan dengan latihan interaktif di Google Sheets, Python, dan R",
+    "loginSignInWith": "Masuk dengan akun Google Anda",
+    "loginSignInReason": "Masuk untuk menyimpan kemajuan Anda dan membuka semua fitur.",
+    "loginContinueGoogle": "Lanjutkan dengan Google"
 }

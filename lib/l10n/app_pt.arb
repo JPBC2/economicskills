@@ -37,5 +37,11 @@
     "landingFeature4Title": "Verificação Instantânea",
     "landingFeature4Desc": "Receba feedback imediato em seus exercícios. Entenda seus erros e aprenda mais rápido.",
     "landingCtaTitle": "Pronto para começar a aprender?",
-    "landingBrowseCourses": "Ver Cursos"
+    "landingBrowseCourses": "Ver Cursos",
+
+    "loginWelcome": "Bem-vindo ao Economic Skills",
+    "loginSubtitle": "Aprenda economia aplicada com exercícios interativos em Google Sheets, Python e R",
+    "loginSignInWith": "Faça login com sua conta do Google",
+    "loginSignInReason": "Faça login para salvar seu progresso e desbloquear todos os recursos.",
+    "loginContinueGoogle": "Continuar com o Google"
 }

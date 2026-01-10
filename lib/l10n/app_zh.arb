@@ -37,5 +37,11 @@
     "landingFeature4Title": "即时验证",
     "landingFeature4Desc": "获得练习的即时反馈。了解您的错误并更快地学习。",
     "landingCtaTitle": "准备好开始学习了吗？",
-    "landingBrowseCourses": "浏览课程"
+    "landingBrowseCourses": "浏览课程",
+
+    "loginWelcome": "欢迎来到 Economic Skills",
+    "loginSubtitle": "通过 Google Sheets、Python 和 R 的互动练习学习应用经济学",
+    "loginSignInWith": "使用 Google 账户登录",
+    "loginSignInReason": "登录以保存您的进度并解锁所有功能。",
+    "loginContinueGoogle": "使用 Google 继续"
 }

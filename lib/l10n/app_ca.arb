@@ -38,5 +38,11 @@
     "landingFeature4Title": "Verificació Instantània",
     "landingFeature4Desc": "Obtén retroalimentació immediata als teus exercicis. Entén els teus errors i aprèn més ràpid.",
     "landingCtaTitle": "Preparat per començar a aprendre?",
-    "landingBrowseCourses": "Veure Cursos"
+    "landingBrowseCourses": "Veure Cursos",
+
+    "loginWelcome": "Benvingut a Economic Skills",
+    "loginSubtitle": "Aprèn economia aplicada amb exercicis interactius a Google Sheets, Python i R",
+    "loginSignInWith": "Inicia sessió amb el teu compte de Google",
+    "loginSignInReason": "Inicia sessió per desar el teu progrés i desbloquejar totes les funcions.",
+    "loginContinueGoogle": "Continua amb Google"
 }

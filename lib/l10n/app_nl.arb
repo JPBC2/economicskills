@@ -38,5 +38,11 @@
     "landingFeature4Title": "Directe Verificatie",
     "landingFeature4Desc": "Krijg direct feedback op je oefeningen. Begrijp je fouten en leer sneller.",
     "landingCtaTitle": "Klaar om te beginnen met leren?",
-    "landingBrowseCourses": "Bekijk Cursussen"
+    "landingBrowseCourses": "Bekijk Cursussen",
+
+    "loginWelcome": "Welkom bij Economic Skills",
+    "loginSubtitle": "Leer toegepaste economie met interactieve oefeningen in Google Sheets, Python en R",
+    "loginSignInWith": "Inloggen met je Google-account",
+    "loginSignInReason": "Log in om je voortgang op te slaan en alle functies te ontgrendelen.",
+    "loginContinueGoogle": "Doorgaan met Google"
 }

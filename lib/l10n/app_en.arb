@@ -71,5 +71,26 @@
     "landingBrowseCourses": "Browse Courses",
     "@landingBrowseCourses": {
         "description": "Button to browse courses"
+    },
+
+    "loginWelcome": "Welcome to Economic Skills",
+    "@loginWelcome": {
+        "description": "Login page welcome title"
+    },
+    "loginSubtitle": "Learn applied economics with interactive exercises in Google Sheets, Python, and R",
+    "@loginSubtitle": {
+        "description": "Login page subtitle"
+    },
+    "loginSignInWith": "Sign in with your Google account",
+    "@loginSignInWith": {
+        "description": "Login card title"
+    },
+    "loginSignInReason": "Sign in to save your progress and unlock all features.",
+    "@loginSignInReason": {
+        "description": "Reason to sign in"
+    },
+    "loginContinueGoogle": "Continue with Google",
+    "@loginContinueGoogle": {
+        "description": "Google sign in button text"
     }
 }

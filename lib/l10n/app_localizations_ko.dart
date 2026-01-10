@@ -127,4 +127,19 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get landingBrowseCourses => '과정 둘러보기';
+
+  @override
+  String get loginWelcome => 'Economic Skills에 오신 것을 환영합니다';
+
+  @override
+  String get loginSubtitle => 'Google Sheets, Python, R의 대화형 연습으로 응용 경제학을 배우세요';
+
+  @override
+  String get loginSignInWith => 'Google 계정으로 로그인';
+
+  @override
+  String get loginSignInReason => '로그인하여 진행 상황을 저장하고 모든 기능을 잠금 해제하세요.';
+
+  @override
+  String get loginContinueGoogle => 'Google로 계속하기';
 }

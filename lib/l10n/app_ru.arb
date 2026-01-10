@@ -37,5 +37,11 @@
     "landingFeature4Title": "Мгновенная Проверка",
     "landingFeature4Desc": "Получайте немедленную обратную связь по вашим упражнениям. Понимайте свои ошибки и учитесь быстрее.",
     "landingCtaTitle": "Готовы начать обучение?",
-    "landingBrowseCourses": "Просмотреть Курсы"
+    "landingBrowseCourses": "Просмотреть Курсы",
+
+    "loginWelcome": "Добро пожаловать в Economic Skills",
+    "loginSubtitle": "Изучайте прикладную экономику с интерактивными упражнениями в Google Sheets, Python и R",
+    "loginSignInWith": "Войдите с помощью аккаунта Google",
+    "loginSignInReason": "Войдите, чтобы сохранить прогресс и разблокировать все функции.",
+    "loginContinueGoogle": "Продолжить с Google"
 }

@@ -43,7 +43,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get comingSoonCourse => 'Gestión del curso';
 
   @override
-  String get navDashboard => 'Dashboard';
+  String get navDashboard => 'Panel';
 
   @override
   String get navContent => 'Contenido';
@@ -127,4 +127,21 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get landingBrowseCourses => 'Ver Cursos';
+
+  @override
+  String get loginWelcome => 'Bienvenido a Economic Skills';
+
+  @override
+  String get loginSubtitle =>
+      'Aprende economía aplicada con ejercicios interactivos en Google Sheets, Python y R';
+
+  @override
+  String get loginSignInWith => 'Inicia sesión con tu cuenta de Google';
+
+  @override
+  String get loginSignInReason =>
+      'Inicia sesión para guardar tu progreso y desbloquear todas las funciones.';
+
+  @override
+  String get loginContinueGoogle => 'Continuar con Google';
 }

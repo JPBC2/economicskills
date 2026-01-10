@@ -47,5 +47,11 @@
     "landingFeature4Title": "即時検証",
     "landingFeature4Desc": "演習に対する即時フィードバックを受け取れます。間違いを理解し、より速く学習しましょう。",
     "landingCtaTitle": "学習を始める準備はできましたか？",
-    "landingBrowseCourses": "コースを閲覧"
+    "landingBrowseCourses": "コースを閲覧",
+
+    "loginWelcome": "Economic Skillsへようこそ",
+    "loginSubtitle": "Google Sheets、Python、Rのインタラクティブな演習で応用経済学を学びましょう",
+    "loginSignInWith": "Googleアカウントでサインイン",
+    "loginSignInReason": "サインインして進捗を保存し、すべての機能をアンロックしてください。",
+    "loginContinueGoogle": "Googleで続行"
 }

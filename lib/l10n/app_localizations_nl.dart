@@ -127,4 +127,21 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get landingBrowseCourses => 'Bekijk Cursussen';
+
+  @override
+  String get loginWelcome => 'Welkom bij Economic Skills';
+
+  @override
+  String get loginSubtitle =>
+      'Leer toegepaste economie met interactieve oefeningen in Google Sheets, Python en R';
+
+  @override
+  String get loginSignInWith => 'Inloggen met je Google-account';
+
+  @override
+  String get loginSignInReason =>
+      'Log in om je voortgang op te slaan en alle functies te ontgrendelen.';
+
+  @override
+  String get loginContinueGoogle => 'Doorgaan met Google';
 }

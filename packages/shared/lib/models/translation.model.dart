@@ -68,8 +68,11 @@ class ContentTranslation {
 
 /// Supported languages configuration
 class SupportedLanguages {
-  /// Language codes in display order (15 languages)
-  static const List<String> codes = ['en', 'es', 'zh', 'ru', 'fr', 'pt', 'it', 'ca', 'ro', 'de', 'nl', 'ar', 'id', 'ko', 'ja'];
+  /// Language codes in display order (23 languages)
+  static const List<String> codes = [
+    'en', 'es', 'zh', 'ru', 'fr', 'pt', 'it', 'ca', 'ro', 'de', 'nl', 'ar', 'id', 'ko', 'ja',
+    'af', 'hi', 'bn', 'ur', 'tr', 'vi', 'tl', 'ms',
+  ];
 
   /// Language names in their native form
   static const Map<String, String> names = {
@@ -88,6 +91,14 @@ class SupportedLanguages {
     'id': 'Bahasa Indonesia',
     'ko': '한국어',
     'ja': '日本語',
+    'af': 'Afrikaans',
+    'hi': 'हिन्दी',
+    'bn': 'বাংলা',
+    'ur': 'اردو',
+    'tr': 'Türkçe',
+    'vi': 'Tiếng Việt',
+    'tl': 'Tagalog',
+    'ms': 'Bahasa Melayu',
   };
 
   /// Language names in English
@@ -107,6 +118,14 @@ class SupportedLanguages {
     'id': 'Indonesian',
     'ko': 'Korean',
     'ja': 'Japanese',
+    'af': 'Afrikaans',
+    'hi': 'Hindi',
+    'bn': 'Bengali',
+    'ur': 'Urdu',
+    'tr': 'Turkish',
+    'vi': 'Vietnamese',
+    'tl': 'Tagalog',
+    'ms': 'Malay',
   };
 
   /// Flag emoji for each language (for visual identification)
@@ -126,6 +145,14 @@ class SupportedLanguages {
     'id': '🇮🇩',
     'ko': '🇰🇷',
     'ja': '🇯🇵',
+    'af': '🇿🇦',
+    'hi': '🇮🇳',
+    'bn': '🇧🇩',
+    'ur': '🇵🇰',
+    'tr': '🇹🇷',
+    'vi': '🇻🇳',
+    'tl': '🇵🇭',
+    'ms': '🇲🇾',
   };
 
   /// Default language

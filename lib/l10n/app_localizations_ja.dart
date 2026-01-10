@@ -127,4 +127,19 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get landingBrowseCourses => 'コースを閲覧';
+
+  @override
+  String get loginWelcome => 'Economic Skillsへようこそ';
+
+  @override
+  String get loginSubtitle => 'Google Sheets、Python、Rのインタラクティブな演習で応用経済学を学びましょう';
+
+  @override
+  String get loginSignInWith => 'Googleアカウントでサインイン';
+
+  @override
+  String get loginSignInReason => 'サインインして進捗を保存し、すべての機能をアンロックしてください。';
+
+  @override
+  String get loginContinueGoogle => 'Googleで続行';
 }

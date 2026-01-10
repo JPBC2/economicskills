@@ -128,4 +128,21 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get landingBrowseCourses => 'Parcourir les Cours';
+
+  @override
+  String get loginWelcome => 'Bienvenue sur Economic Skills';
+
+  @override
+  String get loginSubtitle =>
+      'Apprenez l\'économie appliquée avec des exercices interactifs en Google Sheets, Python et R';
+
+  @override
+  String get loginSignInWith => 'Connectez-vous avec votre compte Google';
+
+  @override
+  String get loginSignInReason =>
+      'Connectez-vous pour sauvegarder votre progression et débloquer toutes les fonctionnalités.';
+
+  @override
+  String get loginContinueGoogle => 'Continuer avec Google';
 }

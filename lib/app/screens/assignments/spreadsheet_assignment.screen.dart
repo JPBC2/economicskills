@@ -9,6 +9,7 @@ import 'package:economicskills/app/widgets/drawer_nav.widget.dart';
 import 'package:economicskills/app/widgets/embedded_spreadsheet.widget.dart';
 import 'package:economicskills/app/widgets/assignment_instructions_panel.dart';
 import 'package:economicskills/app/res/responsive.res.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 /// Spreadsheet Assignment Screen - Focused screen for Google Sheets exercises
 class SpreadsheetAssignmentScreen extends StatefulWidget {
@@ -40,12 +41,21 @@ class _SpreadsheetAssignmentScreenState extends State<SpreadsheetAssignmentScree
   // Panel layout
   double _leftPanelWidth = 0.35;
   bool _isLeftPanelCollapsed = false;
+  
+  // Scroll controller for mobile spreadsheet
+  final ScrollController _spreadsheetScrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
     _spreadsheetService = SpreadsheetService(Supabase.instance.client);
     _loadData();
+  }
+
+  @override
+  void dispose() {
+    _spreadsheetScrollController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadData() async {
@@ -239,6 +249,67 @@ class _SpreadsheetAssignmentScreenState extends State<SpreadsheetAssignmentScree
       'source_id': _section!.id,
       'description': 'Completed spreadsheet: ${_section!.title}',
     });
+  }
+
+  Future<void> _resetSpreadsheet() async {
+    final shouldReset = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Reset Spreadsheet?'),
+        content: const Text('This will replace your current work with a fresh copy of the template. This action cannot be undone.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: FilledButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Reset'),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldReset != true || _section == null || _userSpreadsheet == null) return;
+
+    final user = Supabase.instance.client.auth.currentUser;
+    if (user == null) return;
+
+    try {
+      // Delete the existing spreadsheet first
+      await _spreadsheetService.deleteSpreadsheet(
+        spreadsheetId: _userSpreadsheet!.spreadsheetId,
+        sectionId: _section!.id,
+      );
+
+      // Create a new spreadsheet from the template
+      final newSpreadsheet = await _spreadsheetService.getOrCreateSpreadsheet(
+        sectionId: _section!.id,
+        userId: user.id,
+      );
+
+      if (newSpreadsheet != null) {
+        setState(() {
+          _userSpreadsheet = newSpreadsheet;
+        });
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Spreadsheet reset to original'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error resetting: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
   }
 
   String? _extractSpreadsheetId(String? url) {
@@ -489,73 +560,189 @@ class _SpreadsheetAssignmentScreenState extends State<SpreadsheetAssignmentScree
   }
 
   Widget _buildSpreadsheetCard(ThemeData theme, ColorScheme colorScheme) {
+    final isAuthenticated = Supabase.instance.client.auth.currentUser != null;
     final userLang = Localizations.localeOf(context).languageCode;
     final solutionUrl = _section?.getSolutionForLanguage(userLang);
     final solutionId = solutionUrl != null ? _extractSpreadsheetId(solutionUrl) : null;
 
-    final spreadsheetId = (_showAnswer && solutionId != null && solutionId.isNotEmpty)
-        ? solutionId
-        : _userSpreadsheet?.spreadsheetId;
+    // If answer is shown and we have a solution, show solution spreadsheet
+    String? spreadsheetIdToShow;
+    bool isEditable = false;
+
+    if (_showAnswer && solutionId != null && solutionId.isNotEmpty) {
+      spreadsheetIdToShow = solutionId;
+      isEditable = true;
+    } else {
+      spreadsheetIdToShow = _userSpreadsheet?.spreadsheetId ?? _section?.templateSpreadsheetId;
+      isEditable = _userSpreadsheet != null;
+    }
 
     return Card(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Header
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.green.shade50,
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Banner when viewing solution
+            if (_showAnswer && solutionId != null && solutionId.isNotEmpty)
+              Container(
+                margin: const EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.deepPurple.shade100,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.visibility, size: 18, color: Colors.deepPurple.shade700),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Viewing Solution Spreadsheet',
+                      style: TextStyle(
+                        color: Colors.deepPurple.shade800,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            // Horizontally scrollable container with minimum width to force desktop view
+            SingleChildScrollView(
+              controller: _spreadsheetScrollController,
+              scrollDirection: Axis.horizontal,
+              child: SizedBox(
+                width: 900, // Minimum width to force Google Sheets desktop view
+                height: 600,
+                child: spreadsheetIdToShow != null
+                    ? EmbeddedSpreadsheet(
+                        spreadsheetId: spreadsheetIdToShow,
+                        isEditable: isEditable,
+                      )
+                    : const Center(child: Text('No spreadsheet available')),
+              ),
             ),
-            child: Row(
+            const SizedBox(height: 8),
+            // Scroll buttons row
+            Row(
               children: [
-                Icon(Icons.table_chart, color: Colors.green.shade700),
-                const SizedBox(width: 8),
-                Text(
-                  _showAnswer ? 'Solution Spreadsheet' : 'Your Spreadsheet',
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.green.shade800,
+                // Scroll left button - full width responsive
+                Expanded(
+                  child: FilledButton(
+                    onPressed: () {
+                      _spreadsheetScrollController.animateTo(
+                        (_spreadsheetScrollController.offset - 200).clamp(0, _spreadsheetScrollController.position.maxScrollExtent),
+                        duration: const Duration(milliseconds: 200),
+                        curve: Curves.easeOut,
+                      );
+                    },
+                    style: FilledButton.styleFrom(
+                      backgroundColor: colorScheme.surface,
+                      foregroundColor: colorScheme.onSurface,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                    ).copyWith(
+                      overlayColor: WidgetStateProperty.resolveWith((states) {
+                        if (states.contains(WidgetState.pressed)) return colorScheme.onSurface.withAlpha(31);
+                        if (states.contains(WidgetState.hovered)) return colorScheme.onSurface.withAlpha(20);
+                        return null;
+                      }),
+                    ),
+                    child: const Icon(Icons.chevron_left, size: 32),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                // Scroll right button - full width responsive
+                Expanded(
+                  child: FilledButton(
+                    onPressed: () {
+                      _spreadsheetScrollController.animateTo(
+                        (_spreadsheetScrollController.offset + 200).clamp(0, _spreadsheetScrollController.position.maxScrollExtent),
+                        duration: const Duration(milliseconds: 200),
+                        curve: Curves.easeOut,
+                      );
+                    },
+                    style: FilledButton.styleFrom(
+                      backgroundColor: colorScheme.surface,
+                      foregroundColor: colorScheme.onSurface,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                    ).copyWith(
+                      overlayColor: WidgetStateProperty.resolveWith((states) {
+                        if (states.contains(WidgetState.pressed)) return colorScheme.onSurface.withAlpha(31);
+                        if (states.contains(WidgetState.hovered)) return colorScheme.onSurface.withAlpha(20);
+                        return null;
+                      }),
+                    ),
+                    child: const Icon(Icons.chevron_right, size: 32),
                   ),
                 ),
               ],
             ),
-          ),
-
-          // Spreadsheet iframe
-          SizedBox(
-            height: 400,
-            child: spreadsheetId != null
-                ? EmbeddedSpreadsheet(spreadsheetId: spreadsheetId, isEditable: true)
-                : const Center(child: CircularProgressIndicator()),
-          ),
-
-          // Action buttons
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: Row(
-              children: [
-                Expanded(
-                  child: FilledButton.icon(
+            const SizedBox(height: 12),
+            // Action buttons row
+            if (isAuthenticated)
+              Row(
+                children: [
+                  // Reset button
+                  IconButton(
+                    onPressed: _userSpreadsheet != null ? _resetSpreadsheet : null,
+                    icon: const Icon(Icons.refresh),
+                    tooltip: 'Reset to original',
+                    style: IconButton.styleFrom(foregroundColor: colorScheme.error),
+                  ),
+                  const SizedBox(width: 8),
+                  // Open in new tab
+                  OutlinedButton.icon(
+                    onPressed: () async {
+                      final id = _userSpreadsheet?.spreadsheetId ?? _section?.templateSpreadsheetId;
+                      if (id != null) {
+                        final uri = Uri.parse('https://docs.google.com/spreadsheets/d/$id/edit');
+                        if (await canLaunchUrl(uri)) {
+                          await launchUrl(uri, mode: LaunchMode.externalApplication);
+                        }
+                      }
+                    },
+                    icon: const Icon(Icons.open_in_new, size: 18),
+                    label: const Text('Open in new tab'),
+                  ),
+                  const Spacer(),
+                  // Submit button
+                  FilledButton.icon(
                     onPressed: _userSpreadsheet != null && !_isValidating ? _validateSpreadsheet : null,
                     icon: _isValidating
-                        ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
-                        : const Icon(Icons.check),
-                    label: const Text('Submit'),
+                        ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                        : const Icon(Icons.check_circle),
+                    label: const Text('Submit answer'),
                   ),
+                ],
+              ),
+            // Completed status (shown after buttons on mobile)
+            if (_progress.isCompleted) ...[
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.green.shade100,
+                  borderRadius: BorderRadius.circular(8),
                 ),
-              ],
-            ),
-          ),
-
-          // Validation result
-          if (_lastValidation != null)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-              child: _buildValidationResult(_lastValidation!, theme),
-            ),
-        ],
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.check_circle, color: Colors.green.shade700, size: 18),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Completed! +${_progress.xpEarned} XP',
+                      style: TextStyle(color: Colors.green.shade700, fontWeight: FontWeight.w600),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+            // Validation result (shown after buttons on mobile)
+            if (_lastValidation != null) ...[
+              const SizedBox(height: 16),
+              _buildValidationResult(_lastValidation!, theme),
+            ],
+          ],
+        ),
       ),
     );
   }

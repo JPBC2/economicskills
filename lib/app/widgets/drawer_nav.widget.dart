@@ -7,6 +7,7 @@ import 'package:economicskills/app/view_models/locale.vm.dart';
 import 'package:economicskills/main.dart';
 import 'package:economicskills/l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
+import 'package:economicskills/app/routes/app_router.dart' show isPublicRoutePath;
 
 class DrawerNav extends ConsumerStatefulWidget {
   const DrawerNav({super.key});
@@ -28,17 +29,43 @@ class _DrawerNavState extends ConsumerState<DrawerNav> {
     {'code': 'ru', 'label': 'Русский'},
     {'code': 'fr', 'label': 'Français'},
     {'code': 'pt', 'label': 'Português'},
+    {'code': 'it', 'label': 'Italiano'},
+    {'code': 'ca', 'label': 'Català'},
+    {'code': 'ro', 'label': 'Română'},
+    {'code': 'de', 'label': 'Deutsch'},
+    {'code': 'nl', 'label': 'Nederlands'},
     {'code': 'ar', 'label': 'العربية'},
     {'code': 'id', 'label': 'Bahasa Indonesia'},
     {'code': 'ko', 'label': '한국어'},
     {'code': 'ja', 'label': '日本語'},
+    {'code': 'af', 'label': 'Afrikaans'},
+    {'code': 'hi', 'label': 'हिन्दी'},
+    {'code': 'bn', 'label': 'বাংলা'},
+    {'code': 'ur', 'label': 'اردو'},
+    {'code': 'tr', 'label': 'Türkçe'},
+    {'code': 'vi', 'label': 'Tiếng Việt'},
+    {'code': 'tl', 'label': 'Tagalog'},
+    {'code': 'ms', 'label': 'Bahasa Melayu'},
   ];
 
   Future<void> _signOut(BuildContext context, AppLocalizations l10n) async {
+    // Get current route before signing out
+    final currentPath = GoRouterState.of(context).matchedLocation;
+    final isOnPublicPage = isPublicRoutePath(currentPath);
+
     try {
       await supabase.auth.signOut();
       if (context.mounted) {
         context.showSnackBar(l10n.signOutSuccess);
+
+        // Redirect: stay on public pages, go to landing from protected pages
+        if (isOnPublicPage) {
+          // Refresh the current page state
+          context.go(currentPath);
+        } else {
+          // Redirect to landing page from protected pages (like dashboard)
+          context.go('/');
+        }
       }
     } catch (error) {
       if (context.mounted) {

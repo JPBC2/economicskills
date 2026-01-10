@@ -38,5 +38,11 @@
     "landingFeature4Title": "Sofortige Überprüfung",
     "landingFeature4Desc": "Erhalten Sie sofortiges Feedback zu Ihren Übungen. Verstehen Sie Ihre Fehler und lernen Sie schneller.",
     "landingCtaTitle": "Bereit zu lernen?",
-    "landingBrowseCourses": "Kurse Durchsuchen"
+    "landingBrowseCourses": "Kurse Durchsuchen",
+
+    "loginWelcome": "Willkommen bei Economic Skills",
+    "loginSubtitle": "Lernen Sie angewandte Wirtschaft mit interaktiven Übungen in Google Sheets, Python und R",
+    "loginSignInWith": "Mit Google-Konto anmelden",
+    "loginSignInReason": "Melden Sie sich an, um Ihren Fortschritt zu speichern und alle Funktionen freizuschalten.",
+    "loginContinueGoogle": "Mit Google fortfahren"
 }

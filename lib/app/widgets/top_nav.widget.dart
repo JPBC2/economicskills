@@ -30,7 +30,7 @@ class TopNav extends ConsumerWidget implements PreferredSizeWidget {
     final Color buttonTextColor = isDark ? AppColors.textOnDark : AppColors.textOnLight;
     final Color appBarColor = isDark ? AppColors.appBarDark : AppColors.appBarLight;
 
-    // Language items - 15 supported languages
+    // Language items - 23 supported languages
     final List<Map<String, dynamic>> languages = [
       {'code': 'en', 'label': 'English'},
       {'code': 'es', 'label': 'Español'},
@@ -47,6 +47,14 @@ class TopNav extends ConsumerWidget implements PreferredSizeWidget {
       {'code': 'id', 'label': 'Bahasa Indonesia'},
       {'code': 'ko', 'label': '한국어'},
       {'code': 'ja', 'label': '日本語'},
+      {'code': 'af', 'label': 'Afrikaans'},
+      {'code': 'hi', 'label': 'हिन्दी'},
+      {'code': 'bn', 'label': 'বাংলা'},
+      {'code': 'ur', 'label': 'اردو'},
+      {'code': 'tr', 'label': 'Türkçe'},
+      {'code': 'vi', 'label': 'Tiếng Việt'},
+      {'code': 'tl', 'label': 'Tagalog'},
+      {'code': 'ms', 'label': 'Bahasa Melayu'},
     ];
 
     return AppBar(

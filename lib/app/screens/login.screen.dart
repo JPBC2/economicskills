@@ -6,6 +6,7 @@ import 'package:universal_html/html.dart' as html;
 import 'package:economicskills/app/res/responsive.res.dart';
 import 'package:economicskills/app/widgets/guest_drawer_nav.widget.dart';
 import 'package:economicskills/app/widgets/guest_top_nav.widget.dart';
+import 'package:economicskills/l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
 import '../../main.dart';
 
@@ -103,7 +104,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       appBar: const GuestTopNav(),
       body: SafeArea(
@@ -127,7 +129,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         GestureDetector(
                           onTap: () => context.go('/'),
                           child: Text(
-                            'Welcome to Economic Skills',
+                            l10n.loginWelcome,
                             style: TextStyle(
                               fontSize: 24,
                               fontFamily: 'ContrailOne',
@@ -138,7 +140,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         ),
                         const SizedBox(height: 12),
                         Text(
-                          'Learn applied economics with interactive exercises in Google Sheets, Python, and R',
+                          l10n.loginSubtitle,
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 16,
@@ -166,7 +168,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               ),
                               const SizedBox(height: 16),
                               Text(
-                                'Sign in with your Google account',
+                                l10n.loginSignInWith,
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w500,
@@ -176,7 +178,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               ),
                               const SizedBox(height: 8),
                               Text(
-                                'A Google account is required to access your personalized spreadsheet exercises and use Google Sheets add-ons.',
+                                l10n.loginSignInReason,
                                 style: TextStyle(
                                   fontSize: 14,
                                   color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
@@ -220,9 +222,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                             color: Colors.white,
                                           ),
                                         )
-                                      : const Text(
-                                          'Continue with Google',
-                                          style: TextStyle(
+                                      : Text(
+                                          l10n.loginContinueGoogle,
+                                          style: const TextStyle(
                                             fontSize: 16,
                                             fontWeight: FontWeight.w500,
                                           ),
@@ -241,29 +243,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           ),
                         ),
                         
-                        const SizedBox(height: 24),
-                        
-                        // Info note
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.info_outline_rounded,
-                              size: 16,
-                              color: isDark ? Colors.grey.shade500 : Colors.grey.shade500,
-                            ),
-                            const SizedBox(width: 8),
-                            Flexible(
-                              child: Text(
-                                'New users will be automatically registered',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color: isDark ? Colors.grey.shade500 : Colors.grey.shade500,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
                       ],
                     ),
                   ),
