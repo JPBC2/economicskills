@@ -119,18 +119,22 @@ class WebRService {
   
   /// Initialize WebR instance
   Future<void> _initializeWebR({List<String> packages = const []}) async {
+    // Build package install commands
+    final packageInstalls = packages.map((p) => 
+      'await window.webR.evalR(\'webr::install("$p")\');'
+    ).join('\n        ');
+    
     // WebR initialization script - creates window.webR and installs packages
-    final packagesJson = packages.map((p) => '"$p"').join(', ');
     final initScript = '''
       (async function() {
         const { WebR } = await import('https://webr.r-wasm.org/latest/webr.mjs');
         window.webR = new WebR();
         await window.webR.init();
         
-        // Install packages using WebR's package manager
         ${packages.isNotEmpty ? '''
+        // Install packages using webr::install
         console.log('Installing R packages: ${packages.join(', ')}...');
-        await window.webR.installPackages([$packagesJson]);
+        $packageInstalls
         console.log('R packages installed successfully');
         ''' : ''}
         
