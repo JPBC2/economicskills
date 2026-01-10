@@ -168,8 +168,10 @@ class _AssignmentInstructionsPanelState extends State<AssignmentInstructionsPane
   }
 
   Widget _buildHeader(ThemeData theme, ColorScheme colorScheme) {
-    // Tool badge color
-    final toolColor = switch (widget.tool) {
+    final isDark = theme.brightness == Brightness.dark;
+    
+    // In dark theme, use blue for all badges/buttons for better visibility
+    final toolColor = isDark ? Colors.blue : switch (widget.tool) {
       'spreadsheet' => Colors.green,
       'python' => Colors.deepPurple,
       'r' => Colors.blue,
@@ -244,9 +246,9 @@ class _AssignmentInstructionsPanelState extends State<AssignmentInstructionsPane
                     style: theme.textTheme.labelSmall?.copyWith(color: colorScheme.onSurfaceVariant),
                   ),
                   if (widget.tool != 'spreadsheet' && supportsSpreadsheet)
-                    _buildToolLinkChip('spreadsheet', slug, Icons.table_chart, Colors.green),
+                    _buildToolLinkChip('spreadsheet', slug, Icons.table_chart, isDark ? Colors.blue : Colors.green),
                   if (widget.tool != 'python' && supportsPython)
-                    _buildToolLinkChip('python', slug, Icons.code, Colors.deepPurple),
+                    _buildToolLinkChip('python', slug, Icons.code, isDark ? Colors.blue : Colors.deepPurple),
                   if (widget.tool != 'r' && supportsR)
                     _buildToolLinkChip('r', slug, Icons.analytics, Colors.blue),
                 ],

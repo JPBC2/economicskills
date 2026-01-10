@@ -566,7 +566,30 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
     required ColorScheme colorScheme,
   }) {
     final isAuthenticated = Supabase.instance.client.auth.currentUser != null;
-    
+    final isDark = theme.brightness == Brightness.dark;
+
+    // Adjust colors for dark theme to improve contrast
+    // Python (deepPurple) needs much more lightness in dark mode
+    // Google Sheets (green) needs moderate lightness increase
+    Color iconColor;
+    Color buttonColor;
+    if (isDark) {
+      if (tool == 'python') {
+        iconColor = Colors.deepPurple.shade200;
+        buttonColor = Colors.deepPurple.shade200;
+      } else if (tool == 'spreadsheet') {
+        iconColor = Colors.green.shade400;
+        buttonColor = Colors.green.shade300;
+      } else {
+        // R and others - moderate increase
+        iconColor = color;
+        buttonColor = color;
+      }
+    } else {
+      iconColor = color;
+      buttonColor = color;
+    }
+
     return Padding(
       padding: const EdgeInsets.only(left: 96, right: 16, top: 4, bottom: 4),
       child: Row(
@@ -578,7 +601,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
               color: color.withValues(alpha: isCompleted ? 0.2 : 0.1),
               borderRadius: BorderRadius.circular(4),
             ),
-            child: Icon(icon, size: 16, color: color),
+            child: Icon(icon, size: 16, color: iconColor),
           ),
           const SizedBox(width: 8),
           // Tool label
@@ -601,7 +624,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
               isCompleted ? '${xpEarned ?? xpPossible} XP' : '$xpPossible XP',
               style: TextStyle(
                 fontSize: 11,
-                color: isCompleted ? color : colorScheme.onSurfaceVariant,
+                color: isCompleted ? (isDark ? buttonColor : color) : colorScheme.onSurfaceVariant,
                 fontWeight: isCompleted ? FontWeight.w600 : FontWeight.normal,
               ),
             ),
@@ -615,7 +638,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                 color: color.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: Icon(Icons.check, color: color, size: 14),
+              child: Icon(Icons.check, color: isDark ? buttonColor : color, size: 14),
             )
           else
             SizedBox(
@@ -625,7 +648,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                 style: FilledButton.styleFrom(
                   padding: const EdgeInsets.symmetric(horizontal: 12),
                   backgroundColor: color.withValues(alpha: 0.1),
-                  foregroundColor: color,
+                  foregroundColor: buttonColor,
                 ),
                 child: Text(isCompleted ? 'Review' : 'Start', style: const TextStyle(fontSize: 11)),
               ),
