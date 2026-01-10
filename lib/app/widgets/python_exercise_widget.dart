@@ -513,13 +513,15 @@ class PythonExerciseWidgetState extends State<PythonExerciseWidget> with SingleT
               height: 1.5,
             ),
             gutterStyle: GutterStyle(
-              width: 48,
+              width: 56,
+              margin: 4,
               showErrors: false,
               showFoldingHandles: false,
+              textAlign: TextAlign.end,
               textStyle: TextStyle(
                 fontFamily: 'Fira Code',
-                fontSize: 12,
-                height: 1.5,
+                fontSize: 14, // Must match code text fontSize exactly
+                height: 1.5,  // Must match code text height exactly
                 color: isDark ? Colors.grey.shade500 : Colors.grey.shade600,
               ),
             ),
@@ -555,13 +557,15 @@ class PythonExerciseWidgetState extends State<PythonExerciseWidget> with SingleT
                   height: 1.5,
                 ),
                 gutterStyle: GutterStyle(
-                  width: 48,
+                  width: 56,
+                  margin: 4,
                   showErrors: false,
                   showFoldingHandles: false,
+                  textAlign: TextAlign.end,
                   textStyle: TextStyle(
                     fontFamily: 'Fira Code',
-                    fontSize: 12,
-                    height: 1.5,
+                    fontSize: 14, // Must match code text fontSize exactly
+                    height: 1.5,  // Must match code text height exactly
                     color: isDark ? Colors.grey.shade500 : Colors.grey.shade600,
                   ),
                 ),
