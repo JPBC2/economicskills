@@ -235,6 +235,33 @@ class WebRService {
     }
   }
   
+  /// Write a file to WebR's virtual filesystem
+  /// This allows R code to read files like CSV data
+  Future<void> writeFile(String filename, String content) async {
+    if (!isReady) return;
+    
+    // Escape content for JavaScript
+    final escapedContent = content
+        .replaceAll('\\', '\\\\')
+        .replaceAll("'", "\\'")
+        .replaceAll('\n', '\\n')
+        .replaceAll('\r', '');
+    
+    final script = '''
+      (async function() {
+        await window.webR.FS.writeFile('$filename', '$escapedContent');
+        return true;
+      })()
+    ''';
+    
+    try {
+      await _evalJsAsync(script);
+    } catch (e) {
+      // File write errors are logged but non-fatal
+      print('WebR writeFile error: $e');
+    }
+  }
+  
   // Private helper methods
   
   Future<String> _evalJsAsync(String script) async {

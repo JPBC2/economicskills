@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:shared/models/course.model.dart';
 import '../services/webr_service.dart';
 import 'package:flutter_code_editor/flutter_code_editor.dart';
 import 'package:highlight/languages/r.dart';
 import 'package:flutter_highlight/themes/github.dart';
+import 'package:flutter_highlight/themes/atom-one-dark.dart';
 
 /// Widget for interactive R code exercises using WebR
 ///
@@ -176,6 +178,9 @@ class RExerciseWidgetState extends State<RExerciseWidget> with SingleTickerProvi
     });
     
     try {
+      // Inject common CSV files into WebR filesystem before running
+      await _injectDataFiles();
+      
       final result = await _webR.runCode(_codeController.text);
       setState(() {
         _isRunning = false;
@@ -192,6 +197,24 @@ class RExerciseWidgetState extends State<RExerciseWidget> with SingleTickerProvi
         _output = 'Error: $e';
         _error = e.toString();
       });
+    }
+  }
+  
+  /// Inject data files (CSV) into WebR's virtual filesystem
+  Future<void> _injectDataFiles() async {
+    // List of data files to load from assets
+    const dataFiles = [
+      '2020_periodic_dividends_per_share.csv',
+    ];
+    
+    for (final filename in dataFiles) {
+      try {
+        final content = await rootBundle.loadString('assets/data/$filename');
+        await _webR.writeFile(filename, content);
+      } catch (e) {
+        // File not found - this is okay, not all sections use all files
+        print('Note: Could not load $filename: $e');
+      }
     }
   }
   
@@ -543,21 +566,26 @@ class RExerciseWidgetState extends State<RExerciseWidget> with SingleTickerProvi
   
   /// Build code editor with R syntax highlighting
   Widget _buildCodeEditor() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final editorTheme = isDark ? atomOneDarkTheme : githubTheme;
+    final backgroundColor = isDark ? const Color(0xFF282c34) : Colors.grey.shade100;
+    
     return Container(
       decoration: BoxDecoration(
-        color: Colors.grey.shade100,
+        color: backgroundColor,
         border: Border(
           bottom: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
         ),
       ),
       child: CodeTheme(
-        data: CodeThemeData(styles: githubTheme),
+        data: CodeThemeData(styles: editorTheme),
         child: SingleChildScrollView(
           child: CodeField(
             controller: _codeController,
-            textStyle: const TextStyle(
+            textStyle: TextStyle(
               fontFamily: 'Fira Code',
               fontSize: 14,
+              color: isDark ? Colors.white : Colors.black87,
             ),
             minLines: 15,
             expands: false,
@@ -569,9 +597,13 @@ class RExerciseWidgetState extends State<RExerciseWidget> with SingleTickerProvi
   
   /// Build solution code editor with R syntax highlighting
   Widget _buildSolutionEditor() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final editorTheme = isDark ? atomOneDarkTheme : githubTheme;
+    final backgroundColor = isDark ? const Color(0xFF1a3a1a) : Colors.green.shade50;
+    
     return Container(
       decoration: BoxDecoration(
-        color: Colors.green.shade50,
+        color: backgroundColor,
         border: Border(
           bottom: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
         ),
@@ -579,13 +611,14 @@ class RExerciseWidgetState extends State<RExerciseWidget> with SingleTickerProvi
       child: Stack(
         children: [
           CodeTheme(
-            data: CodeThemeData(styles: githubTheme),
+            data: CodeThemeData(styles: editorTheme),
             child: SingleChildScrollView(
               child: CodeField(
                 controller: _solutionController,
-                textStyle: const TextStyle(
+                textStyle: TextStyle(
                   fontFamily: 'Fira Code',
                   fontSize: 14,
+                  color: isDark ? Colors.white : Colors.black87,
                 ),
                 minLines: 15,
                 expands: false,

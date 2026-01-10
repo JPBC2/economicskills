@@ -434,22 +434,26 @@ class _AssignmentInstructionsPanelState extends State<AssignmentInstructionsPane
   }
 
   Widget _buildToolLinkChip(String tool, String slug, IconData icon, Color color) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final label = switch (tool) {
       'spreadsheet' => 'Google Sheets',
       'python' => 'Python',
       'r' => 'R',
       _ => tool,
     };
+    
+    // Use lighter color for dark mode for better contrast
+    final displayColor = isDark ? Color.lerp(color, Colors.white, 0.3)! : color;
 
     return ActionChip(
-      avatar: Icon(icon, size: 16, color: color),
-      label: Text(label, style: TextStyle(color: color, fontSize: 12)),
+      avatar: Icon(icon, size: 16, color: displayColor),
+      label: Text(label, style: TextStyle(color: displayColor, fontSize: 12)),
       onPressed: () {
         // Navigate to other tool
         context.go('/sections/$slug-$tool');
       },
-      backgroundColor: color.withValues(alpha: 0.1),
-      side: BorderSide(color: color.withValues(alpha: 0.3)),
+      backgroundColor: displayColor.withValues(alpha: isDark ? 0.2 : 0.1),
+      side: BorderSide(color: displayColor.withValues(alpha: isDark ? 0.5 : 0.3)),
     );
   }
 }
