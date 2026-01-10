@@ -56,7 +56,7 @@ class PythonExerciseWidgetState extends State<PythonExerciseWidget> with SingleT
   ValidationResult? _validationResult;
   bool _hintUsed = false;
   final bool _answerUsed = false;  // Track if answer was revealed
-  bool? _wordWrapOverride; // null = use responsive default, true/false = user override
+
 
   @override
   void initState() {
@@ -283,14 +283,7 @@ class PythonExerciseWidgetState extends State<PythonExerciseWidget> with SingleT
     }
   }
 
-  /// Get effective word wrap setting based on screen size or user override
-  /// Mobile (< 600px): wrap by default for better readability
-  /// Desktop (>= 600px): no wrap by default, show horizontal scrollbar
-  bool _getEffectiveWordWrap(BuildContext context) {
-    if (_wordWrapOverride != null) return _wordWrapOverride!;
-    final screenWidth = MediaQuery.of(context).size.width;
-    return screenWidth < 600; // Mobile breakpoint
-  }
+
 
   /// Show hint and mark as used
   void _showHint() {
@@ -486,20 +479,7 @@ class PythonExerciseWidgetState extends State<PythonExerciseWidget> with SingleT
               label: Text(_hintUsed ? 'Hint Used' : 'Hint'),
             ),
           const Spacer(),
-          // Word wrap toggle
-          Builder(
-            builder: (context) {
-              final effectiveWrap = _getEffectiveWordWrap(context);
-              return IconButton(
-                onPressed: () => setState(() => _wordWrapOverride = !effectiveWrap),
-                icon: Icon(
-                  effectiveWrap ? Icons.wrap_text : Icons.segment,
-                  color: effectiveWrap ? colorScheme.primary : colorScheme.onSurfaceVariant,
-                ),
-                tooltip: effectiveWrap ? 'Disable word wrap' : 'Enable word wrap',
-              );
-            },
-          ),
+
           IconButton(
             onPressed: _resetCode,
             icon: const Icon(Icons.refresh),
@@ -515,7 +495,6 @@ class PythonExerciseWidgetState extends State<PythonExerciseWidget> with SingleT
     final colorScheme = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final theme = isDark ? atomOneDarkTheme : atomOneLightTheme;
-    final wordWrap = _getEffectiveWordWrap(context);
 
     return Container(
       decoration: BoxDecoration(
@@ -545,7 +524,7 @@ class PythonExerciseWidgetState extends State<PythonExerciseWidget> with SingleT
               ),
             ),
             expands: true,
-            wrap: wordWrap,
+            wrap: false,
           ),
         ),
       ),
@@ -556,7 +535,6 @@ class PythonExerciseWidgetState extends State<PythonExerciseWidget> with SingleT
   Widget _buildSolutionEditor() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final theme = isDark ? atomOneDarkTheme : atomOneLightTheme;
-    final wordWrap = _getEffectiveWordWrap(context);
 
     return Container(
       decoration: BoxDecoration(
@@ -588,7 +566,7 @@ class PythonExerciseWidgetState extends State<PythonExerciseWidget> with SingleT
                   ),
                 ),
                 expands: true,
-                wrap: wordWrap,
+                wrap: false,
                 readOnly: true,
               ),
             ),

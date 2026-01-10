@@ -55,7 +55,7 @@ class RExerciseWidgetState extends State<RExerciseWidget> with SingleTickerProvi
   String? _error;
   RValidationResult? _validationResult;
   bool _hintUsed = false;
-  bool? _wordWrapOverride; // null = use responsive default, true/false = user override
+
   
   @override
   void initState() {
@@ -277,14 +277,7 @@ class RExerciseWidgetState extends State<RExerciseWidget> with SingleTickerProvi
     }
   }
   
-  /// Get effective word wrap setting based on screen size or user override
-  /// Mobile (< 600px): wrap by default for better readability
-  /// Desktop (>= 600px): no wrap by default, show horizontal scrollbar
-  bool _getEffectiveWordWrap(BuildContext context) {
-    if (_wordWrapOverride != null) return _wordWrapOverride!;
-    final screenWidth = MediaQuery.of(context).size.width;
-    return screenWidth < 600; // Mobile breakpoint
-  }
+
 
   /// Show hint and mark as used
   void _showHint() {
@@ -567,21 +560,7 @@ class RExerciseWidgetState extends State<RExerciseWidget> with SingleTickerProvi
               ),
             ),
           
-          // Word wrap toggle
-          Builder(
-            builder: (context) {
-              final effectiveWrap = _getEffectiveWordWrap(context);
-              return IconButton(
-                onPressed: () => setState(() => _wordWrapOverride = !effectiveWrap),
-                icon: Icon(
-                  effectiveWrap ? Icons.wrap_text : Icons.segment,
-                  size: 18,
-                  color: effectiveWrap ? colorScheme.primary : colorScheme.onSurfaceVariant,
-                ),
-                tooltip: effectiveWrap ? 'Disable word wrap' : 'Enable word wrap',
-              );
-            },
-          ),
+
 
           // Reset button
           IconButton(
@@ -599,7 +578,6 @@ class RExerciseWidgetState extends State<RExerciseWidget> with SingleTickerProvi
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final editorTheme = isDark ? atomOneDarkTheme : githubTheme;
     final backgroundColor = isDark ? const Color(0xFF282c34) : Colors.grey.shade100;
-    final wordWrap = _getEffectiveWordWrap(context);
 
     return Container(
       decoration: BoxDecoration(
@@ -630,7 +608,7 @@ class RExerciseWidgetState extends State<RExerciseWidget> with SingleTickerProvi
             ),
           ),
           expands: true,
-          wrap: wordWrap,
+          wrap: false,
         ),
       ),
     );
@@ -641,7 +619,6 @@ class RExerciseWidgetState extends State<RExerciseWidget> with SingleTickerProvi
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final editorTheme = isDark ? atomOneDarkTheme : githubTheme;
     final backgroundColor = isDark ? const Color(0xFF1a3a1a) : Colors.green.shade50;
-    final wordWrap = _getEffectiveWordWrap(context);
 
     return Container(
       decoration: BoxDecoration(
@@ -674,7 +651,7 @@ class RExerciseWidgetState extends State<RExerciseWidget> with SingleTickerProvi
                 ),
               ),
               expands: true,
-              wrap: wordWrap,
+              wrap: false,
               readOnly: true,
             ),
           ),
