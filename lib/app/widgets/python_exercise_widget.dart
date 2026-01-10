@@ -517,6 +517,31 @@ class PythonExerciseWidgetState extends State<PythonExerciseWidget> with SingleT
     final theme = isDark ? atomOneDarkTheme : atomOneLightTheme;
     final wordWrap = _getEffectiveWordWrap(context);
 
+    final codeField = CodeTheme(
+      data: CodeThemeData(styles: theme),
+      child: CodeField(
+        controller: _codeController,
+        textStyle: const TextStyle(
+          fontFamily: 'Fira Code',
+          fontSize: 14,
+          height: 1.5,
+        ),
+        lineNumberStyle: LineNumberStyle(
+          width: 48,
+          textAlign: TextAlign.right,
+          textStyle: TextStyle(
+            fontFamily: 'Fira Code',
+            fontSize: 12,
+            color: isDark ? Colors.grey.shade500 : Colors.grey.shade600,
+          ),
+        ),
+        expands: false,
+        wrap: wordWrap,
+        minLines: wordWrap ? null : 10,
+        maxLines: null,
+      ),
+    );
+
     return Container(
       decoration: BoxDecoration(
         border: Border.all(color: colorScheme.outline),
@@ -524,28 +549,17 @@ class PythonExerciseWidgetState extends State<PythonExerciseWidget> with SingleT
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(8),
-        child: CodeTheme(
-          data: CodeThemeData(styles: theme),
-          child: CodeField(
-            controller: _codeController,
-            textStyle: const TextStyle(
-              fontFamily: 'Fira Code',
-              fontSize: 14,
-              height: 1.5,
-            ),
-            lineNumberStyle: LineNumberStyle(
-              width: 48,
-              textAlign: TextAlign.right,
-              textStyle: TextStyle(
-                fontFamily: 'Fira Code',
-                fontSize: 12,
-                color: isDark ? Colors.grey.shade500 : Colors.grey.shade600,
+        child: wordWrap
+            ? SingleChildScrollView(child: codeField)
+            : SingleChildScrollView(
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: SizedBox(
+                    width: MediaQuery.of(context).size.width * 2,
+                    child: codeField,
+                  ),
+                ),
               ),
-            ),
-            expands: true, // Fill available space - works with Expanded
-            wrap: wordWrap,
-          ),
-        ),
       ),
     );
   }
@@ -556,6 +570,44 @@ class PythonExerciseWidgetState extends State<PythonExerciseWidget> with SingleT
     final theme = isDark ? atomOneDarkTheme : atomOneLightTheme;
     final wordWrap = _getEffectiveWordWrap(context);
 
+    final codeField = CodeTheme(
+      data: CodeThemeData(styles: theme),
+      child: CodeField(
+        controller: _solutionController,
+        textStyle: const TextStyle(
+          fontFamily: 'Fira Code',
+          fontSize: 14,
+          height: 1.5,
+        ),
+        lineNumberStyle: LineNumberStyle(
+          width: 48,
+          textAlign: TextAlign.right,
+          textStyle: TextStyle(
+            fontFamily: 'Fira Code',
+            fontSize: 12,
+            color: isDark ? Colors.grey.shade500 : Colors.grey.shade600,
+          ),
+        ),
+        expands: false,
+        wrap: wordWrap,
+        minLines: wordWrap ? null : 10,
+        maxLines: null,
+        readOnly: true,
+      ),
+    );
+
+    final scrollableContent = wordWrap
+        ? SingleChildScrollView(child: codeField)
+        : SingleChildScrollView(
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: SizedBox(
+                width: MediaQuery.of(context).size.width * 2,
+                child: codeField,
+              ),
+            ),
+          );
+
     return Container(
       decoration: BoxDecoration(
         border: Border.all(color: isDark ? Colors.deepPurple.shade300 : Colors.deepPurple.shade200),
@@ -565,29 +617,7 @@ class PythonExerciseWidgetState extends State<PythonExerciseWidget> with SingleT
         borderRadius: BorderRadius.circular(8),
         child: Stack(
           children: [
-            CodeTheme(
-              data: CodeThemeData(styles: theme),
-              child: CodeField(
-                controller: _solutionController,
-                textStyle: const TextStyle(
-                  fontFamily: 'Fira Code',
-                  fontSize: 14,
-                  height: 1.5,
-                ),
-                lineNumberStyle: LineNumberStyle(
-                  width: 48,
-                  textAlign: TextAlign.right,
-                  textStyle: TextStyle(
-                    fontFamily: 'Fira Code',
-                    fontSize: 12,
-                    color: isDark ? Colors.grey.shade500 : Colors.grey.shade600,
-                  ),
-                ),
-                expands: true, // Fill available space
-                wrap: wordWrap,
-                readOnly: true,
-              ),
-            ),
+            scrollableContent,
             // Solution label
             Positioned(
               top: 8,

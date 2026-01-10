@@ -601,6 +601,32 @@ class RExerciseWidgetState extends State<RExerciseWidget> with SingleTickerProvi
     final backgroundColor = isDark ? const Color(0xFF282c34) : Colors.grey.shade100;
     final wordWrap = _getEffectiveWordWrap(context);
 
+    // Create the code field widget
+    final codeField = CodeTheme(
+      data: CodeThemeData(styles: editorTheme),
+      child: CodeField(
+        controller: _codeController,
+        textStyle: TextStyle(
+          fontFamily: 'Fira Code',
+          fontSize: 14,
+          height: 1.5,
+          color: isDark ? Colors.white : Colors.black87,
+        ),
+        lineNumberStyle: LineNumberStyle(
+          width: 48,
+          textStyle: TextStyle(
+            fontFamily: 'Fira Code',
+            fontSize: 12,
+            color: isDark ? Colors.grey.shade500 : Colors.grey.shade600,
+          ),
+        ),
+        expands: false, // Don't expand - let scroll view handle sizing
+        wrap: wordWrap,
+        minLines: wordWrap ? null : 10, // Minimum height when not wrapping
+        maxLines: wordWrap ? null : null, // Allow unlimited lines
+      ),
+    );
+
     return Container(
       decoration: BoxDecoration(
         color: backgroundColor,
@@ -608,28 +634,21 @@ class RExerciseWidgetState extends State<RExerciseWidget> with SingleTickerProvi
           bottom: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
         ),
       ),
-      child: CodeTheme(
-        data: CodeThemeData(styles: editorTheme),
-        child: CodeField(
-          controller: _codeController,
-          textStyle: TextStyle(
-            fontFamily: 'Fira Code',
-            fontSize: 14,
-            height: 1.5,
-            color: isDark ? Colors.white : Colors.black87,
-          ),
-          lineNumberStyle: LineNumberStyle(
-            width: 48,
-            textStyle: TextStyle(
-              fontFamily: 'Fira Code',
-              fontSize: 12,
-              color: isDark ? Colors.grey.shade500 : Colors.grey.shade600,
+      child: wordWrap
+          // Word wrap on: only vertical scrolling
+          ? SingleChildScrollView(
+              child: codeField,
+            )
+          // Word wrap off: both horizontal and vertical scrolling
+          : SingleChildScrollView(
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: SizedBox(
+                  width: MediaQuery.of(context).size.width * 2, // Allow for wide content
+                  child: codeField,
+                ),
+              ),
             ),
-          ),
-          expands: true, // Fill available space - works with Expanded parent
-          wrap: wordWrap,
-        ),
-      ),
     );
   }
 
@@ -640,6 +659,46 @@ class RExerciseWidgetState extends State<RExerciseWidget> with SingleTickerProvi
     final backgroundColor = isDark ? const Color(0xFF1a3a1a) : Colors.green.shade50;
     final wordWrap = _getEffectiveWordWrap(context);
 
+    // Create the code field widget
+    final codeField = CodeTheme(
+      data: CodeThemeData(styles: editorTheme),
+      child: CodeField(
+        controller: _solutionController,
+        textStyle: TextStyle(
+          fontFamily: 'Fira Code',
+          fontSize: 14,
+          height: 1.5,
+          color: isDark ? Colors.white : Colors.black87,
+        ),
+        lineNumberStyle: LineNumberStyle(
+          width: 48,
+          textStyle: TextStyle(
+            fontFamily: 'Fira Code',
+            fontSize: 12,
+            color: isDark ? Colors.grey.shade500 : Colors.grey.shade600,
+          ),
+        ),
+        expands: false,
+        wrap: wordWrap,
+        minLines: wordWrap ? null : 10,
+        maxLines: null,
+        readOnly: true,
+      ),
+    );
+
+    // Scrollable content based on wrap mode
+    final scrollableContent = wordWrap
+        ? SingleChildScrollView(child: codeField)
+        : SingleChildScrollView(
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: SizedBox(
+                width: MediaQuery.of(context).size.width * 2,
+                child: codeField,
+              ),
+            ),
+          );
+
     return Container(
       decoration: BoxDecoration(
         color: backgroundColor,
@@ -649,29 +708,7 @@ class RExerciseWidgetState extends State<RExerciseWidget> with SingleTickerProvi
       ),
       child: Stack(
         children: [
-          CodeTheme(
-            data: CodeThemeData(styles: editorTheme),
-            child: CodeField(
-              controller: _solutionController,
-              textStyle: TextStyle(
-                fontFamily: 'Fira Code',
-                fontSize: 14,
-                height: 1.5,
-                color: isDark ? Colors.white : Colors.black87,
-              ),
-              lineNumberStyle: LineNumberStyle(
-                width: 48,
-                textStyle: TextStyle(
-                  fontFamily: 'Fira Code',
-                  fontSize: 12,
-                  color: isDark ? Colors.grey.shade500 : Colors.grey.shade600,
-                ),
-              ),
-              expands: true, // Fill available space
-              wrap: wordWrap,
-              readOnly: true,
-            ),
-          ),
+          scrollableContent,
           // Solution label
           Positioned(
             top: 8,

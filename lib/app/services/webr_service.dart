@@ -325,11 +325,19 @@ class WebRService {
         .replaceAll('\n', '\\n')
         .replaceAll('\r', '');
     
+    // Use capture.output to capture printed output from R
+    // This handles tibbles, data frames, and other complex objects correctly
     final script = '''
       (async function() {
-        const result = await window.webR.evalR('$escapedCode');
-        const output = await result.toArray();
-        return output.join('\\n');
+        try {
+          // Wrap code in capture.output to capture print() output
+          const wrappedCode = 'paste(capture.output({ $escapedCode }), collapse = "\\\\n")';
+          const result = await window.webR.evalR(wrappedCode);
+          const output = await result.toString();
+          return output;
+        } catch (e) {
+          throw new Error(e.message || String(e));
+        }
       })()
     ''';
     
