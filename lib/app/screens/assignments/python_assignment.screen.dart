@@ -327,33 +327,40 @@ class _PythonAssignmentScreenState extends State<PythonAssignmentScreen> {
 
           const SizedBox(height: 24),
 
+          // Sign-in prompt for unauthenticated users
+          if (Supabase.instance.client.auth.currentUser == null)
+            Container(
+              margin: const EdgeInsets.only(bottom: 16),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.blue.shade50,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.blue.shade200),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.info_outline, color: Colors.blue.shade700),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Sign in with Google to save your progress and complete the exercise.',
+                      style: TextStyle(color: Colors.blue.shade800),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  FilledButton(
+                    onPressed: () => context.go('/login'),
+                    child: const Text('Sign In'),
+                  ),
+                ],
+              ),
+            ),
+
           // Python exercise card
           Card(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Header
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.deepPurple.shade50,
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(Icons.code, color: Colors.deepPurple.shade700),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Python Exercise',
-                        style: theme.textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.deepPurple.shade800,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
                 // Python editor
                 SizedBox(
                   height: 500,
@@ -424,18 +431,55 @@ class _PythonAssignmentScreenState extends State<PythonAssignmentScreen> {
 
   Widget _buildPythonPanel(ThemeData theme, ColorScheme colorScheme) {
     final languageCode = Localizations.localeOf(context).languageCode;
+    final isAuthenticated = Supabase.instance.client.auth.currentUser != null;
 
     return Container(
       color: colorScheme.surfaceContainerLowest,
       padding: const EdgeInsets.all(16),
-      child: PythonExerciseWidget(
-        key: _pythonExerciseKey,
-        section: _section!,
-        languageCode: languageCode,
-        showAnswer: _showAnswer,
-        hintUsed: _progress.hintUsed,
-        answerUsed: _progress.answerUsed,
-        onComplete: _onPythonComplete,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Sign-in prompt for unauthenticated users
+          if (!isAuthenticated)
+            Container(
+              margin: const EdgeInsets.only(bottom: 16),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.blue.shade50,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.blue.shade200),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.info_outline, color: Colors.blue.shade700),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Sign in with Google to save your progress and complete the exercise.',
+                      style: TextStyle(color: Colors.blue.shade800),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  FilledButton(
+                    onPressed: () => context.go('/login'),
+                    child: const Text('Sign In'),
+                  ),
+                ],
+              ),
+            ),
+          // Python exercise widget
+          Expanded(
+            child: PythonExerciseWidget(
+              key: _pythonExerciseKey,
+              section: _section!,
+              languageCode: languageCode,
+              showAnswer: _showAnswer,
+              hintUsed: _progress.hintUsed,
+              answerUsed: _progress.answerUsed,
+              onComplete: _onPythonComplete,
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -518,26 +518,55 @@ class _SpreadsheetAssignmentScreenState extends State<SpreadsheetAssignmentScree
   }
 
   Widget _buildSpreadsheetPanel(ThemeData theme, ColorScheme colorScheme) {
+    final isAuthenticated = Supabase.instance.client.auth.currentUser != null;
     final userLang = Localizations.localeOf(context).languageCode;
     final solutionUrl = _section?.getSolutionForLanguage(userLang);
     final solutionId = solutionUrl != null ? _extractSpreadsheetId(solutionUrl) : null;
 
-    // Show solution spreadsheet if answer is requested
+    // Show solution spreadsheet if answer is requested, otherwise user's copy or template
     final spreadsheetId = (_showAnswer && solutionId != null && solutionId.isNotEmpty)
         ? solutionId
-        : _userSpreadsheet?.spreadsheetId;
+        : _userSpreadsheet?.spreadsheetId ?? _section?.templateSpreadsheetId;
 
     return Container(
       color: colorScheme.surfaceContainerLowest,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          // Sign-in prompt for unauthenticated users
+          if (!isAuthenticated)
+            Container(
+              padding: const EdgeInsets.all(12),
+              margin: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.blue.shade50,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.blue.shade200),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.info_outline, color: Colors.blue.shade700),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Sign in with Google to get your own copy of this spreadsheet and complete the exercise.',
+                      style: TextStyle(color: Colors.blue.shade800),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  FilledButton(
+                    onPressed: () => context.go('/login'),
+                    child: const Text('Sign In'),
+                  ),
+                ],
+              ),
+            ),
           // Spreadsheet
           Expanded(
             child: spreadsheetId != null
                 ? EmbeddedSpreadsheet(
                     spreadsheetId: spreadsheetId,
-                    isEditable: true,
+                    isEditable: _userSpreadsheet != null,
                   )
                 : Center(
                     child: Column(
@@ -551,8 +580,8 @@ class _SpreadsheetAssignmentScreenState extends State<SpreadsheetAssignmentScree
                   ),
           ),
 
-          // Bottom action bar
-          if (Supabase.instance.client.auth.currentUser != null)
+          // Bottom action bar (only for authenticated users)
+          if (isAuthenticated)
             _buildActionBar(theme, colorScheme),
         ],
       ),
@@ -602,6 +631,34 @@ class _SpreadsheetAssignmentScreenState extends State<SpreadsheetAssignmentScree
                         color: Colors.deepPurple.shade800,
                         fontWeight: FontWeight.w600,
                       ),
+                    ),
+                  ],
+                ),
+              ),
+            // Sign-in prompt for unauthenticated users
+            if (!isAuthenticated)
+              Container(
+                margin: const EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.blue.shade50,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.blue.shade200),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.info_outline, color: Colors.blue.shade700),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'Sign in with Google to get your own copy and complete the exercise.',
+                        style: TextStyle(color: Colors.blue.shade800),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    FilledButton(
+                      onPressed: () => context.go('/login'),
+                      child: const Text('Sign In'),
                     ),
                   ],
                 ),

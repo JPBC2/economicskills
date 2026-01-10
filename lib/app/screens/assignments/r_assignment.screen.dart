@@ -368,27 +368,64 @@ class _RAssignmentScreenState extends State<RAssignmentScreen> {
 
   Widget _buildRPanel(ThemeData theme, ColorScheme colorScheme) {
     final languageCode = Localizations.localeOf(context).languageCode;
+    final isAuthenticated = Supabase.instance.client.auth.currentUser != null;
     
     return Container(
       color: colorScheme.surfaceContainerLowest,
-      child: RExerciseWidget(
-        key: _rExerciseKey,
-        section: _section!,
-        languageCode: languageCode,
-        showAnswer: _showAnswer,
-        hintUsed: _progress.hintUsed,
-        answerUsed: _progress.answerUsed,
-        onComplete: (passed, xpEarned) async {
-          if (passed) {
-            await _saveProgress(xpEarned);
-            setState(() {
-              _progress = _progress.copyWith(
-                isCompleted: true,
-                xpEarned: xpEarned,
-              );
-            });
-          }
-        },
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Sign-in prompt for unauthenticated users
+          if (!isAuthenticated)
+            Container(
+              margin: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.blue.shade50,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.blue.shade200),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.info_outline, color: Colors.blue.shade700),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Sign in with Google to save your progress and complete the exercise.',
+                      style: TextStyle(color: Colors.blue.shade800),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  FilledButton(
+                    onPressed: () => context.go('/login'),
+                    child: const Text('Sign In'),
+                  ),
+                ],
+              ),
+            ),
+          // R exercise widget
+          Expanded(
+            child: RExerciseWidget(
+              key: _rExerciseKey,
+              section: _section!,
+              languageCode: languageCode,
+              showAnswer: _showAnswer,
+              hintUsed: _progress.hintUsed,
+              answerUsed: _progress.answerUsed,
+              onComplete: (passed, xpEarned) async {
+                if (passed) {
+                  await _saveProgress(xpEarned);
+                  setState(() {
+                    _progress = _progress.copyWith(
+                      isCompleted: true,
+                      xpEarned: xpEarned,
+                    );
+                  });
+                }
+              },
+            ),
+          ),
+        ],
       ),
     );
   }

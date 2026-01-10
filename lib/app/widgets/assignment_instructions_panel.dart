@@ -152,9 +152,6 @@ class _AssignmentInstructionsPanelState extends State<AssignmentInstructionsPane
             ],
 
             const SizedBox(height: 24),
-
-            // Links to other tools
-            _buildToolLinks(theme, colorScheme),
           ],
         ),
       ),
@@ -193,32 +190,68 @@ class _AssignmentInstructionsPanelState extends State<AssignmentInstructionsPane
       _ => Icons.assignment,
     };
 
+    // Check which other tools are available
+    final supportsSpreadsheet = widget.section.supportsSpreadsheet;
+    final supportsPython = widget.section.supportsPython;
+    final supportsR = widget.section.supportsR;
+    final toolCount = (supportsSpreadsheet ? 1 : 0) + (supportsPython ? 1 : 0) + (supportsR ? 1 : 0);
+
+    // Build slug for navigation
+    var slug = widget.section.title.toLowerCase()
+        .replaceAll(' ', '-')
+        .replaceAll(RegExp(r'[^a-z0-9-]'), '');
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Tool badge
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-          decoration: BoxDecoration(
-            color: toolColor.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: toolColor.withValues(alpha: 0.3)),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(toolIcon, size: 16, color: toolColor),
-              const SizedBox(width: 6),
-              Text(
-                toolLabel,
-                style: TextStyle(
-                  color: toolColor,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 12,
-                ),
+        // Tool badge row with 'Also available' aligned right
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // Current tool badge (left)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: toolColor.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: toolColor.withValues(alpha: 0.3)),
               ),
-            ],
-          ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(toolIcon, size: 16, color: toolColor),
+                  const SizedBox(width: 6),
+                  Text(
+                    toolLabel,
+                    style: TextStyle(
+                      color: toolColor,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Spacer(),
+            // Also available: other tools (right)
+            if (toolCount > 1)
+              Wrap(
+                spacing: 8,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  Text(
+                    'Also available:',
+                    style: theme.textTheme.labelSmall?.copyWith(color: colorScheme.onSurfaceVariant),
+                  ),
+                  if (widget.tool != 'spreadsheet' && supportsSpreadsheet)
+                    _buildToolLinkChip('spreadsheet', slug, Icons.table_chart, Colors.green),
+                  if (widget.tool != 'python' && supportsPython)
+                    _buildToolLinkChip('python', slug, Icons.code, Colors.deepPurple),
+                  if (widget.tool != 'r' && supportsR)
+                    _buildToolLinkChip('r', slug, Icons.analytics, Colors.blue),
+                ],
+              ),
+          ],
         ),
         const SizedBox(height: 12),
         // Section title
@@ -447,15 +480,32 @@ class _AssignmentInstructionsPanelState extends State<AssignmentInstructionsPane
     final double lightness = (tool == 'python' && isDark) ? 0.5 : 0.3;
     final displayColor = isDark ? Color.lerp(color, Colors.white, lightness)! : color;
 
-    return ActionChip(
-      avatar: Icon(icon, size: 16, color: displayColor),
-      label: Text(label, style: TextStyle(color: displayColor, fontSize: 12)),
-      onPressed: () {
-        // Navigate to other tool
-        context.go('/sections/$slug-$tool');
-      },
-      backgroundColor: displayColor.withValues(alpha: isDark ? 0.2 : 0.1),
-      side: BorderSide(color: displayColor.withValues(alpha: isDark ? 0.5 : 0.3)),
+    return InkWell(
+      onTap: () => context.go('/sections/$slug-$tool'),
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        decoration: BoxDecoration(
+          color: displayColor.withValues(alpha: isDark ? 0.2 : 0.1),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: displayColor.withValues(alpha: isDark ? 0.5 : 0.3)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 16, color: displayColor),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: TextStyle(
+                color: displayColor,
+                fontWeight: FontWeight.w600,
+                fontSize: 12,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
