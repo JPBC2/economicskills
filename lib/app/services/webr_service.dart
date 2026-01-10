@@ -119,26 +119,35 @@ class WebRService {
   
   /// Initialize WebR instance
   Future<void> _initializeWebR({List<String> packages = const []}) async {
-    // Build package install commands
-    final packageInstalls = packages.map((p) => 
-      'await window.webR.evalR(\'webr::install("$p")\');'
-    ).join('\n        ');
+    // Build package list as JavaScript array
+    final packageList = packages.map((p) => '"$p"').join(', ');
     
     // WebR initialization script - creates window.webR and installs packages
     final initScript = '''
       (async function() {
-        const { WebR } = await import('https://webr.r-wasm.org/latest/webr.mjs');
-        window.webR = new WebR();
-        await window.webR.init();
-        
-        ${packages.isNotEmpty ? '''
-        // Install packages using webr::install
-        console.log('Installing R packages: ${packages.join(', ')}...');
-        $packageInstalls
-        console.log('R packages installed successfully');
-        ''' : ''}
-        
-        return true;
+        try {
+          const { WebR } = await import('https://webr.r-wasm.org/latest/webr.mjs');
+          window.webR = new WebR();
+          await window.webR.init();
+          console.log('WebR initialized');
+          
+          ${packages.isNotEmpty ? '''
+          // Install packages
+          console.log('Installing R packages: ${packages.join(', ')}...');
+          try {
+            await window.webR.installPackages([$packageList]);
+            console.log('R packages installed successfully');
+          } catch (pkgErr) {
+            console.warn('Package install warning:', pkgErr);
+            // Continue even if package install has issues
+          }
+          ''' : ''}
+          
+          return 'success';
+        } catch (err) {
+          console.error('WebR init error:', err);
+          throw err;
+        }
       })()
     ''';
     
