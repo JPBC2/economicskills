@@ -51,6 +51,14 @@ class TopNav extends ConsumerWidget implements PreferredSizeWidget {
 
     return AppBar(
       backgroundColor: appBarColor,
+      // Explicitly show hamburger menu when not in wide mode
+      leading: isWide ? null : Builder(
+        builder: (context) => IconButton(
+          icon: Icon(Icons.menu, color: buttonTextColor),
+          onPressed: () => Scaffold.of(context).openDrawer(),
+          tooltip: 'Open menu',
+        ),
+      ),
       title: GestureDetector(
         onTap: () => context.go('/'),
         child: Text(
