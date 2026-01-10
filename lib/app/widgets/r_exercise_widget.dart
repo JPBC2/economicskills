@@ -328,7 +328,7 @@ class RExerciseWidgetState extends State<RExerciseWidget> with SingleTickerProvi
             const CircularProgressIndicator(),
             const SizedBox(height: 16),
             Text(
-              'Loading R environment...',
+              _webR.loadingStatus.isNotEmpty ? _webR.loadingStatus : 'Loading R environment...',
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: colorScheme.onSurfaceVariant,
               ),

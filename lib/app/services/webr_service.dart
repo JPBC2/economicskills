@@ -14,6 +14,7 @@ class WebRService {
   bool _isInitialized = false;
   bool _isInitializing = false;
   String? _initError;
+  String _loadingStatus = '';
   
   /// Check if WebR is initialized and ready
   bool get isReady => _isInitialized;
@@ -23,6 +24,17 @@ class WebRService {
   
   /// Get initialization error if any
   String? get initError => _initError;
+  
+  /// Get current loading status message
+  String get loadingStatus => _loadingStatus;
+  
+  /// Preload WebR in background (fire and forget)
+  /// Call this on pages where user might navigate to R content
+  void preload({List<String> packages = const ['dplyr', 'readr']}) {
+    if (_isInitialized || _isInitializing) return;
+    // Fire and forget - don't await
+    initialize(packages: packages).catchError((_) {});
+  }
 
   /// Initialize WebR runtime
   /// This loads the WebR WASM module and sets up the R environment
@@ -40,16 +52,24 @@ class WebRService {
     
     _isInitializing = true;
     _initError = null;
+    _loadingStatus = 'Downloading R environment...';
     
     try {
       // Load WebR from CDN
       await _loadWebRScript();
       
+      _loadingStatus = 'Initializing R runtime...';
+      
       // Initialize WebR with packages
+      _loadingStatus = packages.isNotEmpty 
+          ? 'Installing packages: ${packages.join(', ')}...'
+          : 'Starting R environment...';
       await _initializeWebR(packages: packages);
       
+      _loadingStatus = 'Ready!';
       _isInitialized = true;
     } catch (e) {
+      _loadingStatus = 'Failed to load';
       _initError = e.toString();
       rethrow;
     } finally {

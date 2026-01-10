@@ -6,6 +6,7 @@ import 'package:economicskills/app/widgets/top_nav.widget.dart';
 import 'package:economicskills/app/widgets/hiding_scaffold.widget.dart';
 import 'package:economicskills/app/widgets/drawer_nav.widget.dart';
 import 'package:economicskills/app/res/responsive.res.dart';
+import 'package:economicskills/app/services/webr_service.dart';
 
 /// Course Detail Screen - Shows units, lessons, and exercises for a course
 class CourseDetailScreen extends StatefulWidget {
@@ -119,6 +120,18 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
         _sectionXpEarned = xpEarned;
         _isLoading = false;
       });
+      
+      // Preload WebR if any section supports R
+      final hasRContent = _units.any((unit) =>
+          unit.lessons?.any((lesson) =>
+              lesson.exercises?.any((exercise) =>
+                  exercise.sections?.any((section) => section.supportsR) ?? false
+              ) ?? false
+          ) ?? false
+      );
+      if (hasRContent) {
+        WebRService.instance.preload();
+      }
     } catch (e, stackTrace) {
       print('Error loading course: $e');
       print('Stack trace: $stackTrace');

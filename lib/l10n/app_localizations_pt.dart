@@ -76,7 +76,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get switchThemeTooltip => 'Alternar tema (escuro / claro)';
 
   @override
-  String get landingHeroTitle1 => 'Domine Economia com';
+  String get landingHeroTitle1 => 'Domine a Economia com';
 
   @override
   String get landingHeroTitle2 => 'Dados Interativos';
