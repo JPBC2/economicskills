@@ -222,17 +222,20 @@ class RExerciseWidgetState extends State<RExerciseWidget> with SingleTickerProvi
   /// Validate the code and award XP if correct
   Future<void> _submitCode() async {
     if (_isSubmitting || !_webR.isReady) return;
-    
+
     setState(() {
       _isSubmitting = true;
       _output = 'Validating...\n';
       _validationResult = null;
     });
-    
+
     try {
+      // Inject data files before validation (same as _runCode)
+      await _injectDataFiles();
+
       // Get R validation config
       final validationConfig = widget.section.rValidationConfig ?? {};
-      
+
       final result = await _webR.validateCode(
         _codeController.text,
         validationConfig,
