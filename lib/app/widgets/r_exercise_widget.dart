@@ -636,19 +636,8 @@ class RExerciseWidgetState extends State<RExerciseWidget> with SingleTickerProvi
           bottom: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
         ),
       ),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          return SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            physics: wordWrap ? const NeverScrollableScrollPhysics() : const ClampingScrollPhysics(),
-            child: SizedBox(
-              width: wordWrap ? constraints.maxWidth : null,
-              child: SingleChildScrollView(
-                child: codeField,
-              ),
-            ),
-          );
-        },
+      child: SingleChildScrollView(
+        child: codeField,
       ),
     );
   }
@@ -696,45 +685,32 @@ class RExerciseWidgetState extends State<RExerciseWidget> with SingleTickerProvi
           bottom: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
         ),
       ),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final scrollableContent = SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            physics: wordWrap ? const NeverScrollableScrollPhysics() : const ClampingScrollPhysics(),
-            child: SizedBox(
-              width: wordWrap ? constraints.maxWidth : null,
-              child: SingleChildScrollView(
-                child: codeField,
+      child: Stack(
+        children: [
+          SingleChildScrollView(
+            child: codeField,
+          ),
+          // Solution label
+          Positioned(
+            top: 8,
+            right: 8,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.green.shade600,
+                borderRadius: BorderRadius.circular(4),
               ),
-            ),
-          );
-          
-          return Stack(
-            children: [
-              scrollableContent,
-              // Solution label
-              Positioned(
-                top: 8,
-                right: 8,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.green.shade600,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: const Text(
-                    'SOLUTION',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+              child: const Text(
+                'SOLUTION',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
-            ],
-          );
-        },
+            ),
+          ),
+        ],
       ),
     );
   }
