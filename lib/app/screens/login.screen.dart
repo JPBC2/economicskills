@@ -124,52 +124,24 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        // Google Sheets icon representation
-                        Container(
-                          width: 100,
-                          height: 100,
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [
-                                Colors.green.shade400,
-                                Colors.green.shade600,
-                              ],
-                            ),
-                            borderRadius: BorderRadius.circular(20),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.green.withOpacity(0.3),
-                                blurRadius: 20,
-                                offset: const Offset(0, 8),
-                              ),
-                            ],
-                          ),
-                          child: const Icon(
-                            Icons.table_chart_rounded,
-                            size: 50,
-                            color: Colors.white,
-                          ),
-                        ),
-                        const SizedBox(height: 32),
                         GestureDetector(
                           onTap: () => context.go('/'),
-                          child: const Text(
+                          child: Text(
                             'Welcome to Economic Skills',
                             style: TextStyle(
                               fontSize: 24,
                               fontFamily: 'ContrailOne',
+                              color: isDark ? Colors.blue.shade300 : Colors.blue.shade700,
                             ),
                             textAlign: TextAlign.center,
                           ),
                         ),
                         const SizedBox(height: 12),
                         Text(
-                          'Learn applied economic theory with interactive Google Sheets',
+                          'Learn applied economics with interactive exercises in Google Sheets, Python, and R',
                           textAlign: TextAlign.center,
                           style: TextStyle(
-                            fontSize: 16, 
+                            fontSize: 16,
                             color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
                           ),
                         ),

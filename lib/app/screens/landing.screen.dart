@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:shared/shared.dart';
 import 'package:economicskills/app/widgets/top_nav.widget.dart';
 import 'package:economicskills/app/widgets/hiding_scaffold.widget.dart';
 import 'package:economicskills/app/widgets/drawer_nav.widget.dart';
 import 'package:economicskills/app/res/responsive.res.dart';
-import 'package:economicskills/l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
 
 /// Landing Page - PUBLIC (no auth required)
@@ -32,7 +30,7 @@ class LandingScreen extends StatelessWidget {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  colorScheme.primaryContainer.withOpacity(0.3),
+                  colorScheme.primaryContainer.withValues(alpha: 0.3),
                   colorScheme.surface,
                 ],
               ),
@@ -60,7 +58,7 @@ class LandingScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 24),
                     Text(
-                      'Bridge the gap between theory and practice. Solve real-world economic problems using interactive Google Sheets and Python exercises with instant feedback.',
+                      'Bridge the gap between theory and practice. Solve real-world economic problems using interactive Google Sheets, Python, and R exercises with instant feedback.',
                       style: theme.textTheme.titleMedium?.copyWith(
                         color: colorScheme.onSurfaceVariant,
                         height: 1.6,
@@ -135,24 +133,28 @@ class LandingScreen extends StatelessWidget {
                           Icons.play_circle_outline,
                           'Interactive Learning',
                           "Don't just read about economics. Do it. Manipulate data in real-time and see how economic models respond.",
+                          gradientColors: [Colors.red.shade400, Colors.red.shade700],
                         ),
                         _buildFeatureCard(
                           theme,
                           Icons.table_chart,
                           'Google Sheets Integration',
                           'Work in the environment you know. Our seamless integration brings the power of spreadsheets to your learning.',
+                          gradientColors: [Colors.green.shade400, Colors.green.shade700],
                         ),
                         _buildFeatureCard(
                           theme,
                           Icons.code,
-                          'Python Exercises',
-                          'Write Python code to analyze economic data. Build real-world skills with hands-on coding challenges.',
+                          'R & Python Exercises',
+                          'Write R and Python code to analyze economic data. Build real-world skills with hands-on coding challenges.',
+                          gradientColors: [Colors.purple.shade400, Colors.purple.shade700],
                         ),
                         _buildFeatureCard(
                           theme,
                           Icons.check_circle_outline,
                           'Instant Verification',
                           'Get immediate feedback on your exercises. Understand your mistakes and learn faster.',
+                          gradientColors: [Colors.amber.shade500, Colors.orange.shade600],
                         ),
                       ],
                     ),
@@ -165,7 +167,7 @@ class LandingScreen extends StatelessWidget {
           // CTA Section
           Container(
             padding: const EdgeInsets.all(48),
-            color: colorScheme.primaryContainer.withOpacity(0.2),
+            color: colorScheme.primaryContainer.withValues(alpha: 0.2),
             child: Center(
               child: Column(
                 children: [
@@ -206,7 +208,22 @@ class LandingScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildFeatureCard(ThemeData theme, IconData icon, String title, String description) {
+  Widget _buildFeatureCard(
+    ThemeData theme,
+    IconData icon,
+    String title,
+    String description, {
+    List<Color>? gradientColors,
+  }) {
+    final isDark = theme.brightness == Brightness.dark;
+
+    // Adjust gradient colors for dark theme (slightly lighter)
+    final effectiveColors = gradientColors != null
+        ? (isDark
+            ? gradientColors.map((c) => Color.lerp(c, Colors.white, 0.15)!).toList()
+            : gradientColors)
+        : null;
+
     return SizedBox(
       width: 320,
       child: Card(
@@ -219,10 +236,21 @@ class LandingScreen extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.primaryContainer,
+                  color: effectiveColors != null
+                      ? effectiveColors.first.withValues(alpha: isDark ? 0.2 : 0.15)
+                      : theme.colorScheme.primaryContainer,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(icon, color: theme.colorScheme.primary, size: 28),
+                child: effectiveColors != null
+                    ? ShaderMask(
+                        shaderCallback: (bounds) => LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: effectiveColors,
+                        ).createShader(bounds),
+                        child: Icon(icon, color: Colors.white, size: 28),
+                      )
+                    : Icon(icon, color: theme.colorScheme.primary, size: 28),
               ),
               const SizedBox(height: 16),
               Text(
