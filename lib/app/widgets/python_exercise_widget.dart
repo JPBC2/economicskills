@@ -550,19 +550,19 @@ class PythonExerciseWidgetState extends State<PythonExerciseWidget> with SingleT
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(8),
-        child: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          physics: wordWrap ? const NeverScrollableScrollPhysics() : const ClampingScrollPhysics(),
-          child: IntrinsicWidth(
-            child: ConstrainedBox(
-              constraints: BoxConstraints(
-                minWidth: MediaQuery.of(context).size.width - 32,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              physics: wordWrap ? const NeverScrollableScrollPhysics() : const ClampingScrollPhysics(),
+              child: SizedBox(
+                width: wordWrap ? constraints.maxWidth : null,
+                child: SingleChildScrollView(
+                  child: codeField,
+                ),
               ),
-              child: SingleChildScrollView(
-                child: codeField,
-              ),
-            ),
-          ),
+            );
+          },
         ),
       ),
     );
@@ -601,21 +601,6 @@ class PythonExerciseWidgetState extends State<PythonExerciseWidget> with SingleT
       ),
     );
 
-    final scrollableContent = SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      physics: wordWrap ? const NeverScrollableScrollPhysics() : const ClampingScrollPhysics(),
-      child: IntrinsicWidth(
-        child: ConstrainedBox(
-          constraints: BoxConstraints(
-            minWidth: MediaQuery.of(context).size.width - 32,
-          ),
-          child: SingleChildScrollView(
-            child: codeField,
-          ),
-        ),
-      ),
-    );
-
     return Container(
       decoration: BoxDecoration(
         border: Border.all(color: isDark ? Colors.deepPurple.shade300 : Colors.deepPurple.shade200),
@@ -623,30 +608,45 @@ class PythonExerciseWidgetState extends State<PythonExerciseWidget> with SingleT
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(8),
-        child: Stack(
-          children: [
-            scrollableContent,
-            // Solution label
-            Positioned(
-              top: 8,
-              right: 8,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.deepPurple.shade600,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: const Text(
-                  'SOLUTION',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                  ),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final scrollableContent = SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              physics: wordWrap ? const NeverScrollableScrollPhysics() : const ClampingScrollPhysics(),
+              child: SizedBox(
+                width: wordWrap ? constraints.maxWidth : null,
+                child: SingleChildScrollView(
+                  child: codeField,
                 ),
               ),
-            ),
-          ],
+            );
+            
+            return Stack(
+              children: [
+                scrollableContent,
+                // Solution label
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.deepPurple.shade600,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: const Text(
+                      'SOLUTION',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
         ),
       ),
     );

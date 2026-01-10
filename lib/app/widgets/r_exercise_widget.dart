@@ -636,20 +636,20 @@ class RExerciseWidgetState extends State<RExerciseWidget> with SingleTickerProvi
           bottom: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
         ),
       ),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        physics: wordWrap ? const NeverScrollableScrollPhysics() : const ClampingScrollPhysics(),
-        child: IntrinsicWidth(
-          child: ConstrainedBox(
-            constraints: BoxConstraints(
-              minWidth: MediaQuery.of(context).size.width - 32,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            physics: wordWrap ? const NeverScrollableScrollPhysics() : const ClampingScrollPhysics(),
+            child: SizedBox(
+              width: wordWrap ? constraints.maxWidth : null,
+              child: SingleChildScrollView(
+                child: codeField,
+              ),
             ),
-            child: SingleChildScrollView(
-              child: codeField,
-            ),
-          ),
-        ),
-      )
+          );
+        },
+      ),
     );
   }
 
@@ -689,22 +689,6 @@ class RExerciseWidgetState extends State<RExerciseWidget> with SingleTickerProvi
       ),
     );
 
-    // Scrollable content with proper horizontal scroll support
-    final scrollableContent = SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      physics: wordWrap ? const NeverScrollableScrollPhysics() : const ClampingScrollPhysics(),
-      child: IntrinsicWidth(
-        child: ConstrainedBox(
-          constraints: BoxConstraints(
-            minWidth: MediaQuery.of(context).size.width - 32,
-          ),
-          child: SingleChildScrollView(
-            child: codeField,
-          ),
-        ),
-      ),
-    );
-
     return Container(
       decoration: BoxDecoration(
         color: backgroundColor,
@@ -712,30 +696,45 @@ class RExerciseWidgetState extends State<RExerciseWidget> with SingleTickerProvi
           bottom: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
         ),
       ),
-      child: Stack(
-        children: [
-          scrollableContent,
-          // Solution label
-          Positioned(
-            top: 8,
-            right: 8,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: Colors.green.shade600,
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: const Text(
-                'SOLUTION',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold,
-                ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final scrollableContent = SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            physics: wordWrap ? const NeverScrollableScrollPhysics() : const ClampingScrollPhysics(),
+            child: SizedBox(
+              width: wordWrap ? constraints.maxWidth : null,
+              child: SingleChildScrollView(
+                child: codeField,
               ),
             ),
-          ),
-        ],
+          );
+          
+          return Stack(
+            children: [
+              scrollableContent,
+              // Solution label
+              Positioned(
+                top: 8,
+                right: 8,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.green.shade600,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: const Text(
+                    'SOLUTION',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
