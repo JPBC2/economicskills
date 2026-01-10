@@ -614,16 +614,18 @@ class RExerciseWidgetState extends State<RExerciseWidget> with SingleTickerProvi
         ),
         lineNumberStyle: LineNumberStyle(
           width: 48,
+          textAlign: TextAlign.right,
           textStyle: TextStyle(
             fontFamily: 'Fira Code',
             fontSize: 12,
+            height: 1.5, // Match code text height
             color: isDark ? Colors.grey.shade500 : Colors.grey.shade600,
           ),
         ),
-        expands: false, // Don't expand - let scroll view handle sizing
+        expands: false,
         wrap: wordWrap,
-        minLines: wordWrap ? null : 10, // Minimum height when not wrapping
-        maxLines: wordWrap ? null : null, // Allow unlimited lines
+        minLines: 10,
+        maxLines: null
       ),
     );
 
@@ -634,21 +636,20 @@ class RExerciseWidgetState extends State<RExerciseWidget> with SingleTickerProvi
           bottom: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
         ),
       ),
-      child: wordWrap
-          // Word wrap on: only vertical scrolling
-          ? SingleChildScrollView(
-              child: codeField,
-            )
-          // Word wrap off: both horizontal and vertical scrolling
-          : SingleChildScrollView(
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: SizedBox(
-                  width: MediaQuery.of(context).size.width * 2, // Allow for wide content
-                  child: codeField,
-                ),
-              ),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        physics: wordWrap ? const NeverScrollableScrollPhysics() : const ClampingScrollPhysics(),
+        child: IntrinsicWidth(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              minWidth: MediaQuery.of(context).size.width - 32,
             ),
+            child: SingleChildScrollView(
+              child: codeField,
+            ),
+          ),
+        ),
+      )
     );
   }
 
@@ -672,32 +673,37 @@ class RExerciseWidgetState extends State<RExerciseWidget> with SingleTickerProvi
         ),
         lineNumberStyle: LineNumberStyle(
           width: 48,
+          textAlign: TextAlign.right,
           textStyle: TextStyle(
             fontFamily: 'Fira Code',
             fontSize: 12,
+            height: 1.5,
             color: isDark ? Colors.grey.shade500 : Colors.grey.shade600,
           ),
         ),
         expands: false,
         wrap: wordWrap,
-        minLines: wordWrap ? null : 10,
+        minLines: 10,
         maxLines: null,
         readOnly: true,
       ),
     );
 
-    // Scrollable content based on wrap mode
-    final scrollableContent = wordWrap
-        ? SingleChildScrollView(child: codeField)
-        : SingleChildScrollView(
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: SizedBox(
-                width: MediaQuery.of(context).size.width * 2,
-                child: codeField,
-              ),
-            ),
-          );
+    // Scrollable content with proper horizontal scroll support
+    final scrollableContent = SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      physics: wordWrap ? const NeverScrollableScrollPhysics() : const ClampingScrollPhysics(),
+      child: IntrinsicWidth(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            minWidth: MediaQuery.of(context).size.width - 32,
+          ),
+          child: SingleChildScrollView(
+            child: codeField,
+          ),
+        ),
+      ),
+    );
 
     return Container(
       decoration: BoxDecoration(

@@ -532,12 +532,13 @@ class PythonExerciseWidgetState extends State<PythonExerciseWidget> with SingleT
           textStyle: TextStyle(
             fontFamily: 'Fira Code',
             fontSize: 12,
+            height: 1.5,
             color: isDark ? Colors.grey.shade500 : Colors.grey.shade600,
           ),
         ),
         expands: false,
         wrap: wordWrap,
-        minLines: wordWrap ? null : 10,
+        minLines: 10,
         maxLines: null,
       ),
     );
@@ -549,17 +550,20 @@ class PythonExerciseWidgetState extends State<PythonExerciseWidget> with SingleT
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(8),
-        child: wordWrap
-            ? SingleChildScrollView(child: codeField)
-            : SingleChildScrollView(
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: SizedBox(
-                    width: MediaQuery.of(context).size.width * 2,
-                    child: codeField,
-                  ),
-                ),
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          physics: wordWrap ? const NeverScrollableScrollPhysics() : const ClampingScrollPhysics(),
+          child: IntrinsicWidth(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                minWidth: MediaQuery.of(context).size.width - 32,
               ),
+              child: SingleChildScrollView(
+                child: codeField,
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -585,28 +589,32 @@ class PythonExerciseWidgetState extends State<PythonExerciseWidget> with SingleT
           textStyle: TextStyle(
             fontFamily: 'Fira Code',
             fontSize: 12,
+            height: 1.5,
             color: isDark ? Colors.grey.shade500 : Colors.grey.shade600,
           ),
         ),
         expands: false,
         wrap: wordWrap,
-        minLines: wordWrap ? null : 10,
+        minLines: 10,
         maxLines: null,
         readOnly: true,
       ),
     );
 
-    final scrollableContent = wordWrap
-        ? SingleChildScrollView(child: codeField)
-        : SingleChildScrollView(
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: SizedBox(
-                width: MediaQuery.of(context).size.width * 2,
-                child: codeField,
-              ),
-            ),
-          );
+    final scrollableContent = SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      physics: wordWrap ? const NeverScrollableScrollPhysics() : const ClampingScrollPhysics(),
+      child: IntrinsicWidth(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            minWidth: MediaQuery.of(context).size.width - 32,
+          ),
+          child: SingleChildScrollView(
+            child: codeField,
+          ),
+        ),
+      ),
+    );
 
     return Container(
       decoration: BoxDecoration(
