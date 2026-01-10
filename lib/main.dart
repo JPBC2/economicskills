@@ -96,6 +96,11 @@ class MyApp extends StatelessWidget {
               Locale('id'), // Indonesian
               Locale('ko'), // Korean
               Locale('ja'), // Japanese
+              Locale('it'), // Italian
+              Locale('de'), // German
+              Locale('nl'), // Dutch
+              Locale('ca'), // Catalan
+              Locale('ro'), // Romanian
             ],
 
             // Routing with go_router

@@ -150,6 +150,7 @@ class RExerciseWidgetState extends State<RExerciseWidget> with SingleTickerProvi
       // Initialize with common statistics packages
       await _webR.initialize(packages: [
         'dplyr',
+        'readr',  // for read_csv
         'ggplot2',
         'tidyr',
       ]);
