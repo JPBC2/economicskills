@@ -56,10 +56,12 @@ class PythonExerciseWidgetState extends State<PythonExerciseWidget> with SingleT
   ValidationResult? _validationResult;
   bool _hintUsed = false;
   final bool _answerUsed = false;  // Track if answer was revealed
+  bool? _wordWrapOverride; // null = use responsive default, true/false = user override
 
   @override
   void initState() {
     super.initState();
+
     // Initialize code controllers with Python syntax highlighting
     _codeController = CodeController(
       language: python,
@@ -281,6 +283,15 @@ class PythonExerciseWidgetState extends State<PythonExerciseWidget> with SingleT
     }
   }
 
+  /// Get effective word wrap setting based on screen size or user override
+  /// Mobile (< 600px): wrap by default for better readability
+  /// Desktop (>= 600px): no wrap by default, show horizontal scrollbar
+  bool _getEffectiveWordWrap(BuildContext context) {
+    if (_wordWrapOverride != null) return _wordWrapOverride!;
+    final screenWidth = MediaQuery.of(context).size.width;
+    return screenWidth < 600; // Mobile breakpoint
+  }
+
   /// Show hint and mark as used
   void _showHint() {
     if (widget.section.hint == null) return;
@@ -475,6 +486,20 @@ class PythonExerciseWidgetState extends State<PythonExerciseWidget> with SingleT
               label: Text(_hintUsed ? 'Hint Used' : 'Hint'),
             ),
           const Spacer(),
+          // Word wrap toggle
+          Builder(
+            builder: (context) {
+              final effectiveWrap = _getEffectiveWordWrap(context);
+              return IconButton(
+                onPressed: () => setState(() => _wordWrapOverride = !effectiveWrap),
+                icon: Icon(
+                  effectiveWrap ? Icons.wrap_text : Icons.segment,
+                  color: effectiveWrap ? colorScheme.primary : colorScheme.onSurfaceVariant,
+                ),
+                tooltip: effectiveWrap ? 'Disable word wrap' : 'Enable word wrap',
+              );
+            },
+          ),
           IconButton(
             onPressed: _resetCode,
             icon: const Icon(Icons.refresh),
@@ -490,7 +515,8 @@ class PythonExerciseWidgetState extends State<PythonExerciseWidget> with SingleT
     final colorScheme = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final theme = isDark ? atomOneDarkTheme : atomOneLightTheme;
-    
+    final wordWrap = _getEffectiveWordWrap(context);
+
     return Container(
       decoration: BoxDecoration(
         border: Border.all(color: colorScheme.outline),
@@ -503,14 +529,21 @@ class PythonExerciseWidgetState extends State<PythonExerciseWidget> with SingleT
           child: CodeField(
             controller: _codeController,
             textStyle: const TextStyle(
-              fontFamily: 'monospace',
+              fontFamily: 'Fira Code',
               fontSize: 14,
+              height: 1.5,
             ),
-            lineNumberStyle: const LineNumberStyle(
+            lineNumberStyle: LineNumberStyle(
               width: 48,
               textAlign: TextAlign.right,
+              textStyle: TextStyle(
+                fontFamily: 'Fira Code',
+                fontSize: 12,
+                color: isDark ? Colors.grey.shade500 : Colors.grey.shade600,
+              ),
             ),
-            expands: true,
+            expands: true, // Fill available space - works with Expanded
+            wrap: wordWrap,
           ),
         ),
       ),
@@ -521,7 +554,8 @@ class PythonExerciseWidgetState extends State<PythonExerciseWidget> with SingleT
   Widget _buildSolutionEditor() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final theme = isDark ? atomOneDarkTheme : atomOneLightTheme;
-    
+    final wordWrap = _getEffectiveWordWrap(context);
+
     return Container(
       decoration: BoxDecoration(
         border: Border.all(color: isDark ? Colors.deepPurple.shade300 : Colors.deepPurple.shade200),
@@ -529,20 +563,52 @@ class PythonExerciseWidgetState extends State<PythonExerciseWidget> with SingleT
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(8),
-        child: CodeTheme(
-          data: CodeThemeData(styles: theme),
-          child: CodeField(
-            controller: _solutionController,
-            textStyle: const TextStyle(
-              fontFamily: 'monospace',
-              fontSize: 14,
+        child: Stack(
+          children: [
+            CodeTheme(
+              data: CodeThemeData(styles: theme),
+              child: CodeField(
+                controller: _solutionController,
+                textStyle: const TextStyle(
+                  fontFamily: 'Fira Code',
+                  fontSize: 14,
+                  height: 1.5,
+                ),
+                lineNumberStyle: LineNumberStyle(
+                  width: 48,
+                  textAlign: TextAlign.right,
+                  textStyle: TextStyle(
+                    fontFamily: 'Fira Code',
+                    fontSize: 12,
+                    color: isDark ? Colors.grey.shade500 : Colors.grey.shade600,
+                  ),
+                ),
+                expands: true, // Fill available space
+                wrap: wordWrap,
+                readOnly: true,
+              ),
             ),
-            lineNumberStyle: const LineNumberStyle(
-              width: 48,
-              textAlign: TextAlign.right,
+            // Solution label
+            Positioned(
+              top: 8,
+              right: 8,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.deepPurple.shade600,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: const Text(
+                  'SOLUTION',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
             ),
-            expands: true,
-          ),
+          ],
         ),
       ),
     );

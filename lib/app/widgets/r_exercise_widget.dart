@@ -45,9 +45,9 @@ class RExerciseWidgetState extends State<RExerciseWidget> with SingleTickerProvi
   late CodeController _codeController;
   late CodeController _solutionController;
   late TabController _tabController;
-  
+
   final WebRService _webR = WebRService.instance;
-  
+
   bool _isInitializing = true;
   bool _isRunning = false;
   bool _isSubmitting = false;
@@ -55,18 +55,19 @@ class RExerciseWidgetState extends State<RExerciseWidget> with SingleTickerProvi
   String? _error;
   RValidationResult? _validationResult;
   bool _hintUsed = false;
+  bool? _wordWrapOverride; // null = use responsive default, true/false = user override
   
   @override
   void initState() {
     super.initState();
     _hintUsed = widget.hintUsed;
     _tabController = TabController(length: 2, vsync: this);
-    
+
     _codeController = CodeController(
       text: '',
       language: r,
     );
-    
+
     _solutionController = CodeController(
       text: '',
       language: r,
@@ -276,6 +277,15 @@ class RExerciseWidgetState extends State<RExerciseWidget> with SingleTickerProvi
     }
   }
   
+  /// Get effective word wrap setting based on screen size or user override
+  /// Mobile (< 600px): wrap by default for better readability
+  /// Desktop (>= 600px): no wrap by default, show horizontal scrollbar
+  bool _getEffectiveWordWrap(BuildContext context) {
+    if (_wordWrapOverride != null) return _wordWrapOverride!;
+    final screenWidth = MediaQuery.of(context).size.width;
+    return screenWidth < 600; // Mobile breakpoint
+  }
+
   /// Show hint and mark as used
   void _showHint() {
     final hint = widget.section.getHintForTool('r') ?? widget.section.hint;
@@ -557,6 +567,22 @@ class RExerciseWidgetState extends State<RExerciseWidget> with SingleTickerProvi
               ),
             ),
           
+          // Word wrap toggle
+          Builder(
+            builder: (context) {
+              final effectiveWrap = _getEffectiveWordWrap(context);
+              return IconButton(
+                onPressed: () => setState(() => _wordWrapOverride = !effectiveWrap),
+                icon: Icon(
+                  effectiveWrap ? Icons.wrap_text : Icons.segment,
+                  size: 18,
+                  color: effectiveWrap ? colorScheme.primary : colorScheme.onSurfaceVariant,
+                ),
+                tooltip: effectiveWrap ? 'Disable word wrap' : 'Enable word wrap',
+              );
+            },
+          ),
+
           // Reset button
           IconButton(
             onPressed: _resetCode,
@@ -573,7 +599,8 @@ class RExerciseWidgetState extends State<RExerciseWidget> with SingleTickerProvi
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final editorTheme = isDark ? atomOneDarkTheme : githubTheme;
     final backgroundColor = isDark ? const Color(0xFF282c34) : Colors.grey.shade100;
-    
+    final wordWrap = _getEffectiveWordWrap(context);
+
     return Container(
       decoration: BoxDecoration(
         color: backgroundColor,
@@ -588,20 +615,31 @@ class RExerciseWidgetState extends State<RExerciseWidget> with SingleTickerProvi
           textStyle: TextStyle(
             fontFamily: 'Fira Code',
             fontSize: 14,
+            height: 1.5,
             color: isDark ? Colors.white : Colors.black87,
           ),
-          expands: true, // Allow expansion to fill available space
+          lineNumberStyle: LineNumberStyle(
+            width: 48,
+            textStyle: TextStyle(
+              fontFamily: 'Fira Code',
+              fontSize: 12,
+              color: isDark ? Colors.grey.shade500 : Colors.grey.shade600,
+            ),
+          ),
+          expands: true, // Fill available space - works with Expanded parent
+          wrap: wordWrap,
         ),
       ),
     );
   }
-  
+
   /// Build solution code editor with R syntax highlighting
   Widget _buildSolutionEditor() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final editorTheme = isDark ? atomOneDarkTheme : githubTheme;
     final backgroundColor = isDark ? const Color(0xFF1a3a1a) : Colors.green.shade50;
-    
+    final wordWrap = _getEffectiveWordWrap(context);
+
     return Container(
       decoration: BoxDecoration(
         color: backgroundColor,
@@ -613,18 +651,25 @@ class RExerciseWidgetState extends State<RExerciseWidget> with SingleTickerProvi
         children: [
           CodeTheme(
             data: CodeThemeData(styles: editorTheme),
-            child: SingleChildScrollView(
-              child: CodeField(
-                controller: _solutionController,
+            child: CodeField(
+              controller: _solutionController,
+              textStyle: TextStyle(
+                fontFamily: 'Fira Code',
+                fontSize: 14,
+                height: 1.5,
+                color: isDark ? Colors.white : Colors.black87,
+              ),
+              lineNumberStyle: LineNumberStyle(
+                width: 48,
                 textStyle: TextStyle(
                   fontFamily: 'Fira Code',
-                  fontSize: 14,
-                  color: isDark ? Colors.white : Colors.black87,
+                  fontSize: 12,
+                  color: isDark ? Colors.grey.shade500 : Colors.grey.shade600,
                 ),
-                minLines: 15,
-                expands: false,
-                readOnly: true,
               ),
+              expands: true, // Fill available space
+              wrap: wordWrap,
+              readOnly: true,
             ),
           ),
           // Solution label
