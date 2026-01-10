@@ -74,4 +74,57 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get switchThemeTooltip => '테마 전환 (다크 / 라이트)';
+
+  @override
+  String get landingHeroTitle1 => '인터랙티브 데이터로';
+
+  @override
+  String get landingHeroTitle2 => '경제학 마스터하기';
+
+  @override
+  String get landingHeroSubtitle =>
+      '이론과 실습 사이의 격차를 해소하세요. Google Sheets, Python, R 인터랙티브 연습으로 즉각적인 피드백을 받으며 실제 경제 문제를 해결하세요.';
+
+  @override
+  String get landingExploreCourses => '과정 탐색';
+
+  @override
+  String get landingMyDashboard => '내 대시보드';
+
+  @override
+  String get landingWhyTitle => '왜 Economic Skills인가요?';
+
+  @override
+  String get landingFeature1Title => '인터랙티브 학습';
+
+  @override
+  String get landingFeature1Desc =>
+      '경제학을 읽기만 하지 마세요. 실습하세요. 실시간으로 데이터를 조작하고 경제 모델이 어떻게 반응하는지 확인하세요.';
+
+  @override
+  String get landingFeature2Title => 'Google Sheets 통합';
+
+  @override
+  String get landingFeature2Desc =>
+      '익숙한 환경에서 작업하세요. 원활한 통합으로 스프레드시트의 강력함을 학습에 활용할 수 있습니다.';
+
+  @override
+  String get landingFeature3Title => 'R & Python 연습';
+
+  @override
+  String get landingFeature3Desc =>
+      'R과 Python 코드를 작성하여 경제 데이터를 분석하세요. 실습 코딩 도전으로 실제 기술을 개발하세요.';
+
+  @override
+  String get landingFeature4Title => '즉시 검증';
+
+  @override
+  String get landingFeature4Desc =>
+      '연습에 대한 즉각적인 피드백을 받으세요. 실수를 이해하고 더 빠르게 배우세요.';
+
+  @override
+  String get landingCtaTitle => '학습을 시작할 준비가 되셨나요?';
+
+  @override
+  String get landingBrowseCourses => '과정 둘러보기';
 }

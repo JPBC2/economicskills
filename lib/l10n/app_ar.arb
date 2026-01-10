@@ -30,5 +30,22 @@
     "featureInDevelopment": "هذه الميزة قيد التطوير.",
     "signOutSuccess": "تم تسجيل الخروج بنجاح!",
     "signOutError": "خطأ في تسجيل الخروج",
-    "switchThemeTooltip": "تبديل المظهر (داكن / فاتح)"
+    "switchThemeTooltip": "تبديل المظهر (داكن / فاتح)",
+
+    "landingHeroTitle1": "أتقن الاقتصاد مع",
+    "landingHeroTitle2": "البيانات التفاعلية",
+    "landingHeroSubtitle": "اجسر الفجوة بين النظرية والتطبيق. حل مشكلات اقتصادية واقعية باستخدام تمارين Google Sheets و Python و R التفاعلية مع تغذية راجعة فورية.",
+    "landingExploreCourses": "استكشف الدورات",
+    "landingMyDashboard": "لوحة التحكم الخاصة بي",
+    "landingWhyTitle": "لماذا المهارات الاقتصادية؟",
+    "landingFeature1Title": "التعلم التفاعلي",
+    "landingFeature1Desc": "لا تكتفِ بالقراءة عن الاقتصاد. مارسه. تعامل مع البيانات في الوقت الفعلي وشاهد كيف تستجيب النماذج الاقتصادية.",
+    "landingFeature2Title": "تكامل Google Sheets",
+    "landingFeature2Desc": "اعمل في البيئة التي تعرفها. يجلب تكاملنا السلس قوة جداول البيانات إلى تعلمك.",
+    "landingFeature3Title": "تمارين R و Python",
+    "landingFeature3Desc": "اكتب كود R و Python لتحليل البيانات الاقتصادية. اكتسب مهارات واقعية مع تحديات البرمجة العملية.",
+    "landingFeature4Title": "التحقق الفوري",
+    "landingFeature4Desc": "احصل على تغذية راجعة فورية على تمارينك. افهم أخطاءك وتعلم بشكل أسرع.",
+    "landingCtaTitle": "هل أنت مستعد لبدء التعلم؟",
+    "landingBrowseCourses": "تصفح الدورات"
 }

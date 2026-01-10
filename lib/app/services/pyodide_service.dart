@@ -124,7 +124,7 @@ class PyodideService {
     for (final package in packages) {
       await _evalJS('''
         (async () => {
-          await window.pyodide.loadPackage('${package}');
+          await window.pyodide.loadPackage('$package');
           return 'installed';
         })()
       ''');
@@ -158,16 +158,16 @@ class PyodideService {
           const errors = [];
 
           // Capture stdout
-          window.pyodide.runPython(\`
+          window.pyodide.runPython(`
 import sys
 from io import StringIO
 sys.stdout = StringIO()
 sys.stderr = StringIO()
-          \`);
+          `);
 
           try {
             // Run user code
-            await window.pyodide.runPythonAsync(\`${_escapeCode(code)}\`);
+            await window.pyodide.runPythonAsync(`${_escapeCode(code)}`);
 
             // Get stdout
             const stdout = window.pyodide.runPython('sys.stdout.getvalue()');
@@ -356,7 +356,7 @@ sys.stderr = StringIO()
     final result = await _evalJS('''
       (async () => {
         try {
-          const exists = window.pyodide.runPython(\`'${varName}' in globals()\`);
+          const exists = window.pyodide.runPython(`'$varName' in globals()`);
           return exists ? 'true' : 'false';
         } catch (e) {
           return 'false';
@@ -371,7 +371,7 @@ sys.stderr = StringIO()
     final result = await _evalJS('''
       (async () => {
         try {
-          const exists = window.pyodide.runPython(\`'$colName' in $dfName.columns\`);
+          const exists = window.pyodide.runPython(`'$colName' in $dfName.columns`);
           return exists ? 'true' : 'false';
         } catch (e) {
           return 'false';
@@ -390,19 +390,19 @@ sys.stderr = StringIO()
     final result = await _evalJS('''
       (async () => {
         try {
-          const value = window.pyodide.runPython(\`${varName}\`);
-          const expected = ${expected};
+          const value = window.pyodide.runPython(`$varName`);
+          const expected = $expected;
 
           // Check if numeric with tolerance
           if (typeof value === 'number' && typeof expected === 'number') {
             const diff = Math.abs(value - expected);
             const relDiff = diff / Math.abs(expected);
-            const passed = relDiff <= ${tolerance};
+            const passed = relDiff <= $tolerance;
             return JSON.stringify({
               passed: passed,
               actual: value,
               expected: expected,
-              message: passed ? '' : \`Expected ${expected}, got \${value}\`
+              message: passed ? '' : `Expected $expected, got \${value}`
             });
           }
 
@@ -412,7 +412,7 @@ sys.stderr = StringIO()
             passed: passed,
             actual: value,
             expected: expected,
-            message: passed ? '' : \`Expected ${expected}, got \${value}\`
+            message: passed ? '' : `Expected $expected, got \${value}`
           });
         } catch (e) {
           return JSON.stringify({
@@ -431,7 +431,7 @@ sys.stderr = StringIO()
     final result = await _evalJS('''
       (async () => {
         try {
-          const typeCheck = window.pyodide.runPython(\`
+          const typeCheck = window.pyodide.runPython(`
 import pandas as pd
 import numpy as np
 
@@ -455,8 +455,8 @@ def check_type(var, expected_type):
     else:
         return type(var).__name__ == expected_type
 
-check_type(${varName}, '${expectedType}')
-          \`);
+check_type($varName, '$expectedType')
+          `);
           return typeCheck ? 'true' : 'false';
         } catch (e) {
           return 'false';

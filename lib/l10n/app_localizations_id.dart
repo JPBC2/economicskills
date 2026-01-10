@@ -74,4 +74,57 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get switchThemeTooltip => 'Ganti tema (gelap / terang)';
+
+  @override
+  String get landingHeroTitle1 => 'Kuasai Ekonomi dengan';
+
+  @override
+  String get landingHeroTitle2 => 'Data Interaktif';
+
+  @override
+  String get landingHeroSubtitle =>
+      'Jembatani kesenjangan antara teori dan praktik. Selesaikan masalah ekonomi dunia nyata menggunakan latihan interaktif Google Sheets, Python, dan R dengan umpan balik instan.';
+
+  @override
+  String get landingExploreCourses => 'Jelajahi Kursus';
+
+  @override
+  String get landingMyDashboard => 'Dasbor Saya';
+
+  @override
+  String get landingWhyTitle => 'Mengapa Economic Skills?';
+
+  @override
+  String get landingFeature1Title => 'Pembelajaran Interaktif';
+
+  @override
+  String get landingFeature1Desc =>
+      'Jangan hanya membaca tentang ekonomi. Praktikkan. Manipulasi data secara real-time dan lihat bagaimana model ekonomi merespons.';
+
+  @override
+  String get landingFeature2Title => 'Integrasi Google Sheets';
+
+  @override
+  String get landingFeature2Desc =>
+      'Bekerja di lingkungan yang Anda kenal. Integrasi mulus kami membawa kekuatan spreadsheet ke pembelajaran Anda.';
+
+  @override
+  String get landingFeature3Title => 'Latihan R & Python';
+
+  @override
+  String get landingFeature3Desc =>
+      'Tulis kode R dan Python untuk menganalisis data ekonomi. Kembangkan keterampilan nyata dengan tantangan coding praktis.';
+
+  @override
+  String get landingFeature4Title => 'Verifikasi Instan';
+
+  @override
+  String get landingFeature4Desc =>
+      'Dapatkan umpan balik langsung pada latihan Anda. Pahami kesalahan Anda dan belajar lebih cepat.';
+
+  @override
+  String get landingCtaTitle => 'Siap untuk mulai belajar?';
+
+  @override
+  String get landingBrowseCourses => 'Telusuri Kursus';
 }

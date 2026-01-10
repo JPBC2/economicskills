@@ -30,5 +30,22 @@
     "featureInDevelopment": "この機能は開発中です。",
     "signOutSuccess": "正常にサインアウトしました！",
     "signOutError": "サインアウトエラー",
-    "switchThemeTooltip": "テーマを切り替え（ダーク / ライト）"
+    "switchThemeTooltip": "テーマを切り替え（ダーク / ライト）",
+
+    "landingHeroTitle1": "インタラクティブデータで",
+    "landingHeroTitle2": "経済学をマスター",
+    "landingHeroSubtitle": "理論と実践のギャップを埋めましょう。Google Sheets、Python、Rのインタラクティブ演習で、即時フィードバックを受けながら実世界の経済問題を解決します。",
+    "landingExploreCourses": "コースを探す",
+    "landingMyDashboard": "マイダッシュボード",
+    "landingWhyTitle": "なぜEconomic Skills？",
+    "landingFeature1Title": "インタラクティブ学習",
+    "landingFeature1Desc": "経済学を読むだけでなく、実践しましょう。リアルタイムでデータを操作し、経済モデルがどう反応するか観察します。",
+    "landingFeature2Title": "Google Sheets統合",
+    "landingFeature2Desc": "慣れ親しんだ環境で作業できます。シームレスな統合により、スプレッドシートの力を学習に活かせます。",
+    "landingFeature3Title": "RとPython演習",
+    "landingFeature3Desc": "RとPythonコードを書いて経済データを分析。実践的なコーディング課題で実践スキルを身につけます。",
+    "landingFeature4Title": "即時検証",
+    "landingFeature4Desc": "演習に対する即時フィードバックを受け取れます。間違いを理解し、より速く学習しましょう。",
+    "landingCtaTitle": "学習を始める準備はできましたか？",
+    "landingBrowseCourses": "コースを閲覧"
 }

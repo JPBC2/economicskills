@@ -1,7 +1,7 @@
 /// Shared library for EconomicSkills apps
 /// Contains models and services used by both web and admin apps
 
-library shared;
+library;
 
 // Models
 export 'models/course.model.dart';

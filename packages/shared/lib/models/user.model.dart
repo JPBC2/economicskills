@@ -1,5 +1,6 @@
 /// User progress and spreadsheet data models
 /// Note: UserProfile and UserXP are now in profile.model.dart
+library;
 
 class UserSpreadsheet {
   final String id;

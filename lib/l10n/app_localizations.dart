@@ -255,6 +255,102 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Switch theme (dark / light)'**
   String get switchThemeTooltip;
+
+  /// First line of landing page hero title
+  ///
+  /// In en, this message translates to:
+  /// **'Master Economics with'**
+  String get landingHeroTitle1;
+
+  /// Second line of landing page hero title (highlighted)
+  ///
+  /// In en, this message translates to:
+  /// **'Interactive Data'**
+  String get landingHeroTitle2;
+
+  /// Landing page hero subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Bridge the gap between theory and practice. Solve real-world economic problems using interactive Google Sheets, Python, and R exercises with instant feedback.'**
+  String get landingHeroSubtitle;
+
+  /// Button to explore courses
+  ///
+  /// In en, this message translates to:
+  /// **'Explore Courses'**
+  String get landingExploreCourses;
+
+  /// Button to go to dashboard
+  ///
+  /// In en, this message translates to:
+  /// **'My Dashboard'**
+  String get landingMyDashboard;
+
+  /// Section title for features
+  ///
+  /// In en, this message translates to:
+  /// **'Why Economic Skills?'**
+  String get landingWhyTitle;
+
+  /// No description provided for @landingFeature1Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Interactive Learning'**
+  String get landingFeature1Title;
+
+  /// No description provided for @landingFeature1Desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t just read about economics. Do it. Manipulate data in real-time and see how economic models respond.'**
+  String get landingFeature1Desc;
+
+  /// No description provided for @landingFeature2Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Google Sheets Integration'**
+  String get landingFeature2Title;
+
+  /// No description provided for @landingFeature2Desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Work in the environment you know. Our seamless integration brings the power of spreadsheets to your learning.'**
+  String get landingFeature2Desc;
+
+  /// No description provided for @landingFeature3Title.
+  ///
+  /// In en, this message translates to:
+  /// **'R & Python Exercises'**
+  String get landingFeature3Title;
+
+  /// No description provided for @landingFeature3Desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Write R and Python code to analyze economic data. Build real-world skills with hands-on coding challenges.'**
+  String get landingFeature3Desc;
+
+  /// No description provided for @landingFeature4Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Instant Verification'**
+  String get landingFeature4Title;
+
+  /// No description provided for @landingFeature4Desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Get immediate feedback on your exercises. Understand your mistakes and learn faster.'**
+  String get landingFeature4Desc;
+
+  /// Call to action section title
+  ///
+  /// In en, this message translates to:
+  /// **'Ready to start learning?'**
+  String get landingCtaTitle;
+
+  /// Button to browse courses
+  ///
+  /// In en, this message translates to:
+  /// **'Browse Courses'**
+  String get landingBrowseCourses;
 }
 
 class _AppLocalizationsDelegate

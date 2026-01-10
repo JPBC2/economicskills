@@ -7,7 +7,6 @@ import 'package:economicskills/app/widgets/top_nav.widget.dart';
 import 'package:economicskills/app/widgets/hiding_scaffold.widget.dart';
 import 'package:economicskills/app/widgets/drawer_nav.widget.dart';
 import 'package:economicskills/app/res/responsive.res.dart';
-import 'package:economicskills/l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
 
 /// Lesson Screen - PUBLIC content (text/video), PROTECTED exercises

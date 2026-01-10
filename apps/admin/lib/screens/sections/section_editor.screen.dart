@@ -81,16 +81,16 @@ class _SectionEditorScreenState extends State<SectionEditorScreen> {
   ];
   
   // Language-specific template and solution URLs
-  Map<String, TextEditingController> _templateControllers = {};
-  Map<String, TextEditingController> _solutionControllers = {};
+  final Map<String, TextEditingController> _templateControllers = {};
+  final Map<String, TextEditingController> _solutionControllers = {};
   String _selectedSpreadsheetLang = 'en';
 
   // Language-specific Python starter code
-  Map<String, TextEditingController> _pythonStarterCodeControllers = {};
+  final Map<String, TextEditingController> _pythonStarterCodeControllers = {};
   String _selectedPythonLang = 'en';
   
   // Language-specific R starter code
-  Map<String, TextEditingController> _rStarterCodeControllers = {};
+  final Map<String, TextEditingController> _rStarterCodeControllers = {};
   String _selectedRLang = 'en';
   
   Map<String, Map<String, String>> _translations = {};

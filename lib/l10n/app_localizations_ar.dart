@@ -74,4 +74,57 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get switchThemeTooltip => 'تبديل المظهر (داكن / فاتح)';
+
+  @override
+  String get landingHeroTitle1 => 'أتقن الاقتصاد مع';
+
+  @override
+  String get landingHeroTitle2 => 'البيانات التفاعلية';
+
+  @override
+  String get landingHeroSubtitle =>
+      'اجسر الفجوة بين النظرية والتطبيق. حل مشكلات اقتصادية واقعية باستخدام تمارين Google Sheets و Python و R التفاعلية مع تغذية راجعة فورية.';
+
+  @override
+  String get landingExploreCourses => 'استكشف الدورات';
+
+  @override
+  String get landingMyDashboard => 'لوحة التحكم الخاصة بي';
+
+  @override
+  String get landingWhyTitle => 'لماذا المهارات الاقتصادية؟';
+
+  @override
+  String get landingFeature1Title => 'التعلم التفاعلي';
+
+  @override
+  String get landingFeature1Desc =>
+      'لا تكتفِ بالقراءة عن الاقتصاد. مارسه. تعامل مع البيانات في الوقت الفعلي وشاهد كيف تستجيب النماذج الاقتصادية.';
+
+  @override
+  String get landingFeature2Title => 'تكامل Google Sheets';
+
+  @override
+  String get landingFeature2Desc =>
+      'اعمل في البيئة التي تعرفها. يجلب تكاملنا السلس قوة جداول البيانات إلى تعلمك.';
+
+  @override
+  String get landingFeature3Title => 'تمارين R و Python';
+
+  @override
+  String get landingFeature3Desc =>
+      'اكتب كود R و Python لتحليل البيانات الاقتصادية. اكتسب مهارات واقعية مع تحديات البرمجة العملية.';
+
+  @override
+  String get landingFeature4Title => 'التحقق الفوري';
+
+  @override
+  String get landingFeature4Desc =>
+      'احصل على تغذية راجعة فورية على تمارينك. افهم أخطاءك وتعلم بشكل أسرع.';
+
+  @override
+  String get landingCtaTitle => 'هل أنت مستعد لبدء التعلم؟';
+
+  @override
+  String get landingBrowseCourses => 'تصفح الدورات';
 }

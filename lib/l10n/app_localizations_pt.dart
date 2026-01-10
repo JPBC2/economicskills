@@ -74,4 +74,57 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get switchThemeTooltip => 'Alternar tema (escuro / claro)';
+
+  @override
+  String get landingHeroTitle1 => 'Domine Economia com';
+
+  @override
+  String get landingHeroTitle2 => 'Dados Interativos';
+
+  @override
+  String get landingHeroSubtitle =>
+      'Preencha a lacuna entre teoria e prática. Resolva problemas econômicos reais usando exercícios interativos de Google Sheets, Python e R com feedback instantâneo.';
+
+  @override
+  String get landingExploreCourses => 'Explorar Cursos';
+
+  @override
+  String get landingMyDashboard => 'Meu Painel';
+
+  @override
+  String get landingWhyTitle => 'Por que Economic Skills?';
+
+  @override
+  String get landingFeature1Title => 'Aprendizado Interativo';
+
+  @override
+  String get landingFeature1Desc =>
+      'Não apenas leia sobre economia. Pratique. Manipule dados em tempo real e veja como os modelos econômicos respondem.';
+
+  @override
+  String get landingFeature2Title => 'Integração com Google Sheets';
+
+  @override
+  String get landingFeature2Desc =>
+      'Trabalhe no ambiente que você conhece. Nossa integração perfeita traz o poder das planilhas para seu aprendizado.';
+
+  @override
+  String get landingFeature3Title => 'Exercícios de R e Python';
+
+  @override
+  String get landingFeature3Desc =>
+      'Escreva código R e Python para analisar dados econômicos. Desenvolva habilidades reais com desafios práticos de programação.';
+
+  @override
+  String get landingFeature4Title => 'Verificação Instantânea';
+
+  @override
+  String get landingFeature4Desc =>
+      'Receba feedback imediato em seus exercícios. Entenda seus erros e aprenda mais rápido.';
+
+  @override
+  String get landingCtaTitle => 'Pronto para começar a aprender?';
+
+  @override
+  String get landingBrowseCourses => 'Ver Cursos';
 }

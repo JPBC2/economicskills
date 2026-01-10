@@ -2,6 +2,7 @@
 /// 
 /// The anon key is safe to expose publicly when RLS is enabled.
 /// The service role key should NEVER be in client code.
+library;
 
 class SupabaseConfig {
   /// Supabase project URL

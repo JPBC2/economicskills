@@ -1,5 +1,6 @@
 /// Course data models for EconomicSkills
 /// Represents the hierarchical structure: Course > Unit > Lesson > Exercise > Section
+library;
 
 class Course {
   final String id;

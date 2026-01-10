@@ -74,4 +74,57 @@ class AppLocalizationsCa extends AppLocalizations {
 
   @override
   String get switchThemeTooltip => 'Canvia el tema (fosc / clar)';
+
+  @override
+  String get landingHeroTitle1 => 'Domina l\'Economia amb';
+
+  @override
+  String get landingHeroTitle2 => 'Dades Interactives';
+
+  @override
+  String get landingHeroSubtitle =>
+      'Supera el buit entre teoria i pràctica. Resol problemes econòmics reals utilitzant exercicis interactius de Google Sheets, Python i R amb retroalimentació instantània.';
+
+  @override
+  String get landingExploreCourses => 'Explora els Cursos';
+
+  @override
+  String get landingMyDashboard => 'El Meu Tauler';
+
+  @override
+  String get landingWhyTitle => 'Per què Economic Skills?';
+
+  @override
+  String get landingFeature1Title => 'Aprenentatge Interactiu';
+
+  @override
+  String get landingFeature1Desc =>
+      'No només llegeixis sobre economia. Practica-la. Manipula dades en temps real i observa com responen els models econòmics.';
+
+  @override
+  String get landingFeature2Title => 'Integració amb Google Sheets';
+
+  @override
+  String get landingFeature2Desc =>
+      'Treballa en l\'entorn que coneixes. La nostra integració perfecta porta el poder dels fulls de càlcul al teu aprenentatge.';
+
+  @override
+  String get landingFeature3Title => 'Exercicis de R i Python';
+
+  @override
+  String get landingFeature3Desc =>
+      'Escriu codi R i Python per analitzar dades econòmiques. Desenvolupa habilitats reals amb reptes de programació pràctics.';
+
+  @override
+  String get landingFeature4Title => 'Verificació Instantània';
+
+  @override
+  String get landingFeature4Desc =>
+      'Obtén retroalimentació immediata als teus exercicis. Entén els teus errors i aprèn més ràpid.';
+
+  @override
+  String get landingCtaTitle => 'Preparat per començar a aprendre?';
+
+  @override
+  String get landingBrowseCourses => 'Veure Cursos';
 }

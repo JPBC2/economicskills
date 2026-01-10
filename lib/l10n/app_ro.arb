@@ -21,5 +21,22 @@
     "featureInDevelopment": "Această funcție este în dezvoltare.",
     "signOutSuccess": "Deconectare reușită!",
     "signOutError": "Eroare la deconectare",
-    "switchThemeTooltip": "Schimbă tema (întuneric / luminos)"
+    "switchThemeTooltip": "Schimbă tema (întuneric / luminos)",
+
+    "landingHeroTitle1": "Stăpânește Economia cu",
+    "landingHeroTitle2": "Date Interactive",
+    "landingHeroSubtitle": "Elimină decalajul dintre teorie și practică. Rezolvă probleme economice reale folosind exerciții interactive Google Sheets, Python și R cu feedback instant.",
+    "landingExploreCourses": "Explorează Cursurile",
+    "landingMyDashboard": "Panoul Meu",
+    "landingWhyTitle": "De ce Economic Skills?",
+    "landingFeature1Title": "Învățare Interactivă",
+    "landingFeature1Desc": "Nu doar citi despre economie. Practică-o. Manipulează date în timp real și observă cum răspund modelele economice.",
+    "landingFeature2Title": "Integrare Google Sheets",
+    "landingFeature2Desc": "Lucrează în mediul pe care îl cunoști. Integrarea noastră perfectă aduce puterea foilor de calcul în învățarea ta.",
+    "landingFeature3Title": "Exerciții R și Python",
+    "landingFeature3Desc": "Scrie cod R și Python pentru a analiza date economice. Dezvoltă abilități reale cu provocări practice de programare.",
+    "landingFeature4Title": "Verificare Instantanee",
+    "landingFeature4Desc": "Primește feedback imediat la exercițiile tale. Înțelege-ți greșelile și învață mai repede.",
+    "landingCtaTitle": "Ești gata să începi să înveți?",
+    "landingBrowseCourses": "Răsfoiește Cursurile"
 }

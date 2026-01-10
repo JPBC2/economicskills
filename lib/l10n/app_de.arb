@@ -21,5 +21,22 @@
     "featureInDevelopment": "Diese Funktion ist in Entwicklung.",
     "signOutSuccess": "Erfolgreich abgemeldet!",
     "signOutError": "Fehler beim Abmelden",
-    "switchThemeTooltip": "Design wechseln (dunkel / hell)"
+    "switchThemeTooltip": "Design wechseln (dunkel / hell)",
+
+    "landingHeroTitle1": "Wirtschaft meistern mit",
+    "landingHeroTitle2": "Interaktiven Daten",
+    "landingHeroSubtitle": "Schließen Sie die Lücke zwischen Theorie und Praxis. Lösen Sie reale wirtschaftliche Probleme mit interaktiven Google Sheets, Python und R Übungen mit sofortigem Feedback.",
+    "landingExploreCourses": "Kurse Entdecken",
+    "landingMyDashboard": "Mein Dashboard",
+    "landingWhyTitle": "Warum Economic Skills?",
+    "landingFeature1Title": "Interaktives Lernen",
+    "landingFeature1Desc": "Lesen Sie nicht nur über Wirtschaft. Praktizieren Sie sie. Manipulieren Sie Daten in Echtzeit und sehen Sie, wie wirtschaftliche Modelle reagieren.",
+    "landingFeature2Title": "Google Sheets Integration",
+    "landingFeature2Desc": "Arbeiten Sie in der Umgebung, die Sie kennen. Unsere nahtlose Integration bringt die Kraft von Tabellenkalkulationen in Ihr Lernen.",
+    "landingFeature3Title": "R & Python Übungen",
+    "landingFeature3Desc": "Schreiben Sie R und Python Code zur Analyse wirtschaftlicher Daten. Entwickeln Sie praktische Fähigkeiten mit Programmier-Challenges.",
+    "landingFeature4Title": "Sofortige Überprüfung",
+    "landingFeature4Desc": "Erhalten Sie sofortiges Feedback zu Ihren Übungen. Verstehen Sie Ihre Fehler und lernen Sie schneller.",
+    "landingCtaTitle": "Bereit zu lernen?",
+    "landingBrowseCourses": "Kurse Durchsuchen"
 }

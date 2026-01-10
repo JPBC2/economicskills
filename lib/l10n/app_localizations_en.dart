@@ -74,4 +74,57 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get switchThemeTooltip => 'Switch theme (dark / light)';
+
+  @override
+  String get landingHeroTitle1 => 'Master Economics with';
+
+  @override
+  String get landingHeroTitle2 => 'Interactive Data';
+
+  @override
+  String get landingHeroSubtitle =>
+      'Bridge the gap between theory and practice. Solve real-world economic problems using interactive Google Sheets, Python, and R exercises with instant feedback.';
+
+  @override
+  String get landingExploreCourses => 'Explore Courses';
+
+  @override
+  String get landingMyDashboard => 'My Dashboard';
+
+  @override
+  String get landingWhyTitle => 'Why Economic Skills?';
+
+  @override
+  String get landingFeature1Title => 'Interactive Learning';
+
+  @override
+  String get landingFeature1Desc =>
+      'Don\'t just read about economics. Do it. Manipulate data in real-time and see how economic models respond.';
+
+  @override
+  String get landingFeature2Title => 'Google Sheets Integration';
+
+  @override
+  String get landingFeature2Desc =>
+      'Work in the environment you know. Our seamless integration brings the power of spreadsheets to your learning.';
+
+  @override
+  String get landingFeature3Title => 'R & Python Exercises';
+
+  @override
+  String get landingFeature3Desc =>
+      'Write R and Python code to analyze economic data. Build real-world skills with hands-on coding challenges.';
+
+  @override
+  String get landingFeature4Title => 'Instant Verification';
+
+  @override
+  String get landingFeature4Desc =>
+      'Get immediate feedback on your exercises. Understand your mistakes and learn faster.';
+
+  @override
+  String get landingCtaTitle => 'Ready to start learning?';
+
+  @override
+  String get landingBrowseCourses => 'Browse Courses';
 }

@@ -74,4 +74,57 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get switchThemeTooltip => 'Thema wisselen (donker / licht)';
+
+  @override
+  String get landingHeroTitle1 => 'Beheers Economie met';
+
+  @override
+  String get landingHeroTitle2 => 'Interactieve Data';
+
+  @override
+  String get landingHeroSubtitle =>
+      'Overbrugt de kloof tussen theorie en praktijk. Los echte economische problemen op met interactieve Google Sheets, Python en R oefeningen met directe feedback.';
+
+  @override
+  String get landingExploreCourses => 'Ontdek Cursussen';
+
+  @override
+  String get landingMyDashboard => 'Mijn Dashboard';
+
+  @override
+  String get landingWhyTitle => 'Waarom Economic Skills?';
+
+  @override
+  String get landingFeature1Title => 'Interactief Leren';
+
+  @override
+  String get landingFeature1Desc =>
+      'Lees niet alleen over economie. Oefen het. Manipuleer data in real-time en zie hoe economische modellen reageren.';
+
+  @override
+  String get landingFeature2Title => 'Google Sheets Integratie';
+
+  @override
+  String get landingFeature2Desc =>
+      'Werk in de omgeving die je kent. Onze naadloze integratie brengt de kracht van spreadsheets naar je leerproces.';
+
+  @override
+  String get landingFeature3Title => 'R & Python Oefeningen';
+
+  @override
+  String get landingFeature3Desc =>
+      'Schrijf R en Python code om economische data te analyseren. Ontwikkel echte vaardigheden met praktische programmeeruitdagingen.';
+
+  @override
+  String get landingFeature4Title => 'Directe Verificatie';
+
+  @override
+  String get landingFeature4Desc =>
+      'Krijg direct feedback op je oefeningen. Begrijp je fouten en leer sneller.';
+
+  @override
+  String get landingCtaTitle => 'Klaar om te beginnen met leren?';
+
+  @override
+  String get landingBrowseCourses => 'Bekijk Cursussen';
 }

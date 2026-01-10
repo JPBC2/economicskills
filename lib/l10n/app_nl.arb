@@ -21,5 +21,22 @@
     "featureInDevelopment": "Deze functie is in ontwikkeling.",
     "signOutSuccess": "Succesvol uitgelogd!",
     "signOutError": "Fout bij uitloggen",
-    "switchThemeTooltip": "Thema wisselen (donker / licht)"
+    "switchThemeTooltip": "Thema wisselen (donker / licht)",
+
+    "landingHeroTitle1": "Beheers Economie met",
+    "landingHeroTitle2": "Interactieve Data",
+    "landingHeroSubtitle": "Overbrugt de kloof tussen theorie en praktijk. Los echte economische problemen op met interactieve Google Sheets, Python en R oefeningen met directe feedback.",
+    "landingExploreCourses": "Ontdek Cursussen",
+    "landingMyDashboard": "Mijn Dashboard",
+    "landingWhyTitle": "Waarom Economic Skills?",
+    "landingFeature1Title": "Interactief Leren",
+    "landingFeature1Desc": "Lees niet alleen over economie. Oefen het. Manipuleer data in real-time en zie hoe economische modellen reageren.",
+    "landingFeature2Title": "Google Sheets Integratie",
+    "landingFeature2Desc": "Werk in de omgeving die je kent. Onze naadloze integratie brengt de kracht van spreadsheets naar je leerproces.",
+    "landingFeature3Title": "R & Python Oefeningen",
+    "landingFeature3Desc": "Schrijf R en Python code om economische data te analyseren. Ontwikkel echte vaardigheden met praktische programmeeruitdagingen.",
+    "landingFeature4Title": "Directe Verificatie",
+    "landingFeature4Desc": "Krijg direct feedback op je oefeningen. Begrijp je fouten en leer sneller.",
+    "landingCtaTitle": "Klaar om te beginnen met leren?",
+    "landingBrowseCourses": "Bekijk Cursussen"
 }

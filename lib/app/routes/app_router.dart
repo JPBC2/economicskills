@@ -3,7 +3,6 @@ import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:economicskills/app/screens/landing.screen.dart';
 import 'package:economicskills/app/screens/login.screen.dart';
-import 'package:economicskills/app/screens/home.screen.dart';
 import 'package:economicskills/app/screens/error_404.screen.dart';
 import 'package:economicskills/app/screens/content/course_catalog.screen.dart';
 import 'package:economicskills/app/screens/content/course_detail.screen.dart';

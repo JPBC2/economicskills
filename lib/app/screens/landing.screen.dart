@@ -4,6 +4,7 @@ import 'package:economicskills/app/widgets/top_nav.widget.dart';
 import 'package:economicskills/app/widgets/hiding_scaffold.widget.dart';
 import 'package:economicskills/app/widgets/drawer_nav.widget.dart';
 import 'package:economicskills/app/res/responsive.res.dart';
+import 'package:economicskills/l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
 
 /// Landing Page - PUBLIC (no auth required)
@@ -15,7 +16,10 @@ class LandingScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
     final isAuthenticated = Supabase.instance.client.auth.currentUser != null;
+    final l10n = AppLocalizations.of(context)!;
+    final isRtl = Directionality.of(context) == TextDirection.rtl;
 
     return HidingScaffold(
       appBar: const TopNav(),
@@ -27,12 +31,18 @@ class LandingScreen extends StatelessWidget {
             padding: const EdgeInsets.symmetric(vertical: 80, horizontal: 24),
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  colorScheme.primaryContainer.withValues(alpha: 0.3),
-                  colorScheme.surface,
-                ],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: isDark
+                    ? [
+                        colorScheme.primaryContainer.withValues(alpha: 0.3),
+                        colorScheme.surface,
+                      ]
+                    : [
+                        const Color(0xFF1A237E), // Indigo (darkest)
+                        const Color(0xFF303F9F), // Deep indigo
+                        const Color(0xFF5C6BC0), // Medium indigo (bottom)
+                      ],
               ),
             ),
             child: Center(
@@ -41,26 +51,26 @@ class LandingScreen extends StatelessWidget {
                 child: Column(
                   children: [
                     Text(
-                      'Master Economics with',
+                      l10n.landingHeroTitle1,
                       style: theme.textTheme.displaySmall?.copyWith(
                         fontWeight: FontWeight.w600,
-                        color: colorScheme.onSurface,
+                        color: isDark ? colorScheme.onSurface : Colors.white,
                       ),
                       textAlign: TextAlign.center,
                     ),
                     Text(
-                      'Interactive Data',
+                      l10n.landingHeroTitle2,
                       style: theme.textTheme.displaySmall?.copyWith(
                         fontWeight: FontWeight.bold,
-                        color: colorScheme.primary,
+                        color: isDark ? colorScheme.primary : const Color(0xFF80DEEA),
                       ),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 24),
                     Text(
-                      'Bridge the gap between theory and practice. Solve real-world economic problems using interactive Google Sheets, Python, and R exercises with instant feedback.',
+                      l10n.landingHeroSubtitle,
                       style: theme.textTheme.titleMedium?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
+                        color: isDark ? colorScheme.onSurfaceVariant : Colors.white.withValues(alpha: 0.9),
                         height: 1.6,
                       ),
                       textAlign: TextAlign.center,
@@ -73,9 +83,11 @@ class LandingScreen extends StatelessWidget {
                       children: [
                         FilledButton.icon(
                           onPressed: () => context.go('/courses'),
-                          icon: const Icon(Icons.school),
-                          label: const Text('Explore Courses'),
+                          icon: Icon(isRtl ? Icons.school : Icons.school),
+                          label: Text(l10n.landingExploreCourses),
                           style: FilledButton.styleFrom(
+                            backgroundColor: isDark ? null : Colors.white,
+                            foregroundColor: isDark ? null : const Color(0xFF1A237E),
                             padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
                             textStyle: theme.textTheme.titleMedium,
                           ),
@@ -84,8 +96,10 @@ class LandingScreen extends StatelessWidget {
                           OutlinedButton.icon(
                             onPressed: () => context.go('/login'),
                             icon: const Icon(Icons.login),
-                            label: const Text('Sign In'),
+                            label: Text(l10n.navSignIn),
                             style: OutlinedButton.styleFrom(
+                              foregroundColor: isDark ? null : Colors.white,
+                              side: isDark ? null : const BorderSide(color: Colors.white),
                               padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
                               textStyle: theme.textTheme.titleMedium,
                             ),
@@ -94,8 +108,10 @@ class LandingScreen extends StatelessWidget {
                           OutlinedButton.icon(
                             onPressed: () => context.go('/dashboard'),
                             icon: const Icon(Icons.dashboard),
-                            label: const Text('My Dashboard'),
+                            label: Text(l10n.landingMyDashboard),
                             style: OutlinedButton.styleFrom(
+                              foregroundColor: isDark ? null : Colors.white,
+                              side: isDark ? null : const BorderSide(color: Colors.white),
                               padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
                               textStyle: theme.textTheme.titleMedium,
                             ),
@@ -117,7 +133,7 @@ class LandingScreen extends StatelessWidget {
                 child: Column(
                   children: [
                     Text(
-                      'Why Economic Skills?',
+                      l10n.landingWhyTitle,
                       style: theme.textTheme.headlineMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
@@ -129,31 +145,35 @@ class LandingScreen extends StatelessWidget {
                       alignment: WrapAlignment.center,
                       children: [
                         _buildFeatureCard(
+                          context,
                           theme,
                           Icons.play_circle_outline,
-                          'Interactive Learning',
-                          "Don't just read about economics. Do it. Manipulate data in real-time and see how economic models respond.",
+                          l10n.landingFeature1Title,
+                          l10n.landingFeature1Desc,
                           gradientColors: [Colors.red.shade400, Colors.red.shade700],
                         ),
                         _buildFeatureCard(
+                          context,
                           theme,
                           Icons.table_chart,
-                          'Google Sheets Integration',
-                          'Work in the environment you know. Our seamless integration brings the power of spreadsheets to your learning.',
+                          l10n.landingFeature2Title,
+                          l10n.landingFeature2Desc,
                           gradientColors: [Colors.green.shade400, Colors.green.shade700],
                         ),
                         _buildFeatureCard(
+                          context,
                           theme,
                           Icons.code,
-                          'R & Python Exercises',
-                          'Write R and Python code to analyze economic data. Build real-world skills with hands-on coding challenges.',
+                          l10n.landingFeature3Title,
+                          l10n.landingFeature3Desc,
                           gradientColors: [Colors.purple.shade400, Colors.purple.shade700],
                         ),
                         _buildFeatureCard(
+                          context,
                           theme,
                           Icons.check_circle_outline,
-                          'Instant Verification',
-                          'Get immediate feedback on your exercises. Understand your mistakes and learn faster.',
+                          l10n.landingFeature4Title,
+                          l10n.landingFeature4Desc,
                           gradientColors: [Colors.amber.shade500, Colors.orange.shade600],
                         ),
                       ],
@@ -172,7 +192,7 @@ class LandingScreen extends StatelessWidget {
               child: Column(
                 children: [
                   Text(
-                    'Ready to start learning?',
+                    l10n.landingCtaTitle,
                     style: theme.textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -180,8 +200,8 @@ class LandingScreen extends StatelessWidget {
                   const SizedBox(height: 16),
                   FilledButton.icon(
                     onPressed: () => context.go('/courses'),
-                    icon: const Icon(Icons.arrow_forward),
-                    label: const Text('Browse Courses'),
+                    icon: Icon(isRtl ? Icons.arrow_back : Icons.arrow_forward),
+                    label: Text(l10n.landingBrowseCourses),
                     style: FilledButton.styleFrom(
                       padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
                     ),
@@ -209,6 +229,7 @@ class LandingScreen extends StatelessWidget {
   }
 
   Widget _buildFeatureCard(
+    BuildContext context,
     ThemeData theme,
     IconData icon,
     String title,
@@ -216,6 +237,7 @@ class LandingScreen extends StatelessWidget {
     List<Color>? gradientColors,
   }) {
     final isDark = theme.brightness == Brightness.dark;
+    final isRtl = Directionality.of(context) == TextDirection.rtl;
 
     // Adjust gradient colors for dark theme (slightly lighter)
     final effectiveColors = gradientColors != null
@@ -231,7 +253,8 @@ class LandingScreen extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            // Use directional alignment for RTL support
+            crossAxisAlignment: isRtl ? CrossAxisAlignment.end : CrossAxisAlignment.start,
             children: [
               Container(
                 padding: const EdgeInsets.all(12),
@@ -258,6 +281,7 @@ class LandingScreen extends StatelessWidget {
                 style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
+                textAlign: isRtl ? TextAlign.right : TextAlign.left,
               ),
               const SizedBox(height: 8),
               Text(
@@ -266,6 +290,7 @@ class LandingScreen extends StatelessWidget {
                   color: theme.colorScheme.onSurfaceVariant,
                   height: 1.5,
                 ),
+                textAlign: isRtl ? TextAlign.right : TextAlign.left,
               ),
             ],
           ),

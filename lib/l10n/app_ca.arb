@@ -21,5 +21,22 @@
     "featureInDevelopment": "Aquesta funció està en desenvolupament.",
     "signOutSuccess": "Sessió tancada correctament!",
     "signOutError": "Error en tancar la sessió",
-    "switchThemeTooltip": "Canvia el tema (fosc / clar)"
+    "switchThemeTooltip": "Canvia el tema (fosc / clar)",
+
+    "landingHeroTitle1": "Domina l'Economia amb",
+    "landingHeroTitle2": "Dades Interactives",
+    "landingHeroSubtitle": "Supera el buit entre teoria i pràctica. Resol problemes econòmics reals utilitzant exercicis interactius de Google Sheets, Python i R amb retroalimentació instantània.",
+    "landingExploreCourses": "Explora els Cursos",
+    "landingMyDashboard": "El Meu Tauler",
+    "landingWhyTitle": "Per què Economic Skills?",
+    "landingFeature1Title": "Aprenentatge Interactiu",
+    "landingFeature1Desc": "No només llegeixis sobre economia. Practica-la. Manipula dades en temps real i observa com responen els models econòmics.",
+    "landingFeature2Title": "Integració amb Google Sheets",
+    "landingFeature2Desc": "Treballa en l'entorn que coneixes. La nostra integració perfecta porta el poder dels fulls de càlcul al teu aprenentatge.",
+    "landingFeature3Title": "Exercicis de R i Python",
+    "landingFeature3Desc": "Escriu codi R i Python per analitzar dades econòmiques. Desenvolupa habilitats reals amb reptes de programació pràctics.",
+    "landingFeature4Title": "Verificació Instantània",
+    "landingFeature4Desc": "Obtén retroalimentació immediata als teus exercicis. Entén els teus errors i aprèn més ràpid.",
+    "landingCtaTitle": "Preparat per començar a aprendre?",
+    "landingBrowseCourses": "Veure Cursos"
 }

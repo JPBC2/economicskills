@@ -55,7 +55,7 @@ class PythonExerciseWidgetState extends State<PythonExerciseWidget> with SingleT
   String? _error;
   ValidationResult? _validationResult;
   bool _hintUsed = false;
-  bool _answerUsed = false;  // Track if answer was revealed
+  final bool _answerUsed = false;  // Track if answer was revealed
 
   @override
   void initState() {

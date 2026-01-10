@@ -27,7 +27,7 @@ class WebRService {
   /// Initialize WebR runtime
   /// This loads the WebR WASM module and sets up the R environment
   Future<void> initialize({
-    List<String> packages = const ['dplyr', 'ggplot2'],
+    List<String> packages = const ['dplyr', 'readr'],
   }) async {
     if (_isInitialized) return;
     if (_isInitializing) {
@@ -45,13 +45,8 @@ class WebRService {
       // Load WebR from CDN
       await _loadWebRScript();
       
-      // Initialize WebR
-      await _initializeWebR();
-      
-      // Install requested packages
-      for (final package in packages) {
-        await installPackage(package);
-      }
+      // Initialize WebR with packages
+      await _initializeWebR(packages: packages);
       
       _isInitialized = true;
     } catch (e) {
@@ -103,13 +98,22 @@ class WebRService {
   }
   
   /// Initialize WebR instance
-  Future<void> _initializeWebR() async {
-    // WebR initialization script - creates window.webR
+  Future<void> _initializeWebR({List<String> packages = const []}) async {
+    // WebR initialization script - creates window.webR and installs packages
+    final packagesJson = packages.map((p) => '"$p"').join(', ');
     final initScript = '''
       (async function() {
         const { WebR } = await import('https://webr.r-wasm.org/latest/webr.mjs');
         window.webR = new WebR();
         await window.webR.init();
+        
+        // Install packages using WebR's package manager
+        ${packages.isNotEmpty ? '''
+        console.log('Installing R packages: ${packages.join(', ')}...');
+        await window.webR.installPackages([$packagesJson]);
+        console.log('R packages installed successfully');
+        ''' : ''}
+        
         return true;
       })()
     ''';

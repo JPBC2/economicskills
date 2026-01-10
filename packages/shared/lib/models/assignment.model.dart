@@ -1,5 +1,6 @@
 /// Assignment and Task data models for EconomicSkills
 /// Represents the new hierarchy additions: Section > Assignment > Task
+library;
 
 /// Assignment: Tool-specific implementation within a Section
 /// Can be 'spreadsheet', 'python', or 'r'

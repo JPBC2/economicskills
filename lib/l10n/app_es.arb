@@ -20,5 +20,22 @@
     "featureInDevelopment": "Esta función está en desarrollo.",
     "signOutSuccess": "¡Sesión cerrada exitosamente!",
     "signOutError": "Error al cerrar sesión",
-    "switchThemeTooltip": "Cambiar tema (claro / oscuro)"
+    "switchThemeTooltip": "Cambiar tema (claro / oscuro)",
+
+    "landingHeroTitle1": "Domina la Economía con",
+    "landingHeroTitle2": "Datos Interactivos",
+    "landingHeroSubtitle": "Cierra la brecha entre la teoría y la práctica. Resuelve problemas económicos reales usando ejercicios interactivos de Google Sheets, Python y R con retroalimentación instantánea.",
+    "landingExploreCourses": "Explorar Cursos",
+    "landingMyDashboard": "Mi Panel",
+    "landingWhyTitle": "¿Por qué Economic Skills?",
+    "landingFeature1Title": "Aprendizaje Interactivo",
+    "landingFeature1Desc": "No solo leas sobre economía. Practícala. Manipula datos en tiempo real y observa cómo responden los modelos económicos.",
+    "landingFeature2Title": "Integración con Google Sheets",
+    "landingFeature2Desc": "Trabaja en el entorno que conoces. Nuestra integración perfecta lleva el poder de las hojas de cálculo a tu aprendizaje.",
+    "landingFeature3Title": "Ejercicios de R y Python",
+    "landingFeature3Desc": "Escribe código R y Python para analizar datos económicos. Desarrolla habilidades reales con desafíos de programación prácticos.",
+    "landingFeature4Title": "Verificación Instantánea",
+    "landingFeature4Desc": "Obtén retroalimentación inmediata en tus ejercicios. Comprende tus errores y aprende más rápido.",
+    "landingCtaTitle": "¿Listo para empezar a aprender?",
+    "landingBrowseCourses": "Ver Cursos"
 }

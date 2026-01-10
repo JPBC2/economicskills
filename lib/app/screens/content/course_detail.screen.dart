@@ -81,7 +81,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
       print('Units response: $unitsResponse');
 
       // Ensure we have a list
-      final unitsList = unitsResponse is List ? unitsResponse : [unitsResponse];
+      final unitsList = unitsResponse;
 
       // Load user progress if authenticated
       Set<String> completedSections = {};
@@ -96,19 +96,17 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
               .eq('user_id', user.id)
               .eq('is_completed', true);
 
-          if (progressResponse is List) {
-            for (final p in progressResponse) {
-              final sectionId = p['section_id'] as String;
-              completedSections.add(sectionId);
-              if (p['completed_with'] != null) {
-                completedWith[sectionId] = p['completed_with'] as String;
-              }
-              if (p['xp_earned'] != null) {
-                xpEarned[sectionId] = p['xp_earned'] as int;
-              }
+          for (final p in progressResponse) {
+            final sectionId = p['section_id'] as String;
+            completedSections.add(sectionId);
+            if (p['completed_with'] != null) {
+              completedWith[sectionId] = p['completed_with'] as String;
+            }
+            if (p['xp_earned'] != null) {
+              xpEarned[sectionId] = p['xp_earned'] as int;
             }
           }
-        } catch (e) {
+                } catch (e) {
           print('Error loading user progress: $e');
         }
       }

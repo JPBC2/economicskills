@@ -74,4 +74,57 @@ class AppLocalizationsRo extends AppLocalizations {
 
   @override
   String get switchThemeTooltip => 'Schimbă tema (întuneric / luminos)';
+
+  @override
+  String get landingHeroTitle1 => 'Stăpânește Economia cu';
+
+  @override
+  String get landingHeroTitle2 => 'Date Interactive';
+
+  @override
+  String get landingHeroSubtitle =>
+      'Elimină decalajul dintre teorie și practică. Rezolvă probleme economice reale folosind exerciții interactive Google Sheets, Python și R cu feedback instant.';
+
+  @override
+  String get landingExploreCourses => 'Explorează Cursurile';
+
+  @override
+  String get landingMyDashboard => 'Panoul Meu';
+
+  @override
+  String get landingWhyTitle => 'De ce Economic Skills?';
+
+  @override
+  String get landingFeature1Title => 'Învățare Interactivă';
+
+  @override
+  String get landingFeature1Desc =>
+      'Nu doar citi despre economie. Practică-o. Manipulează date în timp real și observă cum răspund modelele economice.';
+
+  @override
+  String get landingFeature2Title => 'Integrare Google Sheets';
+
+  @override
+  String get landingFeature2Desc =>
+      'Lucrează în mediul pe care îl cunoști. Integrarea noastră perfectă aduce puterea foilor de calcul în învățarea ta.';
+
+  @override
+  String get landingFeature3Title => 'Exerciții R și Python';
+
+  @override
+  String get landingFeature3Desc =>
+      'Scrie cod R și Python pentru a analiza date economice. Dezvoltă abilități reale cu provocări practice de programare.';
+
+  @override
+  String get landingFeature4Title => 'Verificare Instantanee';
+
+  @override
+  String get landingFeature4Desc =>
+      'Primește feedback imediat la exercițiile tale. Înțelege-ți greșelile și învață mai repede.';
+
+  @override
+  String get landingCtaTitle => 'Ești gata să începi să înveți?';
+
+  @override
+  String get landingBrowseCourses => 'Răsfoiește Cursurile';
 }

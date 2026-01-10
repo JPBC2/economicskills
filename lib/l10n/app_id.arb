@@ -30,5 +30,22 @@
     "featureInDevelopment": "Fitur ini sedang dalam pengembangan.",
     "signOutSuccess": "Berhasil keluar!",
     "signOutError": "Gagal keluar",
-    "switchThemeTooltip": "Ganti tema (gelap / terang)"
+    "switchThemeTooltip": "Ganti tema (gelap / terang)",
+
+    "landingHeroTitle1": "Kuasai Ekonomi dengan",
+    "landingHeroTitle2": "Data Interaktif",
+    "landingHeroSubtitle": "Jembatani kesenjangan antara teori dan praktik. Selesaikan masalah ekonomi dunia nyata menggunakan latihan interaktif Google Sheets, Python, dan R dengan umpan balik instan.",
+    "landingExploreCourses": "Jelajahi Kursus",
+    "landingMyDashboard": "Dasbor Saya",
+    "landingWhyTitle": "Mengapa Economic Skills?",
+    "landingFeature1Title": "Pembelajaran Interaktif",
+    "landingFeature1Desc": "Jangan hanya membaca tentang ekonomi. Praktikkan. Manipulasi data secara real-time dan lihat bagaimana model ekonomi merespons.",
+    "landingFeature2Title": "Integrasi Google Sheets",
+    "landingFeature2Desc": "Bekerja di lingkungan yang Anda kenal. Integrasi mulus kami membawa kekuatan spreadsheet ke pembelajaran Anda.",
+    "landingFeature3Title": "Latihan R & Python",
+    "landingFeature3Desc": "Tulis kode R dan Python untuk menganalisis data ekonomi. Kembangkan keterampilan nyata dengan tantangan coding praktis.",
+    "landingFeature4Title": "Verifikasi Instan",
+    "landingFeature4Desc": "Dapatkan umpan balik langsung pada latihan Anda. Pahami kesalahan Anda dan belajar lebih cepat.",
+    "landingCtaTitle": "Siap untuk mulai belajar?",
+    "landingBrowseCourses": "Telusuri Kursus"
 }

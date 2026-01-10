@@ -30,5 +30,46 @@
     "featureInDevelopment": "This feature is in development.",
     "signOutSuccess": "Successfully signed out!",
     "signOutError": "Error signing out",
-    "switchThemeTooltip": "Switch theme (dark / light)"
+    "switchThemeTooltip": "Switch theme (dark / light)",
+
+    "landingHeroTitle1": "Master Economics with",
+    "@landingHeroTitle1": {
+        "description": "First line of landing page hero title"
+    },
+    "landingHeroTitle2": "Interactive Data",
+    "@landingHeroTitle2": {
+        "description": "Second line of landing page hero title (highlighted)"
+    },
+    "landingHeroSubtitle": "Bridge the gap between theory and practice. Solve real-world economic problems using interactive Google Sheets, Python, and R exercises with instant feedback.",
+    "@landingHeroSubtitle": {
+        "description": "Landing page hero subtitle"
+    },
+    "landingExploreCourses": "Explore Courses",
+    "@landingExploreCourses": {
+        "description": "Button to explore courses"
+    },
+    "landingMyDashboard": "My Dashboard",
+    "@landingMyDashboard": {
+        "description": "Button to go to dashboard"
+    },
+    "landingWhyTitle": "Why Economic Skills?",
+    "@landingWhyTitle": {
+        "description": "Section title for features"
+    },
+    "landingFeature1Title": "Interactive Learning",
+    "landingFeature1Desc": "Don't just read about economics. Do it. Manipulate data in real-time and see how economic models respond.",
+    "landingFeature2Title": "Google Sheets Integration",
+    "landingFeature2Desc": "Work in the environment you know. Our seamless integration brings the power of spreadsheets to your learning.",
+    "landingFeature3Title": "R & Python Exercises",
+    "landingFeature3Desc": "Write R and Python code to analyze economic data. Build real-world skills with hands-on coding challenges.",
+    "landingFeature4Title": "Instant Verification",
+    "landingFeature4Desc": "Get immediate feedback on your exercises. Understand your mistakes and learn faster.",
+    "landingCtaTitle": "Ready to start learning?",
+    "@landingCtaTitle": {
+        "description": "Call to action section title"
+    },
+    "landingBrowseCourses": "Browse Courses",
+    "@landingBrowseCourses": {
+        "description": "Button to browse courses"
+    }
 }
