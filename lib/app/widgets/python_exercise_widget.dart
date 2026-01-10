@@ -517,32 +517,6 @@ class PythonExerciseWidgetState extends State<PythonExerciseWidget> with SingleT
     final theme = isDark ? atomOneDarkTheme : atomOneLightTheme;
     final wordWrap = _getEffectiveWordWrap(context);
 
-    final codeField = CodeTheme(
-      data: CodeThemeData(styles: theme),
-      child: CodeField(
-        controller: _codeController,
-        textStyle: const TextStyle(
-          fontFamily: 'Fira Code',
-          fontSize: 14,
-          height: 1.5,
-        ),
-        lineNumberStyle: LineNumberStyle(
-          width: 48,
-          textAlign: TextAlign.right,
-          textStyle: TextStyle(
-            fontFamily: 'Fira Code',
-            fontSize: 12,
-            height: 1.5,
-            color: isDark ? Colors.grey.shade500 : Colors.grey.shade600,
-          ),
-        ),
-        expands: false,
-        wrap: wordWrap,
-        minLines: 10,
-        maxLines: null,
-      ),
-    );
-
     return Container(
       decoration: BoxDecoration(
         border: Border.all(color: colorScheme.outline),
@@ -550,8 +524,29 @@ class PythonExerciseWidgetState extends State<PythonExerciseWidget> with SingleT
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(8),
-        child: SingleChildScrollView(
-          child: codeField,
+        child: CodeTheme(
+          data: CodeThemeData(styles: theme),
+          child: CodeField(
+            controller: _codeController,
+            textStyle: const TextStyle(
+              fontFamily: 'Fira Code',
+              fontSize: 14,
+              height: 1.5,
+            ),
+            gutterStyle: GutterStyle(
+              width: 48,
+              showErrors: false,
+              showFoldingHandles: false,
+              textStyle: TextStyle(
+                fontFamily: 'Fira Code',
+                fontSize: 12,
+                height: 1.5,
+                color: isDark ? Colors.grey.shade500 : Colors.grey.shade600,
+              ),
+            ),
+            expands: true,
+            wrap: wordWrap,
+          ),
         ),
       ),
     );
@@ -563,33 +558,6 @@ class PythonExerciseWidgetState extends State<PythonExerciseWidget> with SingleT
     final theme = isDark ? atomOneDarkTheme : atomOneLightTheme;
     final wordWrap = _getEffectiveWordWrap(context);
 
-    final codeField = CodeTheme(
-      data: CodeThemeData(styles: theme),
-      child: CodeField(
-        controller: _solutionController,
-        textStyle: const TextStyle(
-          fontFamily: 'Fira Code',
-          fontSize: 14,
-          height: 1.5,
-        ),
-        lineNumberStyle: LineNumberStyle(
-          width: 48,
-          textAlign: TextAlign.right,
-          textStyle: TextStyle(
-            fontFamily: 'Fira Code',
-            fontSize: 12,
-            height: 1.5,
-            color: isDark ? Colors.grey.shade500 : Colors.grey.shade600,
-          ),
-        ),
-        expands: false,
-        wrap: wordWrap,
-        minLines: 10,
-        maxLines: null,
-        readOnly: true,
-      ),
-    );
-
     return Container(
       decoration: BoxDecoration(
         border: Border.all(color: isDark ? Colors.deepPurple.shade300 : Colors.deepPurple.shade200),
@@ -599,8 +567,30 @@ class PythonExerciseWidgetState extends State<PythonExerciseWidget> with SingleT
         borderRadius: BorderRadius.circular(8),
         child: Stack(
           children: [
-            SingleChildScrollView(
-              child: codeField,
+            CodeTheme(
+              data: CodeThemeData(styles: theme),
+              child: CodeField(
+                controller: _solutionController,
+                textStyle: const TextStyle(
+                  fontFamily: 'Fira Code',
+                  fontSize: 14,
+                  height: 1.5,
+                ),
+                gutterStyle: GutterStyle(
+                  width: 48,
+                  showErrors: false,
+                  showFoldingHandles: false,
+                  textStyle: TextStyle(
+                    fontFamily: 'Fira Code',
+                    fontSize: 12,
+                    height: 1.5,
+                    color: isDark ? Colors.grey.shade500 : Colors.grey.shade600,
+                  ),
+                ),
+                expands: true,
+                wrap: wordWrap,
+                readOnly: true,
+              ),
             ),
             // Solution label
             Positioned(

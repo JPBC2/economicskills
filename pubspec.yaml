@@ -59,7 +59,7 @@ dependencies:
   pointer_interceptor: ^0.10.1+2
   
   # Code editor with syntax highlighting
-  flutter_code_editor: ^0.3.2
+  flutter_code_editor: ^0.3.5
   highlight: ^0.7.0
   flutter_highlight: ^0.7.0
 

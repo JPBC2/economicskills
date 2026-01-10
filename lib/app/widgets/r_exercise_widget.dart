@@ -601,34 +601,6 @@ class RExerciseWidgetState extends State<RExerciseWidget> with SingleTickerProvi
     final backgroundColor = isDark ? const Color(0xFF282c34) : Colors.grey.shade100;
     final wordWrap = _getEffectiveWordWrap(context);
 
-    // Create the code field widget
-    final codeField = CodeTheme(
-      data: CodeThemeData(styles: editorTheme),
-      child: CodeField(
-        controller: _codeController,
-        textStyle: TextStyle(
-          fontFamily: 'Fira Code',
-          fontSize: 14,
-          height: 1.5,
-          color: isDark ? Colors.white : Colors.black87,
-        ),
-        lineNumberStyle: LineNumberStyle(
-          width: 48,
-          textAlign: TextAlign.right,
-          textStyle: TextStyle(
-            fontFamily: 'Fira Code',
-            fontSize: 12,
-            height: 1.5, // Match code text height
-            color: isDark ? Colors.grey.shade500 : Colors.grey.shade600,
-          ),
-        ),
-        expands: false,
-        wrap: wordWrap,
-        minLines: 10,
-        maxLines: null
-      ),
-    );
-
     return Container(
       decoration: BoxDecoration(
         color: backgroundColor,
@@ -636,8 +608,30 @@ class RExerciseWidgetState extends State<RExerciseWidget> with SingleTickerProvi
           bottom: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
         ),
       ),
-      child: SingleChildScrollView(
-        child: codeField,
+      child: CodeTheme(
+        data: CodeThemeData(styles: editorTheme),
+        child: CodeField(
+          controller: _codeController,
+          textStyle: TextStyle(
+            fontFamily: 'Fira Code',
+            fontSize: 14,
+            height: 1.5,
+            color: isDark ? Colors.white : Colors.black87,
+          ),
+          gutterStyle: GutterStyle(
+            width: 48,
+            showErrors: false,
+            showFoldingHandles: false,
+            textStyle: TextStyle(
+              fontFamily: 'Fira Code',
+              fontSize: 12,
+              height: 1.5,
+              color: isDark ? Colors.grey.shade500 : Colors.grey.shade600,
+            ),
+          ),
+          expands: true,
+          wrap: wordWrap,
+        ),
       ),
     );
   }
@@ -649,35 +643,6 @@ class RExerciseWidgetState extends State<RExerciseWidget> with SingleTickerProvi
     final backgroundColor = isDark ? const Color(0xFF1a3a1a) : Colors.green.shade50;
     final wordWrap = _getEffectiveWordWrap(context);
 
-    // Create the code field widget
-    final codeField = CodeTheme(
-      data: CodeThemeData(styles: editorTheme),
-      child: CodeField(
-        controller: _solutionController,
-        textStyle: TextStyle(
-          fontFamily: 'Fira Code',
-          fontSize: 14,
-          height: 1.5,
-          color: isDark ? Colors.white : Colors.black87,
-        ),
-        lineNumberStyle: LineNumberStyle(
-          width: 48,
-          textAlign: TextAlign.right,
-          textStyle: TextStyle(
-            fontFamily: 'Fira Code',
-            fontSize: 12,
-            height: 1.5,
-            color: isDark ? Colors.grey.shade500 : Colors.grey.shade600,
-          ),
-        ),
-        expands: false,
-        wrap: wordWrap,
-        minLines: 10,
-        maxLines: null,
-        readOnly: true,
-      ),
-    );
-
     return Container(
       decoration: BoxDecoration(
         color: backgroundColor,
@@ -687,8 +652,31 @@ class RExerciseWidgetState extends State<RExerciseWidget> with SingleTickerProvi
       ),
       child: Stack(
         children: [
-          SingleChildScrollView(
-            child: codeField,
+          CodeTheme(
+            data: CodeThemeData(styles: editorTheme),
+            child: CodeField(
+              controller: _solutionController,
+              textStyle: TextStyle(
+                fontFamily: 'Fira Code',
+                fontSize: 14,
+                height: 1.5,
+                color: isDark ? Colors.white : Colors.black87,
+              ),
+              gutterStyle: GutterStyle(
+                width: 48,
+                showErrors: false,
+                showFoldingHandles: false,
+                textStyle: TextStyle(
+                  fontFamily: 'Fira Code',
+                  fontSize: 12,
+                  height: 1.5,
+                  color: isDark ? Colors.grey.shade500 : Colors.grey.shade600,
+                ),
+              ),
+              expands: true,
+              wrap: wordWrap,
+              readOnly: true,
+            ),
           ),
           // Solution label
           Positioned(
