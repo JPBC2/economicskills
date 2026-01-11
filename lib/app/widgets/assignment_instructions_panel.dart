@@ -215,7 +215,7 @@ class _AssignmentInstructionsPanelState extends State<AssignmentInstructionsPane
         // Tool badge row with 'Also available' aligned right
         Wrap(
           alignment: WrapAlignment.spaceBetween,
-          crossAxisAlignment: WrapCrossAlignment.center,
+          crossAxisAlignment: WrapCrossAlignment.start, // Align badge to top
           spacing: 8,
           runSpacing: 8,
           children: [
@@ -246,21 +246,27 @@ class _AssignmentInstructionsPanelState extends State<AssignmentInstructionsPane
             
             // Also available: other tools (right)
             if (toolCount > 1)
-              Wrap(
-                spacing: 8,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                children: [
-                  Text(
-                    'Also available:',
-                    style: theme.textTheme.labelSmall?.copyWith(color: colorScheme.onSurfaceVariant),
-                  ),
-                  if (widget.tool != 'spreadsheet' && supportsSpreadsheet)
-                    _buildToolLinkChip('spreadsheet', slug, Icons.table_chart, isDark ? Colors.blue : Colors.green),
-                  if (widget.tool != 'python' && supportsPython)
-                    _buildToolLinkChip('python', slug, Icons.code, isDark ? Colors.blue : Colors.deepPurple),
-                  if (widget.tool != 'r' && supportsR)
-                    _buildToolLinkChip('r', slug, Icons.analytics, Colors.blue),
-                ],
+              Padding(
+                // Add top padding to align visually with the badge when top-aligned
+                padding: const EdgeInsets.only(top: 4), 
+                child: Wrap(
+                  spacing: 8,
+                  runSpacing: 8, // Add runSpacing to inner wrap too
+                  alignment: WrapAlignment.end, // Align wrapped buttons to right
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    Text(
+                      'Also available:',
+                      style: theme.textTheme.labelSmall?.copyWith(color: colorScheme.onSurfaceVariant),
+                    ),
+                    if (widget.tool != 'spreadsheet' && supportsSpreadsheet)
+                      _buildToolLinkChip('spreadsheet', slug, Icons.table_chart, isDark ? Colors.blue : Colors.green),
+                    if (widget.tool != 'python' && supportsPython)
+                      _buildToolLinkChip('python', slug, Icons.code, isDark ? Colors.blue : Colors.deepPurple),
+                    if (widget.tool != 'r' && supportsR)
+                      _buildToolLinkChip('r', slug, Icons.analytics, Colors.blue),
+                  ],
+                ),
               ),
           ],
         ),

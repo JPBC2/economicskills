@@ -390,7 +390,9 @@ class _RAssignmentScreenState extends State<RAssignmentScreen> {
     final isAuthenticated = Supabase.instance.client.auth.currentUser != null;
     
     return Container(
-      color: colorScheme.surfaceContainerLowest,
+      color: isAuthenticated 
+          ? colorScheme.surfaceContainerLowest 
+          : colorScheme.surfaceContainerHighest,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
