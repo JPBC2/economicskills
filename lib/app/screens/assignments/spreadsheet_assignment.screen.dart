@@ -548,7 +548,9 @@ class _SpreadsheetAssignmentScreenState extends State<SpreadsheetAssignmentScree
         : _userSpreadsheet?.spreadsheetId ?? _section?.templateSpreadsheetId;
 
     return Container(
-      color: colorScheme.surfaceContainerLowest,
+      color: isAuthenticated 
+          ? colorScheme.surfaceContainerLowest 
+          : colorScheme.surfaceContainerHighest,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
